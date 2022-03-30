@@ -1,67 +1,100 @@
-# Copyright 2021 Canonical Ltd.
+# Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
-#
-# Learn more about testing at: https://juju.is/docs/sdk/testing
 
+import subprocess
 import unittest
-from unittest.mock import Mock
+from unittest.mock import MagicMock, patch
 
-from ops.model import ActiveStatus
+from charms.operator_libs_linux.v0 import apt
+from charms.operator_libs_linux.v1 import snap
+from ops.model import BlockedStatus, WaitingStatus
 from ops.testing import Harness
 
-from charm import OperatorTemplateCharm
+from charm import MySQLRouterOperatorCharm
 
 
 class TestCharm(unittest.TestCase):
     def setUp(self):
-        self.harness = Harness(OperatorTemplateCharm)
+        self.harness = Harness(MySQLRouterOperatorCharm)
         self.addCleanup(self.harness.cleanup)
         self.harness.begin()
+        self.maxDiff = None
+        self.name = "mysqlrouter"
 
-    def test_config_changed(self):
-        self.assertEqual(list(self.harness.charm._stored.things), [])
-        self.harness.update_config({"thing": "foo"})
-        self.assertEqual(list(self.harness.charm._stored.things), ["foo"])
+    @patch("charm.MySQLRouterOperatorCharm._install_apt_packages")
+    @patch("charm.MySQLRouterOperatorCharm._install_snap_packages")
+    def test_on_install(self, _install_snap_packages, _install_apt_packages):
+        """Test the on_install method."""
+        self.harness.charm.on.install.emit()
+        _install_apt_packages.assert_called_once()
+        _install_snap_packages.assert_called_once()
 
-    def test_action(self):
-        # the harness doesn't (yet!) help much with actions themselves
-        action_event = Mock(params={"fail": ""})
-        self.harness.charm._on_fortune_action(action_event)
+        self.assertEqual(
+            self.harness.charm.unit.status, WaitingStatus("waiting for database relation")
+        )
 
-        self.assertTrue(action_event.set_results.called)
+    @patch("charms.operator_libs_linux.v0.apt.add_package")
+    @patch("charms.operator_libs_linux.v0.apt.update")
+    def test_install_apt_packages(self, _update, _add_package):
+        """Test the _install_apt_packages method."""
+        # Test with a not found package.
+        _add_package.side_effect = apt.PackageNotFoundError
+        with self.assertRaises(apt.PackageNotFoundError):
+            self.harness.charm._install_apt_packages(["mysql-router"])
+        _update.assert_called_once()
+        _add_package.assert_called_once_with("mysql-router")
+        self.assertEqual(
+            self.harness.model.unit.status,
+            BlockedStatus("package not found: mysql-router"),
+        )
 
-    def test_action_fail(self):
-        action_event = Mock(params={"fail": "fail this"})
-        self.harness.charm._on_fortune_action(action_event)
+        # Then test a valid one.
+        _update.reset_mock()
+        _add_package.reset_mock()
+        _add_package.side_effect = None
+        self.harness.charm._install_apt_packages(["mysql-router"])
+        _update.assert_called_once()
+        _add_package.assert_called_once_with("mysql-router")
 
-        self.assertEqual(action_event.fail.call_args, [("fail this",)])
+        # Test apt error
+        _update.reset_mock()
+        _update.side_effect = subprocess.CalledProcessError(returncode=127, cmd="apt-get update")
 
-    def test_httpbin_pebble_ready(self):
-        # Check the initial Pebble plan is empty
-        initial_plan = self.harness.get_container_pebble_plan("httpbin")
-        self.assertEqual(initial_plan.to_yaml(), "{}\n")
-        # Expected plan after Pebble ready with default config
-        expected_plan = {
-            "services": {
-                "httpbin": {
-                    "override": "replace",
-                    "summary": "httpbin",
-                    "command": "gunicorn -b 0.0.0.0:80 httpbin:app -k gevent",
-                    "startup": "enabled",
-                    "environment": {"thing": "🎁"},
-                }
-            },
-        }
-        # Get the httpbin container from the model
-        container = self.harness.model.unit.get_container("httpbin")
-        # Emit the PebbleReadyEvent carrying the httpbin container
-        self.harness.charm.on.httpbin_pebble_ready.emit(container)
-        # Get the plan now we've run PebbleReady
-        updated_plan = self.harness.get_container_pebble_plan("httpbin").to_dict()
-        # Check we've got the plan we expected
-        self.assertEqual(expected_plan, updated_plan)
-        # Check the service was started
-        service = self.harness.model.unit.get_container("httpbin").get_service("httpbin")
-        self.assertTrue(service.is_running())
-        # Ensure we set an ActiveStatus with no message
-        self.assertEqual(self.harness.model.unit.status, ActiveStatus())
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.harness.charm._install_apt_packages(["mysql-router"])
+        _update.assert_called_once()
+        self.assertEqual(
+            self.harness.model.unit.status, BlockedStatus("failed to update apt cache")
+        )
+
+    @patch("charms.operator_libs_linux.v1.snap.SnapCache")
+    def test_install_snap_packages(self, _snap_cache):
+        """Test the _install_snap_packages method."""
+        # Test with a not found package.
+        mock_cache = MagicMock()
+        mock_cache.snapd_installed = True
+        _snap_cache.return_value = mock_cache
+
+        mock_mysql_shell = MagicMock()
+        mock_cache.__getitem__.return_value = mock_mysql_shell
+        mock_mysql_shell.present = False
+
+        mock_ensure = MagicMock()
+        mock_mysql_shell.ensure = mock_ensure
+        mock_ensure.side_effect = snap.SnapNotFoundError
+
+        with self.assertRaises(snap.SnapNotFoundError):
+            self.harness.charm._install_snap_packages(["mysql-shell"])
+        self.assertEqual(
+            self.harness.model.unit.status,
+            BlockedStatus("snap not found: mysql-shell"),
+        )
+
+        # Then test a valid one.
+        _snap_cache.reset_mock()
+        mock_ensure.reset_mock()
+        mock_ensure.side_effect = None
+
+        self.harness.charm._install_snap_packages(["mysql-shell"])
+        mock_ensure.assert_called_once()
+        _snap_cache.assert_called_once()
