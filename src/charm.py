@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2021 Canonical Ltd.
+# Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
 #
 # Learn more at: https://juju.is/docs/sdk
@@ -70,9 +70,9 @@ class MySQLRouterOperatorCharm(CharmBase):
 
         for package in packages:
             try:
-                pack = cache[package]
-                if not pack.present:
-                    snap.add(pack.name)
+                snap_pack = cache[package]
+                if not snap_pack.present:
+                    snap_pack.ensure(snap.SnapState.Latest)
             except snap.SnapNotFoundError as e:
                 logger.error(f"Snap not found: {package}")
                 self.unit.status = BlockedStatus(f"snap not found: {package}")
