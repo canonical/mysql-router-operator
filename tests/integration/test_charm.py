@@ -43,6 +43,7 @@ async def test_build_and_deploy(ops_test: OpsTest):
 @pytest.mark.abort_on_fail
 async def test_application_is_up(ops_test: OpsTest):
     """Test if the application is up."""
+    # TODO: Add database write/read test
     status = await ops_test.model.get_status()  # noqa: F821
     address = status["applications"][APP_NAME]["units"][f"{APP_NAME}/0"]["address"]
 
