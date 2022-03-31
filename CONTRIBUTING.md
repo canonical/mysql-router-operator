@@ -27,6 +27,35 @@ this operator.
 
 ## Developing
 
+### Environment set up
+
+This operator charm can be deployed locally using [Juju on a localhost LXD
+cloud](https://juju.is/docs/olm/lxd). If you do not already have a Juju
+controller bootstrapped, you can set one up by doing the following:
+
+```
+# install requirements
+sudo snap install charmcraft --classic
+sudo snap install lxd
+sudo snap install juju --classic
+
+# configure lxd
+sudo adduser $USER lxd
+newgrp lxd
+lxd init --auto
+lxc network set lxdbr0 ipv6.address none
+
+# bootstrap controller to lxd
+juju clouds
+juju bootstrap localhost overlord
+```
+
+Clone this repository:
+```shell
+git clone https://github.com/canonical/mysql-router-operator.git
+cd mysql-router-operator
+```
+
 You can use the environments created by `tox` for development:
 
 ```shell
