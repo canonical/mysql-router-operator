@@ -48,7 +48,7 @@ class TestCharm(unittest.TestCase):
             BlockedStatus("package not found: mysql-router"),
         )
 
-        # Then test a valid one.
+        # Test a valid package.
         _update.reset_mock()
         _add_package.reset_mock()
         _add_package.side_effect = None
