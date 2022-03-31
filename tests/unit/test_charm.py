@@ -90,7 +90,7 @@ class TestCharm(unittest.TestCase):
             BlockedStatus("snap not found: mysql-shell"),
         )
 
-        # Then test a valid one.
+        # Then test a valid package.
         _snap_cache.reset_mock()
         mock_ensure.reset_mock()
         mock_ensure.side_effect = None
