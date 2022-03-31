@@ -60,12 +60,11 @@ class TestCharm(unittest.TestCase):
         _update.reset_mock()
         _update.side_effect = subprocess.CalledProcessError(returncode=127, cmd="apt-get update")
 
+        # On error, assert exception is raised.
         with self.assertRaises(subprocess.CalledProcessError):
             self.harness.charm._install_apt_packages(["mysql-router"])
         _update.assert_called_once()
-        self.assertEqual(
-            self.harness.model.unit.status, BlockedStatus("failed to update apt cache")
-        )
+        self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
 
     @patch("charms.operator_libs_linux.v1.snap.SnapCache")
     def test_install_snap_packages(self, _snap_cache):
@@ -94,7 +93,8 @@ class TestCharm(unittest.TestCase):
         _snap_cache.reset_mock()
         mock_ensure.reset_mock()
         mock_ensure.side_effect = None
-
         self.harness.charm._install_snap_packages(["mysql-shell"])
+        # Assert ensure (installing method) is called.
         mock_ensure.assert_called_once()
+        # Assert the snap cache is called.
         _snap_cache.assert_called_once()
