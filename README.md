@@ -2,7 +2,12 @@
 
 ## Description
 
-The Charmed MySQL Router Operator is a database proxy for Group Replicated MySQL clusters.
+The Charmed MySQL Router Operator is a database proxy for [Group Replicated
+MySQL](https://dev.mysql.com/doc/refman/8.0/en/mysql-innodb-cluster-introduction.html)
+clusters.
+
+MySQL Router is a middleware that provides transparent routing of MySQL servers
+and client applications. More info at [MySQL Router](https://dev.mysql.com/doc/mysql-router/8.0/en/).
 
 The proxy sits between the MySQL cluster and a client application, e.g.:
 
