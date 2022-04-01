@@ -36,7 +36,12 @@ class TestCharm(unittest.TestCase):
     @patch("charms.operator_libs_linux.v0.apt.add_package")
     @patch("charms.operator_libs_linux.v0.apt.update")
     def test_install_apt_packages(self, _update, _add_package):
-        """Test the _install_apt_packages method."""
+        """Test the _install_apt_packages method.
+
+        Tests upstream package not found.
+        Tests package installed (happy path)
+        Tests on apt-get update fail.
+        """
         # Test with a not found package.
         _add_package.side_effect = apt.PackageNotFoundError
         with self.assertRaises(apt.PackageNotFoundError):
@@ -65,7 +70,11 @@ class TestCharm(unittest.TestCase):
 
     @patch("charms.operator_libs_linux.v1.snap.SnapCache")
     def test_install_snap_packages(self, _snap_cache):
-        """Test the _install_snap_packages method."""
+        """Test the _install_snap_packages method.
+
+        Tests when snap package is not found.
+        Tests package installed (happy path).
+        """
         # Test with a not found package.
         mock_cache = MagicMock()
         mock_cache.snapd_installed = True
