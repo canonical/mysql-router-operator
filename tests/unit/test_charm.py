@@ -29,9 +29,7 @@ class TestCharm(unittest.TestCase):
         _install_apt_packages.assert_called_once()
         _install_snap_packages.assert_called_once()
 
-        self.assertEqual(
-            self.harness.charm.unit.status, WaitingStatus("waiting for database relation")
-        )
+        self.assertTrue(isinstance(self.harness.charm.unit.status, WaitingStatus))
 
     @patch("charms.operator_libs_linux.v0.apt.add_package")
     @patch("charms.operator_libs_linux.v0.apt.update")
@@ -44,8 +42,7 @@ class TestCharm(unittest.TestCase):
         """
         # Test with a not found package.
         _add_package.side_effect = apt.PackageNotFoundError
-        with self.assertRaises(apt.PackageNotFoundError):
-            self.harness.charm._install_apt_packages(["mysql-router"])
+        self.harness.charm._install_apt_packages(["mysql-router"])
         _update.assert_called_once()
         _add_package.assert_called_once_with("mysql-router")
         self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
@@ -63,8 +60,7 @@ class TestCharm(unittest.TestCase):
         _update.side_effect = subprocess.CalledProcessError(returncode=127, cmd="apt-get update")
 
         # On error, assert exception is raised.
-        with self.assertRaises(subprocess.CalledProcessError):
-            self.harness.charm._install_apt_packages(["mysql-router"])
+        self.harness.charm._install_apt_packages(["mysql-router"])
         _update.assert_called_once()
         self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
 
@@ -88,8 +84,7 @@ class TestCharm(unittest.TestCase):
         mock_mysql_shell.ensure = mock_ensure
         mock_ensure.side_effect = snap.SnapNotFoundError
 
-        with self.assertRaises(snap.SnapNotFoundError):
-            self.harness.charm._install_snap_packages(["mysql-shell"])
+        self.harness.charm._install_snap_packages(["mysql-shell"])
 
         self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
 

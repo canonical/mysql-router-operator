@@ -51,19 +51,19 @@ class MySQLRouterOperatorCharm(CharmBase):
         except subprocess.CalledProcessError as e:
             logger.exception("Failed to update apt cache", exc_info=e)
             self.unit.status = BlockedStatus("failed to update apt cache")
-            raise e
+            return
         for package in packages:
             try:
                 apt.add_package(package)
                 logger.debug(f"Installed package: {package}")
-            except apt.PackageNotFoundError as e:
+            except apt.PackageNotFoundError:
                 logger.error(f"Package not found: {package}")
                 self.unit.status = BlockedStatus("failed to install a package")
-                raise e
-            except apt.PackageError as e:
+                return
+            except apt.PackageError:
                 logger.error(f"Package error: {package}")
                 self.unit.status = BlockedStatus("failed to install a package")
-                raise e
+                return
 
     def _install_snap_packages(self, packages: List[str]) -> None:
         """Install snap packages.
@@ -81,14 +81,12 @@ class MySQLRouterOperatorCharm(CharmBase):
                 snap_pack = cache[package]
                 if not snap_pack.present:
                     snap_pack.ensure(snap.SnapState.Latest)
-            except snap.SnapNotFoundError as e:
+            except snap.SnapNotFoundError:
                 logger.error(f"Snap not found: {package}")
                 self.unit.status = BlockedStatus("failed to install a package")
-                raise e
-            except snap.SnapError as e:
+            except snap.SnapError:
                 logger.error(f"Snap error: {package} with error: {e.message}")
                 self.unit.status = BlockedStatus("failed to install a package")
-                raise e
 
 
 if __name__ == "__main__":
