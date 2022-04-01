@@ -54,11 +54,11 @@ class MySQLRouterOperatorCharm(CharmBase):
                 logger.debug(f"Installed package: {package}")
             except apt.PackageNotFoundError as e:
                 logger.error(f"Package not found: {package}")
-                self.unit.status = BlockedStatus(f"package not found: {package}")
+                self.unit.status = BlockedStatus("failed to install a package")
                 raise e
             except apt.PackageError as e:
                 logger.error(f"Package error: {package}")
-                self.unit.status = BlockedStatus(f"package error: {package}")
+                self.unit.status = BlockedStatus("failed to install a package")
                 raise e
 
     def _install_snap_packages(self, packages: List[str]) -> None:
@@ -75,11 +75,11 @@ class MySQLRouterOperatorCharm(CharmBase):
                     snap_pack.ensure(snap.SnapState.Latest)
             except snap.SnapNotFoundError as e:
                 logger.error(f"Snap not found: {package}")
-                self.unit.status = BlockedStatus(f"snap not found: {package}")
+                self.unit.status = BlockedStatus("failed to install a package")
                 raise e
             except snap.SnapError as e:
                 logger.error(f"Snap error: {package} with error: {e.message}")
-                self.unit.status = BlockedStatus(f"snap error: {package}")
+                self.unit.status = BlockedStatus("failed to install a package")
                 raise e
 
 
