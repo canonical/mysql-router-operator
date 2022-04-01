@@ -84,7 +84,7 @@ class MySQLRouterOperatorCharm(CharmBase):
             except snap.SnapNotFoundError:
                 logger.error(f"Snap not found: {package}")
                 self.unit.status = BlockedStatus("failed to install a package")
-            except snap.SnapError:
+            except snap.SnapError as e:
                 logger.error(f"Snap error: {package} with error: {e.message}")
                 self.unit.status = BlockedStatus("failed to install a package")
 
