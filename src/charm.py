@@ -40,7 +40,11 @@ class MySQLRouterOperatorCharm(CharmBase):
         self.unit.status = WaitingStatus("waiting for database relation")
 
     def _install_apt_packages(self, packages: List[str]) -> None:
-        """Install apt packages."""
+        """Install apt packages.
+
+        Args:
+            packages: List of apt packages to install.
+        """
         try:
             logger.debug("Updating apt cache")
             apt.update()
@@ -62,7 +66,11 @@ class MySQLRouterOperatorCharm(CharmBase):
                 raise e
 
     def _install_snap_packages(self, packages: List[str]) -> None:
-        """Install snap packages."""
+        """Install snap packages.
+
+        Args:
+            packages: List of snaps to install.
+        """
         cache = snap.SnapCache()
         if not cache.snapd_installed:
             logger.warning("snapd is not installed. Installing...")
