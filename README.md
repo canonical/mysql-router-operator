@@ -23,13 +23,16 @@ This charm must be used coupled with mysql-operator charm, through a relation, e
 
 ```bash
 juju deploy mysql-operator
-juju deploy mysql-router-operator
+juju deploy ./mysqlrouter_ubuntu-20.04-amd64.charm
 juju add-relation mysql-operator mysql-router-operator
 ```
 
+To more details on how to build and deploy, check
+[CONTRIBUTING.md](https://github.com/canonical/mysql-router-operator/blob/main/CONTRIBUTING.md).
+
 ## Relations
 
-Relations are defined in `metadata.yaml` are:
+[Relations](https://juju.is/docs/sdk/relations) are defined in `metadata.yaml` as:
 
 * Requires: db
 * Provides: db
