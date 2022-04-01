@@ -43,10 +43,7 @@ class TestCharm(unittest.TestCase):
             self.harness.charm._install_apt_packages(["mysql-router"])
         _update.assert_called_once()
         _add_package.assert_called_once_with("mysql-router")
-        self.assertEqual(
-            self.harness.model.unit.status,
-            BlockedStatus("package not found: mysql-router"),
-        )
+        self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
 
         # Test a valid package.
         _update.reset_mock()
@@ -84,10 +81,8 @@ class TestCharm(unittest.TestCase):
 
         with self.assertRaises(snap.SnapNotFoundError):
             self.harness.charm._install_snap_packages(["mysql-shell"])
-        self.assertEqual(
-            self.harness.model.unit.status,
-            BlockedStatus("snap not found: mysql-shell"),
-        )
+
+        self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
 
         # Then test a valid package.
         _snap_cache.reset_mock()
