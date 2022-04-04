@@ -19,7 +19,7 @@ flowchart TD
 
 ## Usage
 
-This charm must be used coupled with mysql-operator charm, through a relation, e.g.:
+Until the MySQL Router Machine Charm is published, you need to follow the build & deploy instructions from [CONTRIBUTING.md](link) to deploy the charm. After building and deploying the charm, it must be couple with the [mysql-operator charm](link), through a relation, e.g.: 
 
 ```bash
 juju deploy mysql-operator
