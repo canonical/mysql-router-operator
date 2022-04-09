@@ -1,104 +1,93 @@
 #!/usr/bin/env python3
-# Copyright 2021 Canonical Ltd.
+# Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
 #
 # Learn more at: https://juju.is/docs/sdk
 
-"""Charm the service.
-
-Refer to the following post for a quick-start guide that will help you
-develop a new k8s charm using the Operator Framework:
-
-    https://discourse.charmhub.io/t/4208
-"""
+"""MySQL-Router machine charm."""
 
 import logging
+import subprocess
+from typing import List
 
+from charms.operator_libs_linux.v0 import apt
+from charms.operator_libs_linux.v1 import snap
 from ops.charm import CharmBase
-from ops.framework import StoredState
 from ops.main import main
-from ops.model import ActiveStatus
+from ops.model import BlockedStatus, MaintenanceStatus, WaitingStatus
 
 logger = logging.getLogger(__name__)
 
+MYSQL_SHELL = "mysql-shell"
+MYSQL_ROUTER = "mysql-router"
 
-class OperatorTemplateCharm(CharmBase):
+
+class MySQLRouterOperatorCharm(CharmBase):
     """Charm the service."""
-
-    _stored = StoredState()
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.framework.observe(self.on.httpbin_pebble_ready, self._on_httpbin_pebble_ready)
-        self.framework.observe(self.on.config_changed, self._on_config_changed)
-        self.framework.observe(self.on.fortune_action, self._on_fortune_action)
-        self._stored.set_default(things=[])
 
-    def _on_httpbin_pebble_ready(self, event):
-        """Define and start a workload using the Pebble API.
+        self.name = "mysqlrouter"
+        self.framework.observe(self.on.install, self._on_install)
 
-        TEMPLATE-TODO: change this example to suit your needs.
-        You'll need to specify the right entrypoint and environment
-        configuration for your specific workload. Tip: you can see the
-        standard entrypoint of an existing container using docker inspect
+    def _on_install(self, _) -> None:
+        """Install the packages."""
+        self.unit.status = MaintenanceStatus("installing packages")
 
-        Learn more about Pebble layers at https://github.com/canonical/pebble
+        self._install_apt_packages([MYSQL_ROUTER])
+        self._install_snap_packages([MYSQL_SHELL])
+        self.unit.status = WaitingStatus("waiting for database relation")
+
+    def _install_apt_packages(self, packages: List[str]) -> None:
+        """Install apt packages.
+
+        Args:
+            packages: List of apt packages to install.
         """
-        # Get a reference the container attribute on the PebbleReadyEvent
-        container = event.workload
-        # Define an initial Pebble layer configuration
-        pebble_layer = {
-            "summary": "httpbin layer",
-            "description": "pebble config layer for httpbin",
-            "services": {
-                "httpbin": {
-                    "override": "replace",
-                    "summary": "httpbin",
-                    "command": "gunicorn -b 0.0.0.0:80 httpbin:app -k gevent",
-                    "startup": "enabled",
-                    "environment": {"thing": self.model.config["thing"]},
-                }
-            },
-        }
-        # Add initial Pebble config layer using the Pebble API
-        container.add_layer("httpbin", pebble_layer, combine=True)
-        # Autostart any services that were defined with startup: enabled
-        container.autostart()
-        # Learn more about statuses in the SDK docs:
-        # https://juju.is/docs/sdk/constructs#heading--statuses
-        self.unit.status = ActiveStatus()
+        try:
+            logger.debug("Updating apt cache")
+            apt.update()
+        except subprocess.CalledProcessError as e:
+            logger.exception("Failed to update apt cache", exc_info=e)
+            self.unit.status = BlockedStatus("failed to install necessary packages")
+            return
+        for package in packages:
+            try:
+                apt.add_package(package)
+                logger.debug(f"Installed package: {package}")
+            except apt.PackageNotFoundError:
+                logger.error(f"Package not found: {package}")
+                self.unit.status = BlockedStatus("failed to install necessary packages")
+                return
+            except apt.PackageError:
+                logger.error(f"Package error: {package}")
+                self.unit.status = BlockedStatus("failed to install necessary packages")
+                return
 
-    def _on_config_changed(self, _):
-        """Just an example to show how to deal with changed configuration.
+    def _install_snap_packages(self, packages: List[str]) -> None:
+        """Install snap packages.
 
-        TEMPLATE-TODO: change this example to suit your needs.
-        If you don't need to handle config, you can remove this method,
-        the hook created in __init__.py for it, the corresponding test,
-        and the config.py file.
-
-        Learn more about config at https://juju.is/docs/sdk/config
+        Args:
+            packages: List of snaps to install.
         """
-        current = self.config["thing"]
-        if current not in self._stored.things:
-            logger.debug("found a new thing: %r", current)
-            self._stored.things.append(current)
+        cache = snap.SnapCache()
+        if not cache.snapd_installed:
+            logger.warning("snapd is not installed. Installing...")
+            self._install_apt_packages(["snapd"])
 
-    def _on_fortune_action(self, event):
-        """Just an example to show how to receive actions.
-
-        TEMPLATE-TODO: change this example to suit your needs.
-        If you don't need to handle actions, you can remove this method,
-        the hook created in __init__.py for it, the corresponding test,
-        and the actions.py file.
-
-        Learn more about actions at https://juju.is/docs/sdk/actions
-        """
-        fail = event.params["fail"]
-        if fail:
-            event.fail(fail)
-        else:
-            event.set_results({"fortune": "A bug in the code is worth two in the documentation."})
+        for package in packages:
+            try:
+                snap_pack = cache[package]
+                if not snap_pack.present:
+                    snap_pack.ensure(snap.SnapState.Latest)
+            except snap.SnapNotFoundError:
+                logger.error(f"Snap not found: {package}")
+                self.unit.status = BlockedStatus("failed to install necessary packages")
+            except snap.SnapError as e:
+                logger.error(f"Snap error: {package} with error: {e.message}")
+                self.unit.status = BlockedStatus("failed to install necessary packages")
 
 
 if __name__ == "__main__":
-    main(OperatorTemplateCharm)
+    main(MySQLRouterOperatorCharm)
