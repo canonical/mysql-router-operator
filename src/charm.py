@@ -21,7 +21,7 @@ from constants import (
     MYSQL_ROUTER_DATABASE_DATA,
     PEER,
 )
-from mysql_router_helpers import MySQLRouter, MySQLRouterInstallAndConfigureError
+from mysql_router_helpers import MySQLRouter, MySQLRouterBootstrapError, MySQLRouterInstallAndConfigureError
 from relations.database import DatabaseRequiresRelation
 from relations.shared_db import SharedDBRelation
 
@@ -41,7 +41,7 @@ class MySQLRouterOperatorCharm(CharmBase):
         self.database_requires_relation = DatabaseRequiresRelation(self)
 
     # =======================
-    # Properties / Helpers
+    # Properties
     # =======================
 
     @property
@@ -137,13 +137,17 @@ class MySQLRouterOperatorCharm(CharmBase):
                     self._peers.data[self.app].get(MYSQL_ROUTER_DATABASE_DATA)
                 )
 
-                MySQLRouter.bootstrap_and_start_mysql_router(
-                    database_relation_data["username"],
-                    self._get_secret("app", "database_password"),
-                    self.shared_db_relation._get_related_app_name(),
-                    database_relation_data["endpoints"].split(",")[0].split(":")[0],
-                    "3306",
-                )
+                try:
+                    MySQLRouter.bootstrap_and_start_mysql_router(
+                        database_relation_data["username"],
+                        self._get_secret("app", "database_password"),
+                        self.shared_db_relation._get_related_app_name(),
+                        database_relation_data["endpoints"].split(",")[0].split(":")[0],
+                        "3306",
+                    )
+                except MySQLRouterBootstrapError:
+                    self.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
+                    return
 
                 self.model.relations[LEGACY_SHARED_DB][0].data[self.unit].update(
                     {

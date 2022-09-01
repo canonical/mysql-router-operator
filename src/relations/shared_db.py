@@ -8,7 +8,7 @@ import logging
 
 from ops.charm import RelationChangedEvent
 from ops.framework import Object
-from ops.model import Application, Unit
+from ops.model import Application, BlockedStatus, Unit
 
 from constants import (
     LEGACY_SHARED_DB,
@@ -19,7 +19,7 @@ from constants import (
     PASSWORD_LENGTH,
     PEER,
 )
-from mysql_router_helpers import MySQLRouter
+from mysql_router_helpers import MySQLRouter, MySQLRouterBootstrapError, MySQLRouterCreateUserWithDatabasePrivilegesError
 from utils import generate_random_password
 
 logger = logging.getLogger(__name__)
@@ -129,24 +129,32 @@ class SharedDBRelation(Object):
         related_app_name = self._get_related_app_name()
         application_password = generate_random_password(PASSWORD_LENGTH)
 
-        MySQLRouter.bootstrap_and_start_mysql_router(
-            parsed_database_data["username"],
-            database_password,
-            related_app_name,
-            db_host,
-            "3306",
-        )
+        try:
+            MySQLRouter.bootstrap_and_start_mysql_router(
+                parsed_database_data["username"],
+                database_password,
+                related_app_name,
+                db_host,
+                "3306",
+            )
+        except MySQLRouterBootstrapError:
+            self.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
+            return
 
-        MySQLRouter.create_user_with_database_privileges(
-            parsed_shared_db_data["username"],
-            application_password,
-            "%",
-            parsed_shared_db_data["database"],
-            parsed_database_data["username"],
-            database_password,
-            db_host,
-            "3306",
-        )
+        try:
+            MySQLRouter.create_user_with_database_privileges(
+                parsed_shared_db_data["username"],
+                application_password,
+                "%",
+                parsed_shared_db_data["database"],
+                parsed_database_data["username"],
+                database_password,
+                db_host,
+                "3306",
+            )
+        except MySQLRouterCreateUserWithDatabasePrivilegesError:
+            self.unit.status = BlockedStatus("Failed to create application user")
+            return
 
         self.charm._set_secret("app", "application_password", application_password)
 
