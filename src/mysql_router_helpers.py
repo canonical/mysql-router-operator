@@ -12,7 +12,7 @@ import subprocess
 import jinja2
 import mysql.connector
 from charms.operator_libs_linux.v0 import apt, passwd
-from charms.operator_libs_linux.v1 import SystemdError, systemd
+from charms.operator_libs_linux.v1 import systemd
 
 from constants import (
     MYSQL_HOME_DIRECTORY,
@@ -160,7 +160,7 @@ class MySQLRouter:
         except subprocess.CalledProcessError as e:
             logger.exception("Failed to bootstrap mysqlrouter", exc_info=e)
             raise MySQLRouterBootstrapError(e.stderr)
-        except SystemdError as e:
+        except systemd.SystemdError as e:
             logger.exception("Failed to set up mysqlrouter as a systemd service", exc_info=e)
             raise MySQLRouterBootstrapError("Failed to set up mysqlrouter as a systemd service")
 

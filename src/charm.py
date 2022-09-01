@@ -10,7 +10,7 @@ import json
 import logging
 from typing import Optional
 
-from charms.operator_libs_linux.v1 import SystemdError
+from charms.operator_libs_linux.v1 import systemd
 from ops.charm import CharmBase, RelationChangedEvent
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
@@ -124,7 +124,7 @@ class MySQLRouterOperatorCharm(CharmBase):
         ):
             try:
                 mysqlrouter_running = MySQLRouter.is_mysqlrouter_running()
-            except SystemdError as e:
+            except systemd.SystemdError as e:
                 logger.exception("Failed to check if mysqlrouter with systemd", exc_info=e)
                 self.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
                 return
