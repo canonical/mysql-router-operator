@@ -21,7 +21,11 @@ from constants import (
     MYSQL_ROUTER_DATABASE_DATA,
     PEER,
 )
-from mysql_router_helpers import MySQLRouter, MySQLRouterBootstrapError, MySQLRouterInstallAndConfigureError
+from mysql_router_helpers import (
+    MySQLRouter,
+    MySQLRouterBootstrapError,
+    MySQLRouterInstallAndConfigureError,
+)
 from relations.database import DatabaseRequiresRelation
 from relations.shared_db import SharedDBRelation
 

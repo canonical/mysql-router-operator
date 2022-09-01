@@ -19,7 +19,11 @@ from constants import (
     PASSWORD_LENGTH,
     PEER,
 )
-from mysql_router_helpers import MySQLRouter, MySQLRouterBootstrapError, MySQLRouterCreateUserWithDatabasePrivilegesError
+from mysql_router_helpers import (
+    MySQLRouter,
+    MySQLRouterBootstrapError,
+    MySQLRouterCreateUserWithDatabasePrivilegesError,
+)
 from utils import generate_random_password
 
 logger = logging.getLogger(__name__)
