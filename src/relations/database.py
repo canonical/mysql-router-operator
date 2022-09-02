@@ -1,7 +1,7 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Library containing the implementation of the legacy db-router relation."""
+"""Library containing the implementation of the database relation."""
 
 import json
 import logging

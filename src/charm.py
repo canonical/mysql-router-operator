@@ -17,8 +17,8 @@ from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingSta
 
 from constants import (
     LEGACY_SHARED_DB,
-    MYSQL_ROUTER_BOOTSTRAPED,
     MYSQL_ROUTER_DATABASE_DATA,
+    MYSQL_ROUTER_LEADER_BOOTSTRAPED,
     PEER,
 )
 from mysql_router_helpers import (
@@ -120,7 +120,7 @@ class MySQLRouterOperatorCharm(CharmBase):
         and share relevant connection data with the related app.
         """
         if isinstance(self.unit.status, WaitingStatus) and self.app_peer_data.get(
-            MYSQL_ROUTER_BOOTSTRAPED
+            MYSQL_ROUTER_LEADER_BOOTSTRAPED
         ):
             try:
                 mysqlrouter_running = MySQLRouter.is_mysqlrouter_running()

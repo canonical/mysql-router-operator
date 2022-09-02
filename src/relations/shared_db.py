@@ -14,8 +14,8 @@ from constants import (
     LEGACY_SHARED_DB,
     LEGACY_SHARED_DB_DATA,
     LEGACY_SHARED_DB_DATA_FORWARDED,
-    MYSQL_ROUTER_BOOTSTRAPED,
     MYSQL_ROUTER_DATABASE_DATA,
+    MYSQL_ROUTER_LEADER_BOOTSTRAPED,
     PASSWORD_LENGTH,
     PEER,
 )
@@ -45,7 +45,7 @@ class SharedDBRelation(Object):
         )
 
     # =======================
-    #  Handlers
+    #  Helpers
     # =======================
 
     def _get_related_app_name(self) -> str:
@@ -119,7 +119,7 @@ class SharedDBRelation(Object):
             return
 
         # Only execute if mysqlrouter has not already been bootstrapped
-        if self.charm.app_peer_data.get(MYSQL_ROUTER_BOOTSTRAPED):
+        if self.charm.app_peer_data.get(MYSQL_ROUTER_LEADER_BOOTSTRAPED):
             return
 
         if not self.charm.app_peer_data.get(MYSQL_ROUTER_DATABASE_DATA):
@@ -172,4 +172,4 @@ class SharedDBRelation(Object):
         }
         unit_databag.update(updates)
 
-        self.charm.app_peer_data[MYSQL_ROUTER_BOOTSTRAPED] = "true"
+        self.charm.app_peer_data[MYSQL_ROUTER_LEADER_BOOTSTRAPED] = "true"
