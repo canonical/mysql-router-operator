@@ -3,18 +3,24 @@
 name: mysqlrouter
 display-name: MySQL Router
 maintainers:
+  - Shayan Patel <shayan.patel@canonical.com>
   - Paulo Machado <paulo.machado@canonical.com>
 description: |
   Machine charmed operator for mysql-router.
 summary: |
-  Machine charmed operator for mysql-router. Enables effective access to group replicated MySQL cluster for client applications.
-# subordinate: true
+  Machine charmed operator for mysql-router.
+  Enables effective access to a MySQL cluster with Group Replication.
+subordinate: true
 provides:
-  client:
-    interface: db
+  shared-db:
+    interface: mysql-shared
+    scope: container
 requires:
   database:
-    interface: db
+    interface: mysql_client
+  juju-info:
+    interface: juju-info
+    scope: container
 peers:
   mysql-router:
     interface: mysql-router-peers
