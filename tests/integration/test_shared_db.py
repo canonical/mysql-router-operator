@@ -29,6 +29,8 @@ async def test_shared_db(ops_test: OpsTest):
     keystone_app = await ops_test.model.deploy(
         "keystone", application_name=KEYSTONE_APP_NAME, series="focal", num_units=2
     )
+    # MySQLRouter is a subordinate charm, and thus needs to be deployed with no units
+    # Instead, they will be deployed with the keystone units when related with the keystone app
     mysqlrouter_app = await ops_test.model.deploy(
         charm, application_name=MYSQLROUTER_APP_NAME, num_units=None
     )
