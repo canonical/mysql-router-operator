@@ -63,7 +63,9 @@ async def test_shared_db(ops_test: OpsTest):
             ),
         )
 
-    await ops_test.model.relate(f"{MYSQLROUTER_APP_NAME}:database", f"{MYSQL_APP_NAME}:database")
+    await ops_test.model.relate(
+        f"{MYSQLROUTER_APP_NAME}:backend-database", f"{MYSQL_APP_NAME}:database"
+    )
 
     async with ops_test.fast_forward():
         await asyncio.gather(

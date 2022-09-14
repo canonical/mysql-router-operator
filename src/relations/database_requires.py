@@ -1,7 +1,7 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Library containing the implementation of the database relation."""
+"""Library containing the implementation of the database requires relation."""
 
 import json
 import logging
@@ -12,11 +12,13 @@ from charms.data_platform_libs.v0.database_requires import (
     DatabaseRequires,
 )
 from ops.framework import Object
+from ops.model import BlockedStatus
 
 from constants import (
     DATABASE_REQUIRES_RELATION,
     LEGACY_SHARED_DB_DATA,
-    MYSQL_ROUTER_DATABASE_DATA,
+    MYSQL_ROUTER_PROVIDES_DATA,
+    MYSQL_ROUTER_REQUIRES_DATA,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,18 +32,28 @@ class DatabaseRequiresRelation(Object):
 
         self.charm = charm
 
-        # Request a `database` relation if the `shared-db` relation
-        # has been formed and the requested database name is available
         shared_db_data = self._get_shared_db_data()
-        if shared_db_data:
-            self.database = DatabaseRequires(
-                self.charm,
-                relation_name=DATABASE_REQUIRES_RELATION,
-                database_name=shared_db_data["database"],
-                extra_user_roles="mysqlrouter",
-            )
+        provides_data = self._get_provides_data()
 
-            self.framework.observe(self.database.on.database_created, self._on_database_created)
+        if provides_data and shared_db_data:
+            logger.error("Both shared-db and database relations created")
+            self.charm.unit.status = BlockedStatus("Both shared-db and database relations exists")
+            return
+
+        if not shared_db_data and not provides_data:
+            return
+
+        database_name = shared_db_data["database"] if shared_db_data else provides_data["database"]
+
+        self.database_requires_relation = DatabaseRequires(
+            self.charm,
+            relation_name=DATABASE_REQUIRES_RELATION,
+            database_name=database_name,
+            extra_user_roles="mysqlrouter",
+        )
+        self.framework.observe(
+            self.database_requires_relation.on.database_created, self._on_database_created
+        )
 
     # =======================
     #  Helpers
@@ -59,6 +71,18 @@ class DatabaseRequiresRelation(Object):
 
         return json.loads(shared_db_data)
 
+    def _get_provides_data(self) -> Dict:
+        """Helper to get the provides relation data from the app peer databag."""
+        peers = self.charm._peers
+        if not peers:
+            return None
+
+        provides_data = self.charm.app_peer_data.get(MYSQL_ROUTER_PROVIDES_DATA)
+        if not provides_data:
+            return None
+
+        return json.loads(provides_data)
+
     # =======================
     #  Handlers
     # =======================
@@ -73,7 +97,7 @@ class DatabaseRequiresRelation(Object):
         if not self.charm.unit.is_leader():
             return
 
-        self.charm.app_peer_data[MYSQL_ROUTER_DATABASE_DATA] = json.dumps(
+        self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA] = json.dumps(
             {
                 "username": event.username,
                 "endpoints": event.endpoints,

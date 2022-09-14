@@ -15,8 +15,11 @@ provides:
   shared-db:
     interface: mysql-shared
     scope: container
-requires:
   database:
+    interface: mysql_client
+    scope: container
+requires:
+  backend-database:
     interface: mysql_client
   juju-info:
     interface: juju-info
