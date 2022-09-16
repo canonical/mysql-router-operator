@@ -16,11 +16,12 @@ from charms.data_platform_libs.v0.database_requires import (
     DatabaseCreatedEvent,
     DatabaseRequires,
 )
-from charms.operator_libs_linux.v1 import systemd 
+from charms.operator_libs_linux.v1 import systemd
+from connector import MySQLConnector
 from ops.charm import ActionEvent, CharmBase, StartEvent
 from ops.main import main
 from ops.model import ActiveStatus, WaitingStatus
-from connector import MySQLConnector
+
 from utils import generate_random_chars
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,9 @@ class ApplicationCharm(CharmBase):
 
         self.database_name = f"{self.app.name.replace('-', '_')}_test_database"
         self.database_requires = DatabaseRequires(self, REMOTE, self.database_name)
-        self.framework.observe(self.database_requires.on.database_created, self._on_database_created)
+        self.framework.observe(
+            self.database_requires.on.database_created, self._on_database_created
+        )
         self.framework.observe(self.on.get_inserted_data_action, self._get_inserted_data)
 
     # =======================
@@ -79,7 +82,7 @@ class ApplicationCharm(CharmBase):
         if not self.unit.is_leader():
             return
 
-        logger.info("Receieved the database created event")
+        logger.info("Received the database created event")
 
         config = {
             "user": event.username,
@@ -102,11 +105,7 @@ class ApplicationCharm(CharmBase):
 
     def _get_inserted_data(self, event: ActionEvent) -> None:
         app_databag = self._peers.data[self.app]
-        event.set_results(
-            {
-                "data": app_databag.get("inserted_value")
-            }
-        )
+        event.set_results({"data": app_databag.get("inserted_value")})
 
     # =======================
     #  Helpers

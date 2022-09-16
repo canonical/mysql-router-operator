@@ -26,7 +26,6 @@ async def get_server_config_credentials(unit: Unit) -> Dict:
     return result.results
 
 
-
 async def get_inserted_data_by_application(unit: Unit) -> str:
     """Helper to run an action to retrieve inserted data by the application.
 

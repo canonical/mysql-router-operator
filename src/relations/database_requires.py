@@ -9,6 +9,7 @@ from typing import Dict
 
 from charms.data_platform_libs.v0.database_requires import (
     DatabaseCreatedEvent,
+    DatabaseEndpointsChangedEvent,
     DatabaseRequires,
 )
 from ops.framework import Object
@@ -54,6 +55,9 @@ class DatabaseRequiresRelation(Object):
         self.framework.observe(
             self.database_requires_relation.on.database_created, self._on_database_created
         )
+        self.framework.observe(
+            self.database_requires_relation.endpoints_changed, self._on_endpoints_changed
+        )
 
     # =======================
     #  Helpers
@@ -90,7 +94,7 @@ class DatabaseRequiresRelation(Object):
     def _on_database_created(self, event: DatabaseCreatedEvent) -> None:
         """Handle the database created event.
 
-        Set the relation data in the app peer databag for the `shared-db`
+        Set the relation data in the app peer databag for the `shared-db`/`database-provides`
         code to be able to bootstrap mysqlrouter, create an application
         user and relay the application user credentials to the consumer application.
         """
@@ -105,3 +109,19 @@ class DatabaseRequiresRelation(Object):
         )
 
         self.charm._set_secret("app", "database_password", event.password)
+
+    def _on_endpoints_changed(self, event: DatabaseEndpointsChangedEvent) -> None:
+        """Handle the database endpoints changed event.
+
+        Update the MYSQL_ROUTER_REQUIRES_DATA in the app peer databag so that
+        bootstraps of future units work.
+        """
+        if not self.charm.unit.is_leader():
+            return
+
+        if self.charm.app_peer_data.get(MYSQL_ROUTER_REQUIRES_DATA):
+            requires_data = json.loads(self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA])
+
+            requires_data["endpoints"] = event.endpoints
+
+            self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA] = json.dumps(requires_data)

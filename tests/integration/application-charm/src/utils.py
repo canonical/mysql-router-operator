@@ -8,7 +8,7 @@ import string
 
 
 def generate_random_chars(length: int) -> str:
-    """Randomly generate a string/
+    """Randomly generate a string.
 
     Args:
         length: length of the randomly generated string

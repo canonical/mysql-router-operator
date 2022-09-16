@@ -6,9 +6,8 @@ import asyncio
 import logging
 
 import pytest
-from pytest_operator.plugin import OpsTest
-
 from helpers import execute_queries_on_unit, get_server_config_credentials
+from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
 
