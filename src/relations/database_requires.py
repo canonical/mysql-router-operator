@@ -56,7 +56,7 @@ class DatabaseRequiresRelation(Object):
             self.database_requires_relation.on.database_created, self._on_database_created
         )
         self.framework.observe(
-            self.database_requires_relation.endpoints_changed, self._on_endpoints_changed
+            self.database_requires_relation.on.endpoints_changed, self._on_endpoints_changed
         )
 
     # =======================
