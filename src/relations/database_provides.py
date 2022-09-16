@@ -92,7 +92,7 @@ class DatabaseProvidesRelation(Object):
         if not self.charm.app_peer_data.get(MYSQL_ROUTER_REQUIRES_DATA):
             return
 
-        database_provides_relations = self.charm.model.relation.get(DATABASE_PROVIDES_RELATION)
+        database_provides_relations = self.charm.model.relations.get(DATABASE_PROVIDES_RELATION)
         if not database_provides_relations:
             return
 
@@ -147,3 +147,5 @@ class DatabaseProvidesRelation(Object):
         )
         self.database.set_endpoints(provides_relation_id, "127.0.0.1:3306")
         self.database.set_read_only_endpoints(provides_relation_id, "127.0.0.1:3307")
+
+        self.charm.app_peer_data[MYSQL_ROUTER_LEADER_BOOTSTRAPED] = "true"

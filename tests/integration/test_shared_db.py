@@ -8,6 +8,8 @@ import logging
 import pytest
 from pytest_operator.plugin import OpsTest
 
+from helpers import execute_queries_on_unit, get_server_config_credentials
+
 logger = logging.getLogger(__name__)
 
 MYSQL_APP_NAME = "mysql"
@@ -75,3 +77,21 @@ async def test_shared_db(ops_test: OpsTest):
                 lambda: mysqlrouter_app.status == "active", timeout=TIMEOUT
             ),
         )
+
+    # Test that the keystone migration ran
+    get_count_keystone_tables_sql = [
+        "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'keystone'",
+    ]
+
+    mysql_unit = ops_test.model.applications[MYSQL_APP_NAME].units[0]
+    mysql_unit_address = await mysql_unit.get_public_address()
+
+    server_config_credentials = await get_server_config_credentials(mysql_unit)
+
+    output = await execute_queries_on_unit(
+        mysql_unit_address,
+        server_config_credentials["username"],
+        server_config_credentials["password"],
+        get_count_keystone_tables_sql,
+    )
+    assert output[0] > 0
