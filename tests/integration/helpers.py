@@ -6,7 +6,6 @@ from typing import Dict, List
 
 from connector import MySQLConnector
 from juju.unit import Unit
-from pytest_operator.plugin import OpsTest
 
 
 async def get_server_config_credentials(unit: Unit) -> Dict:

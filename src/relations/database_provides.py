@@ -146,7 +146,11 @@ class DatabaseProvidesRelation(Object):
         self.database.set_credentials(
             provides_relation_id, application_username, application_password
         )
-        self.database.set_endpoints(provides_relation_id, f"file:///var/lib/mysql/{related_app_name}/mysql.sock")
-        self.database.set_read_only_endpoints(provides_relation_id, f"file:///var/lib/mysql/{related_app_name}/mysqlro.sock")
+        self.database.set_endpoints(
+            provides_relation_id, f"file:///var/lib/mysql/{related_app_name}/mysql.sock"
+        )
+        self.database.set_read_only_endpoints(
+            provides_relation_id, f"file:///var/lib/mysql/{related_app_name}/mysqlro.sock"
+        )
 
         self.charm.app_peer_data[MYSQL_ROUTER_LEADER_BOOTSTRAPED] = "true"

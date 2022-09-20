@@ -128,7 +128,8 @@ class MySQLRouter:
             MySQLRouterBootstrapError - if there is an issue bootstrapping MySQLRouter
         """
         # server_ssl_mode is set to enforce unix_socket connections to be established
-        # via encryption (see more at https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html)
+        # via encryption (see more at
+        # https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html)
         bootstrap_mysqlrouter_command = (
             "sudo",
             "/usr/bin/mysqlrouter",

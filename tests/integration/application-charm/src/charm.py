@@ -91,7 +91,7 @@ class ApplicationCharm(CharmBase):
         config = {
             "user": event.username,
             "password": event.password,
-            "unix_socket": event.endpoints[7:], # truncate leading file://
+            "unix_socket": event.endpoints[7:],  # truncate leading file://
             "database": self.database_name,
             "raise_on_warnings": False,
         }
