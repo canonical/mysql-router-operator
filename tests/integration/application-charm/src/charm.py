@@ -51,7 +51,11 @@ class ApplicationCharm(CharmBase):
     # =======================
 
     def _on_start(self, event: StartEvent) -> None:
-        """Handle the start event by setting the charm in waiting status."""
+        """Handle the start event by setting the charm in waiting status.
+
+        If the mysqlrouter application is scaling up, then confirm that this
+        application can connect to the database from the bootstrapped mysqlrouter.
+        """
         self.unit.status = WaitingStatus("Waiting for mysqlrouter relation")
 
         peer_databag = self._peers.data[self.app]
@@ -87,7 +91,7 @@ class ApplicationCharm(CharmBase):
         config = {
             "user": event.username,
             "password": event.password,
-            "host": event.endpoints.split(",")[0].split(":")[0],
+            "unix_socket": event.endpoints[7:], # truncate leading file://
             "database": self.database_name,
             "raise_on_warnings": False,
         }

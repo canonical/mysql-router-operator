@@ -105,13 +105,14 @@ class DatabaseProvidesRelation(Object):
 
         db_host = parsed_database_requires_data["endpoints"].split(",")[0].split(":")[0]
         mysqlrouter_username = parsed_database_requires_data["username"]
-        mysqlrouter_user_password = self.charm._get_secret("app", "database_password")
+        mysqlrouter_user_password = self.charm._get_secret("app", "database-password")
+        related_app_name = self._get_related_app_name()
 
         try:
             MySQLRouter.bootstrap_and_start_mysql_router(
                 mysqlrouter_username,
                 mysqlrouter_user_password,
-                self._get_related_app_name(),
+                related_app_name,
                 db_host,
                 "3306",
             )
@@ -145,7 +146,7 @@ class DatabaseProvidesRelation(Object):
         self.database.set_credentials(
             provides_relation_id, application_username, application_password
         )
-        self.database.set_endpoints(provides_relation_id, "127.0.0.1:3306")
-        self.database.set_read_only_endpoints(provides_relation_id, "127.0.0.1:3307")
+        self.database.set_endpoints(provides_relation_id, f"file:///var/lib/mysql/{related_app_name}/mysql.sock")
+        self.database.set_read_only_endpoints(provides_relation_id, f"file:///var/lib/mysql/{related_app_name}/mysqlro.sock")
 
         self.charm.app_peer_data[MYSQL_ROUTER_LEADER_BOOTSTRAPED] = "true"

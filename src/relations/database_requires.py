@@ -108,7 +108,7 @@ class DatabaseRequiresRelation(Object):
             }
         )
 
-        self.charm._set_secret("app", "database_password", event.password)
+        self.charm._set_secret("app", "database-password", event.password)
 
     def _on_endpoints_changed(self, event: DatabaseEndpointsChangedEvent) -> None:
         """Handle the database endpoints changed event.

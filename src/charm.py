@@ -150,7 +150,7 @@ class MySQLRouterOperatorCharm(CharmBase):
                 try:
                     MySQLRouter.bootstrap_and_start_mysql_router(
                         requires_data["username"],
-                        self._get_secret("app", "database_password"),
+                        self._get_secret("app", "database-password"),
                         related_app_name,
                         requires_data["endpoints"].split(",")[0].split(":")[0],
                         "3306",

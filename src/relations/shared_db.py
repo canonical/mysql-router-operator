@@ -132,7 +132,7 @@ class SharedDBRelation(Object):
             return
 
         parsed_requires_data = json.loads(self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA])
-        database_password = self.charm._get_secret("app", "database_password")
+        database_password = self.charm._get_secret("app", "database-password")
         parsed_shared_db_data = json.loads(self.charm.app_peer_data[LEGACY_SHARED_DB_DATA])
 
         db_host = parsed_requires_data["endpoints"].split(",")[0].split(":")[0]

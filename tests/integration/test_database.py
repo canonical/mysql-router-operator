@@ -30,17 +30,15 @@ async def test_database_relation(ops_test: OpsTest) -> None:
     mysqlrouter_charm = await ops_test.build_charm(".")
     application_charm = await ops_test.build_charm("./tests/integration/application-charm/")
 
-    mysql_app = await ops_test.model.deploy(
-        "mysql", channel="latest/edge", application_name=MYSQL_APP_NAME, num_units=1
+    # deploy mysqlrouter with num_units=None since it's a subordinate charm
+    # and will be installed with the related consumer application
+    applications = await asyncio.gather(
+        ops_test.model.deploy("mysql", channel="latest/edge", application_name=MYSQL_APP_NAME, num_units=1),
+        ops_test.model.deploy(mysqlrouter_charm, application_name=MYSQL_ROUTER_APP_NAME, num_units=None),
+        ops_test.model.deploy(application_charm, application_name=APPLICATION_APP_NAME, num_units = 1),
     )
 
-    mysqlrouter_app = await ops_test.model.deploy(
-        mysqlrouter_charm, application_name=MYSQL_ROUTER_APP_NAME, num_units=None
-    )
-
-    application_app = await ops_test.model.deploy(
-        application_charm, application_name=APPLICATION_APP_NAME, num_units=1
-    )
+    mysql_app, mysqlrouter_app, application_app = applications[0], applications[1], applications[2]
 
     await ops_test.model.relate(
         f"{APPLICATION_APP_NAME}:database", f"{MYSQL_ROUTER_APP_NAME}:database"
