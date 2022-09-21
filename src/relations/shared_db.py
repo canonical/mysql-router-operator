@@ -166,7 +166,7 @@ class SharedDBRelation(Object):
             self.charm.unit.status = BlockedStatus("Failed to create application user")
             return
 
-        self.charm._set_secret("app", "application_password", application_password)
+        self.charm._set_secret("app", "application-password", application_password)
 
         unit_databag = self.charm.model.relations[LEGACY_SHARED_DB][0].data[self.charm.unit]
         updates = {

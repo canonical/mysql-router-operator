@@ -165,7 +165,7 @@ class MySQLRouterOperatorCharm(CharmBase):
                             "allowed_units": shared_db_related_unit_name,
                             "db_host": "127.0.0.1",
                             "db_port": "3306",
-                            "password": self._get_secret("app", "application_password"),
+                            "password": self._get_secret("app", "application-password"),
                             "wait_timeout": "3600",
                         }
                     )
