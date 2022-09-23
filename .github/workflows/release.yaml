@@ -42,7 +42,7 @@ jobs:
       - name: Run tests
         run: tox -e unit
 
-  integration-test-microk8s:
+  integration-test:
     name: Integration tests
     runs-on: ubuntu-latest
     steps:
@@ -61,7 +61,7 @@ jobs:
       - lib-check
       - lint
       - unit-test
-      - integration-test-microk8s
+      - integration-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
