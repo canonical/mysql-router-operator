@@ -1,6 +1,6 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
-name: mysqlrouter
+name: mysql-router
 display-name: MySQL Router
 maintainers:
   - Shayan Patel <shayan.patel@canonical.com>
