@@ -36,7 +36,7 @@ class DatabaseRequiresRelation(Object):
 
         self.framework.observe(
             self.charm.on[DATABASE_REQUIRES_RELATION].relation_joined,
-            self._on_database_requires_relation_joined
+            self._on_database_requires_relation_joined,
         )
 
         shared_db_data = self._get_shared_db_data()
