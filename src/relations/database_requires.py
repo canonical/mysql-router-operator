@@ -98,7 +98,12 @@ class DatabaseRequiresRelation(Object):
     # =======================
 
     def _on_database_requires_relation_joined(self, event: RelationJoinedEvent) -> None:
-        """Handle the backend-database relation joined event."""
+        """Handle the backend-database relation joined event.
+
+        Waits until the database (provides) relation with the application is formed
+        before triggering the database_requires relation joined event (which will
+        request the database).
+        """
         if not self.charm.unit.is_leader():
             return
 
