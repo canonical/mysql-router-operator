@@ -12,6 +12,7 @@ from charms.data_platform_libs.v0.database_requires import (
     DatabaseEndpointsChangedEvent,
     DatabaseRequires,
 )
+from ops.charm import RelationJoinedEvent
 from ops.framework import Object
 from ops.model import BlockedStatus
 
@@ -32,6 +33,11 @@ class DatabaseRequiresRelation(Object):
         super().__init__(charm, DATABASE_REQUIRES_RELATION)
 
         self.charm = charm
+
+        self.framework.observe(
+            self.charm.on[DATABASE_REQUIRES_RELATION].relation_joined,
+            self._on_database_requires_relation_joined
+        )
 
         shared_db_data = self._get_shared_db_data()
         provides_data = self._get_provides_data()
@@ -90,6 +96,18 @@ class DatabaseRequiresRelation(Object):
     # =======================
     #  Handlers
     # =======================
+
+    def _on_database_requires_relation_joined(self, event: RelationJoinedEvent) -> None:
+        """Handle the backend-database relation joined event."""
+        if not self.charm.unit.is_leader():
+            return
+
+        provides_data = self._get_provides_data()
+        if not provides_data:
+            event.defer()
+            return
+
+        self.database_requires_relation._on_relation_joined_event(event)
 
     def _on_database_created(self, event: DatabaseCreatedEvent) -> None:
         """Handle the database created event.
