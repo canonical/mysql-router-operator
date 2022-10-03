@@ -44,7 +44,7 @@ async def test_database_relation(ops_test: OpsTest) -> None:
         ),
     )
 
-    mysql_app, application_app = applications[0], applications[1], applications[2]
+    mysql_app, application_app = applications[0], applications[2]
 
     await ops_test.model.relate(
         f"{MYSQL_ROUTER_APP_NAME}:backend-database", f"{MYSQL_APP_NAME}:database"
