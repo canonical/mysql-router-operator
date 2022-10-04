@@ -14,8 +14,8 @@ from constants import (
     LEGACY_SHARED_DB,
     LEGACY_SHARED_DB_DATA,
     LEGACY_SHARED_DB_DATA_FORWARDED,
-    MYSQL_ROUTER_DATABASE_DATA,
     MYSQL_ROUTER_LEADER_BOOTSTRAPED,
+    MYSQL_ROUTER_REQUIRES_DATA,
     PASSWORD_LENGTH,
     PEER,
 )
@@ -48,13 +48,17 @@ class SharedDBRelation(Object):
     #  Helpers
     # =======================
 
+    def _shared_db_relation_exists(self) -> bool:
+        """Indicates whether a shared-db relation exists."""
+        shared_db_relations = self.charm.model.relations.get(LEGACY_SHARED_DB)
+        return bool(shared_db_relations)
+
     def _get_related_app_name(self) -> str:
         """Helper to get the name of the related `shared-db` application."""
-        shared_db_relations = self.charm.model.relations.get(LEGACY_SHARED_DB)
-        if not shared_db_relations:
+        if not self._shared_db_relation_exists():
             return None
 
-        for key in shared_db_relations[0].data:
+        for key in self.charm.model.relations[LEGACY_SHARED_DB][0].data:
             if type(key) == Application and key.name != self.charm.app.name:
                 return key.name
 
@@ -62,11 +66,10 @@ class SharedDBRelation(Object):
 
     def _get_related_unit_name(self) -> str:
         """Helper to get the name of the related `shared-db` unit."""
-        shared_db_relations = self.charm.model.relations.get(LEGACY_SHARED_DB)
-        if not shared_db_relations:
+        if not self._shared_db_relation_exists():
             return None
 
-        for key in shared_db_relations[0].data:
+        for key in self.charm.model.relations[LEGACY_SHARED_DB][0].data:
             if type(key) == Unit and key.app.name != self.charm.app.name:
                 return key.name
 
@@ -122,27 +125,30 @@ class SharedDBRelation(Object):
         if self.charm.app_peer_data.get(MYSQL_ROUTER_LEADER_BOOTSTRAPED):
             return
 
-        if not self.charm.app_peer_data.get(MYSQL_ROUTER_DATABASE_DATA):
+        if not self.charm.app_peer_data.get(MYSQL_ROUTER_REQUIRES_DATA):
             return
 
-        parsed_database_data = json.loads(self.charm.app_peer_data[MYSQL_ROUTER_DATABASE_DATA])
-        database_password = self.charm._get_secret("app", "database_password")
+        if not self._shared_db_relation_exists():
+            return
+
+        parsed_requires_data = json.loads(self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA])
+        database_password = self.charm._get_secret("app", "database-password")
         parsed_shared_db_data = json.loads(self.charm.app_peer_data[LEGACY_SHARED_DB_DATA])
 
-        db_host = parsed_database_data["endpoints"].split(",")[0].split(":")[0]
+        db_host = parsed_requires_data["endpoints"].split(",")[0].split(":")[0]
         related_app_name = self._get_related_app_name()
         application_password = generate_random_password(PASSWORD_LENGTH)
 
         try:
             MySQLRouter.bootstrap_and_start_mysql_router(
-                parsed_database_data["username"],
+                parsed_requires_data["username"],
                 database_password,
                 related_app_name,
                 db_host,
                 "3306",
             )
         except MySQLRouterBootstrapError:
-            self.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
+            self.charm.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
             return
 
         try:
@@ -151,16 +157,16 @@ class SharedDBRelation(Object):
                 application_password,
                 "%",
                 parsed_shared_db_data["database"],
-                parsed_database_data["username"],
+                parsed_requires_data["username"],
                 database_password,
                 db_host,
                 "3306",
             )
         except MySQLRouterCreateUserWithDatabasePrivilegesError:
-            self.unit.status = BlockedStatus("Failed to create application user")
+            self.charm.unit.status = BlockedStatus("Failed to create application user")
             return
 
-        self.charm._set_secret("app", "application_password", application_password)
+        self.charm._set_secret("app", "application-password", application_password)
 
         unit_databag = self.charm.model.relations[LEGACY_SHARED_DB][0].data[self.charm.unit]
         updates = {

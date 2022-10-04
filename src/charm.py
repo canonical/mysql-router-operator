@@ -17,8 +17,8 @@ from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingSta
 
 from constants import (
     LEGACY_SHARED_DB,
-    MYSQL_ROUTER_DATABASE_DATA,
     MYSQL_ROUTER_LEADER_BOOTSTRAPED,
+    MYSQL_ROUTER_REQUIRES_DATA,
     PEER,
 )
 from mysql_router_helpers import (
@@ -26,7 +26,8 @@ from mysql_router_helpers import (
     MySQLRouterBootstrapError,
     MySQLRouterInstallAndConfigureError,
 )
-from relations.database import DatabaseRequiresRelation
+from relations.database_provides import DatabaseProvidesRelation
+from relations.database_requires import DatabaseRequiresRelation
 from relations.shared_db import SharedDBRelation
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ class MySQLRouterOperatorCharm(CharmBase):
 
         self.shared_db_relation = SharedDBRelation(self)
         self.database_requires_relation = DatabaseRequiresRelation(self)
+        self.database_provides_relation = DatabaseProvidesRelation(self)
 
     # =======================
     # Properties
@@ -132,36 +134,41 @@ class MySQLRouterOperatorCharm(CharmBase):
             if not self.unit.is_leader() and not mysqlrouter_running:
                 # Occasionally, the related unit is not in the relation databag if this handler
                 # is invoked in short succession after the peer joins the cluster
+                shared_db_relation_exists = self.shared_db_relation._shared_db_relation_exists()
                 shared_db_related_unit_name = self.shared_db_relation._get_related_unit_name()
-                if not shared_db_related_unit_name:
+                if shared_db_relation_exists and not shared_db_related_unit_name:
                     event.defer()
                     return
 
-                database_relation_data = json.loads(
-                    self._peers.data[self.app].get(MYSQL_ROUTER_DATABASE_DATA)
+                requires_data = json.loads(self.app_peer_data.get(MYSQL_ROUTER_REQUIRES_DATA))
+                related_app_name = (
+                    self.shared_db_relation._get_related_app_name()
+                    if self.shared_db_relation._shared_db_relation_exists()
+                    else self.database_provides_relation._get_related_app_name()
                 )
 
                 try:
                     MySQLRouter.bootstrap_and_start_mysql_router(
-                        database_relation_data["username"],
-                        self._get_secret("app", "database_password"),
-                        self.shared_db_relation._get_related_app_name(),
-                        database_relation_data["endpoints"].split(",")[0].split(":")[0],
+                        requires_data["username"],
+                        self._get_secret("app", "database-password"),
+                        related_app_name,
+                        requires_data["endpoints"].split(",")[0].split(":")[0],
                         "3306",
                     )
                 except MySQLRouterBootstrapError:
                     self.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
                     return
 
-                self.model.relations[LEGACY_SHARED_DB][0].data[self.unit].update(
-                    {
-                        "allowed_units": shared_db_related_unit_name,
-                        "db_host": "127.0.0.1",
-                        "db_port": "3306",
-                        "password": self._get_secret("app", "application_password"),
-                        "wait_timeout": "3600",
-                    }
-                )
+                if shared_db_relation_exists:
+                    self.model.relations[LEGACY_SHARED_DB][0].data[self.unit].update(
+                        {
+                            "allowed_units": shared_db_related_unit_name,
+                            "db_host": "127.0.0.1",
+                            "db_port": "3306",
+                            "password": self._get_secret("app", "application-password"),
+                            "wait_timeout": "3600",
+                        }
+                    )
 
             self.unit.status = ActiveStatus()
 

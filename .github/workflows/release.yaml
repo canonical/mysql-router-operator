@@ -42,8 +42,23 @@ jobs:
       - name: Run tests
         run: tox -e unit
 
-  integration-test:
-    name: Integration tests
+  # TODO: Uncomment when the following bug is resolved
+  # https://bugs.launchpad.net/charm-keystone/+bug/1990243
+  # integration-test-shared-db:
+  #   name: Integration tests for the shared db relation
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+  #     - name: Setup operator environment
+  #       uses: charmed-kubernetes/actions-operator@main
+  #       with:
+  #         provider: lxd
+  #     - name: Run integration tests
+  #       run: tox -e integration-shared-db
+
+  integration-test-database:
+    name: Integration tests for the database relation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -53,7 +68,7 @@ jobs:
         with:
           provider: lxd
       - name: Run integration tests
-        run: tox -e integration
+        run: tox -e integration-database
 
   release-to-charmhub:
     name: Release to CharmHub
@@ -61,7 +76,8 @@ jobs:
       - lib-check
       - lint
       - unit-test
-      - integration-test
+      # - integration-test-shared-db  # Uncomment when https://bugs.launchpad.net/charm-keystone/+bug/1990243 is resolved
+      - integration-test-database
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

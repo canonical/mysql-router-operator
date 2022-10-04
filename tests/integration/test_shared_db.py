@@ -6,6 +6,7 @@ import asyncio
 import logging
 
 import pytest
+from helpers import execute_queries_on_unit, get_server_config_credentials
 from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,9 @@ async def test_shared_db(ops_test: OpsTest):
             ),
         )
 
-    await ops_test.model.relate(f"{MYSQLROUTER_APP_NAME}:database", f"{MYSQL_APP_NAME}:database")
+    await ops_test.model.relate(
+        f"{MYSQLROUTER_APP_NAME}:backend-database", f"{MYSQL_APP_NAME}:database"
+    )
 
     async with ops_test.fast_forward():
         await asyncio.gather(
@@ -73,3 +76,21 @@ async def test_shared_db(ops_test: OpsTest):
                 lambda: mysqlrouter_app.status == "active", timeout=TIMEOUT
             ),
         )
+
+    # Test that the keystone migration ran
+    get_count_keystone_tables_sql = [
+        "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'keystone'",
+    ]
+
+    mysql_unit = ops_test.model.applications[MYSQL_APP_NAME].units[0]
+    mysql_unit_address = await mysql_unit.get_public_address()
+
+    server_config_credentials = await get_server_config_credentials(mysql_unit)
+
+    output = await execute_queries_on_unit(
+        mysql_unit_address,
+        server_config_credentials["username"],
+        server_config_credentials["password"],
+        get_count_keystone_tables_sql,
+    )
+    assert output[0] > 0
