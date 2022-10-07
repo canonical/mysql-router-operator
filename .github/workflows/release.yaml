@@ -20,64 +20,16 @@ jobs:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}" # FIXME: current token will expire around 2023-09-23
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install dependencies
-        run: python3 -m pip install tox
-      - name: Run linters
-        run: tox -e lint
-
-  unit-test:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install dependencies
-        run: python -m pip install tox
-      - name: Run tests
-        run: tox -e unit
-
-  # TODO: Uncomment when the following bug is resolved
-  # https://bugs.launchpad.net/charm-keystone/+bug/1990243
-  # integration-test-shared-db:
-  #   name: Integration tests for the shared db relation
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-  #     - name: Setup operator environment
-  #       uses: charmed-kubernetes/actions-operator@main
-  #       with:
-  #         provider: lxd
-  #     - name: Run integration tests
-  #       run: tox -e integration-shared-db
-
-  integration-test-database:
-    name: Integration tests for the database relation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup operator environment
-        uses: charmed-kubernetes/actions-operator@main
-        with:
-          provider: lxd
-      - name: Run integration tests
-        run: tox -e integration-database
+  ci-tests:
+    needs:
+      - lib-check
+    uses: ./.github/workflows/ci.yaml
 
   release-to-charmhub:
     name: Release to CharmHub
     needs:
       - lib-check
-      - lint
-      - unit-test
-      # - integration-test-shared-db  # Uncomment when https://bugs.launchpad.net/charm-keystone/+bug/1990243 is resolved
-      - integration-test-database
+      - ci-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
