@@ -72,7 +72,7 @@ class ApplicationCharm(CharmBase):
             with MySQLConnector(database_config) as cursor:
                 cursor.execute(
                     (
-                        f"SELECT data FROM {self.database_name}.app_data "
+                        f"SELECT data FROM `{self.database_name}`.app_data "
                         f"WHERE data = '{inserted_value}'"
                     )
                 )
@@ -119,7 +119,7 @@ class ApplicationCharm(CharmBase):
         """Creates a test table in the database."""
         cursor.execute(
             (
-                f"CREATE TABLE IF NOT EXISTS {self.database_name}.app_data("
+                f"CREATE TABLE IF NOT EXISTS `{self.database_name}`.app_data("
                 "id SMALLINT NOT NULL AUTO_INCREMENT, "
                 "data VARCHAR(255), "
                 "PRIMARY KEY (id))"
@@ -129,7 +129,7 @@ class ApplicationCharm(CharmBase):
     def _insert_test_data(self, cursor, random_value: str) -> None:
         """Inserts the provided random value into the test table in the database."""
         cursor.execute(
-            f"INSERT INTO {self.database_name}.app_data(data) VALUES(%s)",
+            f"INSERT INTO `{self.database_name}`.app_data(data) VALUES(%s)",
             (random_value,),
         )
 
