@@ -39,7 +39,7 @@ class ApplicationCharm(CharmBase):
 
         self.framework.observe(self.on.start, self._on_start)
 
-        self.database_name = f"{self.app.name.replace('-', '_')}_test_database"
+        self.database_name = f"{self.app.name}-test-database"
         self.database_requires = DatabaseRequires(self, REMOTE, self.database_name)
         self.framework.observe(
             self.database_requires.on.database_created, self._on_database_created
