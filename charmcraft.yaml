@@ -2,10 +2,6 @@
 # See LICENSE file for licensing details.
 
 type: charm
-parts:
-  charm:
-    charm-binary-python-packages:
-      - mysql-connector-python==8.0.30
 bases:
   - build-on:
       - name: "ubuntu"
@@ -13,3 +9,7 @@ bases:
     run-on:
       - name: "ubuntu"
         channel: "20.04"
+parts:
+  charm:
+    charm-binary-python-packages:
+      - mysql-connector-python==8.0.30

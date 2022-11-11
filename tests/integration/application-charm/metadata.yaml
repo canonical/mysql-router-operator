@@ -14,3 +14,6 @@ requires:
 peers:
   application-peers:
     interface: app-peers
+
+series:
+  - focal

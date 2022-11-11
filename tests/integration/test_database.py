@@ -87,7 +87,7 @@ async def test_database_relation(ops_test: OpsTest) -> None:
     server_config_credentials = await get_server_config_credentials(mysql_unit)
 
     select_inserted_data_sql = (
-        f"SELECT data FROM application_test_database.app_data WHERE data = '{inserted_data}'",
+        f"SELECT data FROM `application-test-database`.app_data WHERE data = '{inserted_data}'",
     )
     selected_data = await execute_queries_on_unit(
         mysql_unit_address,
