@@ -27,3 +27,5 @@ requires:
 peers:
   mysql-router:
     interface: mysql-router-peers
+series:
+  - focal
