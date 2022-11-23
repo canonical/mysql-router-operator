@@ -40,6 +40,7 @@ class MySQLRouterOperatorCharm(CharmBase):
         super().__init__(*args)
 
         self.framework.observe(self.on.install, self._on_install)
+        self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
         self.framework.observe(self.on[PEER].relation_changed, self._on_peer_relation_changed)
 
         self.shared_db_relation = SharedDBRelation(self)
@@ -114,6 +115,33 @@ class MySQLRouterOperatorCharm(CharmBase):
             return
 
         self.unit.status = WaitingStatus("Waiting for relations")
+
+    def _on_upgrade_charm(self, _) -> None:
+        """Update the mysql-router config on charm upgrade."""
+        if isinstance(self.unit.status, ActiveStatus):
+            self.unit.status = MaintenanceStatus("Upgrading charm")
+
+            requires_data = json.loads(self.app_peer_data.get(MYSQL_ROUTER_REQUIRES_DATA))
+            related_app_name = (
+                self.shared_db_relation._get_related_app_name()
+                if self.shared_db_relation._shared_db_relation_exists()
+                else self.database_provides_relation._get_related_app_name()
+            )
+
+            try:
+                MySQLRouter.bootstrap_and_start_mysql_router(
+                    requires_data["username"],
+                    self._get_secret("app", "database-password"),
+                    related_app_name,
+                    requires_data["endpoints"].split(",")[0].split(":")[0],
+                    "3306",
+                    True,
+                )
+            except MySQLRouterBootstrapError:
+                self.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
+                return
+
+            self.unit.status = ActiveStatus()
 
     def _on_peer_relation_changed(self, event: RelationChangedEvent) -> None:
         """Handle the peer relation changed event.
