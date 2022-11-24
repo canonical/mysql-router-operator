@@ -124,6 +124,7 @@ class MySQLRouter:
             name: The name of application that will use mysqlrouter
             db_host: The hostname of the database to connect to
             port: The port at which to bootstrap mysqlrouter to
+            force: Overwrite existing config if any
 
         Raises:
             MySQLRouterBootstrapError - if there is an issue bootstrapping MySQLRouter
