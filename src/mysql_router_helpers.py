@@ -114,6 +114,7 @@ class MySQLRouter:
         name,
         db_host,
         port,
+        force=False,
     ) -> None:
         """Bootstrap MySQLRouter and register the service with systemd.
 
@@ -123,6 +124,7 @@ class MySQLRouter:
             name: The name of application that will use mysqlrouter
             db_host: The hostname of the database to connect to
             port: The port at which to bootstrap mysqlrouter to
+            force: Overwrite existing config if any
 
         Raises:
             MySQLRouterBootstrapError - if there is an issue bootstrapping MySQLRouter
@@ -130,7 +132,7 @@ class MySQLRouter:
         # server_ssl_mode is set to enforce unix_socket connections to be established
         # via encryption (see more at
         # https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html)
-        bootstrap_mysqlrouter_command = (
+        bootstrap_mysqlrouter_command = [
             "sudo",
             "/usr/bin/mysqlrouter",
             "--user",
@@ -148,7 +150,11 @@ class MySQLRouter:
             f"{port}",
             "--conf-set-option",
             "DEFAULT.server_ssl_mode=PREFERRED",
-        )
+            "--conf-use-gr-notifications",
+        ]
+
+        if force:
+            bootstrap_mysqlrouter_command.append("--force")
 
         try:
             subprocess.check_output(bootstrap_mysqlrouter_command, stderr=subprocess.STDOUT)
