@@ -4,8 +4,9 @@
 import itertools
 from typing import Dict, List
 
-from connector import MySQLConnector
 from juju.unit import Unit
+
+from .connector import MySQLConnector
 
 
 async def get_server_config_credentials(unit: Unit) -> Dict:

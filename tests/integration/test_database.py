@@ -6,12 +6,13 @@ import asyncio
 import logging
 
 import pytest
-from helpers import (
+from pytest_operator.plugin import OpsTest
+
+from .helpers import (
     execute_queries_on_unit,
     get_inserted_data_by_application,
     get_server_config_credentials,
 )
-from pytest_operator.plugin import OpsTest
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,6 @@ SLOW_TIMEOUT = 15 * 60
 
 @pytest.mark.order(1)
 @pytest.mark.abort_on_fail
-@pytest.mark.database_tests
 async def test_database_relation(ops_test: OpsTest) -> None:
     """Test the database relation."""
     # Build and deploy applications
