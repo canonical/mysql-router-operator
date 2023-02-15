@@ -6,8 +6,9 @@ import asyncio
 import logging
 
 import pytest
-from helpers import execute_queries_on_unit, get_server_config_credentials
 from pytest_operator.plugin import OpsTest
+
+from .helpers import execute_queries_on_unit, get_server_config_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,6 @@ TIMEOUT = 15 * 60
 
 @pytest.mark.order(1)
 @pytest.mark.abort_on_fail
-@pytest.mark.shared_db_tests
 async def test_shared_db(ops_test: OpsTest):
     """Test the shared-db legacy relation."""
     charm = await ops_test.build_charm(".")
