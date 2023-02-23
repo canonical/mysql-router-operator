@@ -66,8 +66,9 @@ class TestCharm(unittest.TestCase):
             "test-password",
         )
 
+    @patch("subprocess.check_call")
     @patch("mysql_router_helpers.MySQLRouter.install_and_configure_mysql_router")
-    def test_on_install(self, _install_and_configure_mysql_router):
+    def test_on_install(self, _install_and_configure_mysql_router, _check_call):
         self.charm.on.install.emit()
 
         self.assertTrue(isinstance(self.harness.model.unit.status, WaitingStatus))
