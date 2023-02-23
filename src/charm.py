@@ -8,6 +8,7 @@
 
 import json
 import logging
+import subprocess
 from typing import Optional
 
 from charms.operator_libs_linux.v1 import systemd
@@ -113,6 +114,14 @@ class MySQLRouterOperatorCharm(CharmBase):
         except MySQLRouterInstallAndConfigureError:
             self.unit.status = BlockedStatus("Failed to install mysqlrouter")
             return
+
+        try:
+            subprocess.check_call(["open-port", "6446/tcp"])
+            subprocess.check_call(["open-port", "6447/tcp"])
+            subprocess.check_call(["open-port", "6448/tcp"])
+            subprocess.check_call(["open-port", "6449/tcp"])
+        except subprocess.CalledProcessError:
+            logger.exception("failed to open port")
 
         self.unit.status = WaitingStatus("Waiting for relations")
 
