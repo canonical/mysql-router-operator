@@ -28,6 +28,8 @@ bootstrap_cmd = [
     "3306",
     "--conf-set-option",
     "DEFAULT.server_ssl_mode=PREFERRED",
+    "--conf-set-option",
+    "http_server.bind_address=127.0.0.1",
     "--conf-use-gr-notifications",
 ]
 
