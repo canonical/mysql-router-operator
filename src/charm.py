@@ -115,13 +115,11 @@ class MySQLRouterOperatorCharm(CharmBase):
             self.unit.status = BlockedStatus("Failed to install mysqlrouter")
             return
 
-        try:
-            subprocess.check_call(["open-port", "6446/tcp"])
-            subprocess.check_call(["open-port", "6447/tcp"])
-            subprocess.check_call(["open-port", "6448/tcp"])
-            subprocess.check_call(["open-port", "6449/tcp"])
-        except subprocess.CalledProcessError:
-            logger.exception("failed to open port")
+        for port in [6446, 6447, 6448, 6449]:
+            try:
+                subprocess.check_call(["open-port", f"{port}/tcp"])
+            except subprocess.CalledProcessError:
+                logger.exception(f"failed to open port {port}")
 
         self.unit.status = WaitingStatus("Waiting for relations")
 
