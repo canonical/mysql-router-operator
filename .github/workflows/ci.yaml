@@ -39,6 +39,23 @@ jobs:
         run: python3 -m pip install tox
       - name: Run tests
         run: tox run -e unit
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
+
+  lib-check:
+    name: Check libraries
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check libs
+        uses: canonical/charming-actions/check-libraries@2.2.2
+        with:
+          credentials: "${{ secrets.CHARMHUB_TOKEN }}" # FIXME: current token will expire around 2023-09-23
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
 
   build:
     name: Build charms
@@ -55,6 +72,7 @@ jobs:
           - integration-database
     name: ${{ matrix.tox-environments }}
     needs:
+      - lib-check
       - lint
       - unit-test
       - build
