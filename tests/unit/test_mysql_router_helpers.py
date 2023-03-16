@@ -7,10 +7,11 @@ from unittest.mock import call, patch
 
 from charms.operator_libs_linux.v1.systemd import SystemdError
 
-from constants import MYSQL_ROUTER_SERVICE_NAME, ROOT_GROUP, ROOT_USER
+from constants import MYSQL_ROUTER_SERVICE_NAME
 from mysql_router_helpers import MySQLRouter, MySQLRouterBootstrapError
 
 bootstrap_cmd = [
+    "sudo",
     "/usr/bin/mysqlrouter",
     "--user",
     "mysql",
@@ -32,6 +33,7 @@ bootstrap_cmd = [
     "--conf-use-gr-notifications",
 ]
 chmod_cmd = [
+    "sudo",
     "chmod",
     "755",
     "/var/lib/mysql/testapp",
@@ -51,8 +53,8 @@ class TestMysqlRouterHelpers(unittest.TestCase):
             sorted(run.mock_calls),
             sorted(
                 [
-                    call(bootstrap_cmd, user=ROOT_USER, group=ROOT_GROUP),
-                    call(chmod_cmd, user=ROOT_USER, group=ROOT_GROUP),
+                    call(bootstrap_cmd),
+                    call(chmod_cmd),
                 ]
             ),
         )
@@ -72,8 +74,8 @@ class TestMysqlRouterHelpers(unittest.TestCase):
             sorted(run.mock_calls),
             sorted(
                 [
-                    call(bootstrap_cmd + ["--force"], user=ROOT_USER, group=ROOT_GROUP),
-                    call(chmod_cmd, user=ROOT_USER, group=ROOT_GROUP),
+                    call(bootstrap_cmd + ["--force"]),
+                    call(chmod_cmd),
                 ]
             ),
         )
@@ -95,7 +97,7 @@ class TestMysqlRouterHelpers(unittest.TestCase):
                 "test_user", "qweqwe", "testapp", "10.10.0.1", "3306"
             )
 
-        run.assert_called_with(bootstrap_cmd, user=ROOT_USER, group=ROOT_GROUP)
+        run.assert_called_with(bootstrap_cmd)
         render_and_copy.assert_not_called()
         systemd.daemon_reload.assert_not_called()
         systemd.service_start.assert_not_called()
@@ -120,8 +122,8 @@ class TestMysqlRouterHelpers(unittest.TestCase):
             sorted(run.mock_calls),
             sorted(
                 [
-                    call(bootstrap_cmd, user=ROOT_USER, group=ROOT_GROUP),
-                    call(chmod_cmd, user=ROOT_USER, group=ROOT_GROUP),
+                    call(bootstrap_cmd),
+                    call(chmod_cmd),
                 ]
             ),
         )
@@ -148,8 +150,8 @@ class TestMysqlRouterHelpers(unittest.TestCase):
             sorted(run.mock_calls),
             sorted(
                 [
-                    call(bootstrap_cmd, user=ROOT_USER, group=ROOT_GROUP),
-                    call(chmod_cmd, user=ROOT_USER, group=ROOT_GROUP),
+                    call(bootstrap_cmd),
+                    call(chmod_cmd),
                 ]
             ),
         )
@@ -176,8 +178,8 @@ class TestMysqlRouterHelpers(unittest.TestCase):
             sorted(run.mock_calls),
             sorted(
                 [
-                    call(bootstrap_cmd, user=ROOT_USER, group=ROOT_GROUP),
-                    call(chmod_cmd, user=ROOT_USER, group=ROOT_GROUP),
+                    call(bootstrap_cmd),
+                    call(chmod_cmd),
                 ]
             ),
         )

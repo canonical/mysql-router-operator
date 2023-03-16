@@ -6,8 +6,6 @@
 MYSQL_ROUTER_APT_PACKAGE = "mysql-router"
 MYSQL_ROUTER_GROUP = "mysql"
 MYSQL_ROUTER_USER = "mysql"
-ROOT_USER = "root"
-ROOT_GROUP = "root"
 MYSQL_HOME_DIRECTORY = "/var/lib/mysql"
 PEER = "mysql-router-peers"
 DATABASE_REQUIRES_RELATION = "backend-database"

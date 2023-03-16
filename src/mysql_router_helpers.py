@@ -22,8 +22,6 @@ from constants import (
     MYSQL_ROUTER_SYSTEMD_DIRECTORY,
     MYSQL_ROUTER_UNIT_TEMPLATE,
     MYSQL_ROUTER_USER,
-    ROOT_GROUP,
-    ROOT_USER,
 )
 
 logger = logging.getLogger(__name__)
@@ -133,6 +131,7 @@ class MySQLRouter:
         # via encryption (see more at
         # https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html)
         bootstrap_mysqlrouter_command = [
+            "sudo",
             "/usr/bin/mysqlrouter",
             "--user",
             MYSQL_ROUTER_USER,
@@ -158,17 +157,9 @@ class MySQLRouter:
             bootstrap_mysqlrouter_command.append("--force")
 
         try:
-            subprocess.run(
-                bootstrap_mysqlrouter_command,
-                user=ROOT_USER,
-                group=ROOT_GROUP,
-            )
+            subprocess.run(bootstrap_mysqlrouter_command)
 
-            subprocess.run(
-                f"chmod 755 {MYSQL_HOME_DIRECTORY}/{name}".split(),
-                user=ROOT_USER,
-                group=ROOT_GROUP,
-            )
+            subprocess.run(f"sudo chmod 755 {MYSQL_HOME_DIRECTORY}/{name}".split())
 
             MySQLRouter._render_and_copy_mysqlrouter_systemd_unit_file(name)
 
