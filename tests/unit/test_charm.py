@@ -101,7 +101,7 @@ class TestCharm(unittest.TestCase):
 
         self.assertTrue(isinstance(self.harness.model.unit.status, ActiveStatus))
         bootstrap_and_start_mysql_router.assert_called_with(
-            "test_user", "s3kr1t", "testapp", "10.10.0.1", "3306", True
+            "test_user", "s3kr1t", "testapp", "10.10.0.1", "3306", force=True
         )
 
     @patch("mysql_router_helpers.MySQLRouter.bootstrap_and_start_mysql_router")
@@ -132,5 +132,5 @@ class TestCharm(unittest.TestCase):
 
         self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
         bootstrap_and_start_mysql_router.assert_called_with(
-            "test_user", "s3kr1t", "testapp", "10.10.0.1", "3306", True
+            "test_user", "s3kr1t", "testapp", "10.10.0.1", "3306", force=True
         )
