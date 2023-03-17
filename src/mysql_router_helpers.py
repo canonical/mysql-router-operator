@@ -87,9 +87,7 @@ class MySQLRouter:
 
                 os.chown(MYSQL_HOME_DIRECTORY, user_id, group_id)
         except Exception as e:
-            logger.exception(
-                f"Failed to install the {MYSQL_ROUTER_APT_PACKAGE} apt package.", exc_info=e
-            )
+            logger.exception(f"Failed to install the {MYSQL_ROUTER_APT_PACKAGE} apt package.")
             raise MySQLRouterInstallAndConfigureError(e.stderr)
 
     @staticmethod
@@ -159,23 +157,29 @@ class MySQLRouter:
             bootstrap_mysqlrouter_command.append("--force")
 
         try:
-            subprocess.check_output(bootstrap_mysqlrouter_command, stderr=subprocess.STDOUT)
+            subprocess.run(bootstrap_mysqlrouter_command)
+
+            subprocess.run(f"sudo chmod 755 {MYSQL_HOME_DIRECTORY}/{name}".split())
+
             MySQLRouter._render_and_copy_mysqlrouter_systemd_unit_file(name)
 
             if not systemd.daemon_reload():
-                logger.exception("Failed to load the mysqlrouter systemd service")
-                raise MySQLRouterBootstrapError("Failed to load mysqlrouter systemd service")
+                error_message = "Failed to load the mysqlrouter systemd service"
+                logger.exception(error_message)
+                raise MySQLRouterBootstrapError(error_message)
 
             systemd.service_start(MYSQL_ROUTER_SERVICE_NAME)
             if not MySQLRouter.is_mysqlrouter_running():
-                logger.exception("Failed to start the mysqlrouter systemd service")
-                raise MySQLRouterBootstrapError("Failed to start the mysqlrouter systemd service")
+                error_message = "Failed to start the mysqlrouter systemd service"
+                logger.exception(error_message)
+                raise MySQLRouterBootstrapError(error_message)
         except subprocess.CalledProcessError as e:
-            logger.exception("Failed to bootstrap mysqlrouter", exc_info=e)
+            logger.exception("Failed to bootstrap mysqlrouter")
             raise MySQLRouterBootstrapError(e.stderr)
-        except systemd.SystemdError as e:
-            logger.exception("Failed to set up mysqlrouter as a systemd service", exc_info=e)
-            raise MySQLRouterBootstrapError("Failed to set up mysqlrouter as a systemd service")
+        except systemd.SystemdError:
+            error_message = "Failed to set up mysqlrouter as a systemd service"
+            logger.exception(error_message)
+            raise MySQLRouterBootstrapError(error_message)
 
     @staticmethod
     def is_mysqlrouter_running() -> bool:
@@ -214,5 +218,5 @@ class MySQLRouter:
             cursor.close()
             connection.close()
         except mysql.connector.Error as e:
-            logger.exception("Failed to create user scoped to a database", exc_info=e)
+            logger.exception("Failed to create user scoped to a database")
             raise MySQLRouterCreateUserWithDatabasePrivilegesError(e.msg)

@@ -142,7 +142,7 @@ class MySQLRouterOperatorCharm(CharmBase):
                     related_app_name,
                     requires_data["endpoints"].split(",")[0].split(":")[0],
                     "3306",
-                    True,
+                    force=True,
                 )
             except MySQLRouterBootstrapError:
                 self.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
