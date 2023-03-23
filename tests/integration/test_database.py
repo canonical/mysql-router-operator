@@ -19,9 +19,10 @@ logger = logging.getLogger(__name__)
 MYSQL_APP_NAME = "mysql"
 MYSQL_ROUTER_APP_NAME = "mysqlrouter"
 APPLICATION_APP_NAME = "mysql-test-app"
+TEST_DATABASE = "continuous_writes_database"
+TEST_TABLE = "random_data"
 SLOW_TIMEOUT = 15 * 60
-TEST_DATABASE = 'continuous_writes_database'
-TEST_TABLE = 'random_data'
+
 
 @pytest.mark.order(1)
 @pytest.mark.abort_on_fail
