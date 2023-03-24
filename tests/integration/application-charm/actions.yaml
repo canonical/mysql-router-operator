@@ -1,5 +1,0 @@
-# Copyright 2022 Canonical Ltd.
-# See LICENSE file for licensing details.
-
-get-inserted-data:
-  description: Get the randomly inserted data in the database by the charm

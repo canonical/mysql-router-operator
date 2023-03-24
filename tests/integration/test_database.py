@@ -18,7 +18,9 @@ logger = logging.getLogger(__name__)
 
 MYSQL_APP_NAME = "mysql"
 MYSQL_ROUTER_APP_NAME = "mysqlrouter"
-APPLICATION_APP_NAME = "application"
+APPLICATION_APP_NAME = "mysql-test-app"
+TEST_DATABASE = "continuous_writes_database"
+TEST_TABLE = "random_data"
 SLOW_TIMEOUT = 15 * 60
 
 
@@ -28,7 +30,6 @@ async def test_database_relation(ops_test: OpsTest) -> None:
     """Test the database relation."""
     # Build and deploy applications
     mysqlrouter_charm = await ops_test.build_charm(".")
-    application_charm = await ops_test.build_charm("./tests/integration/application-charm/")
 
     # deploy mysqlrouter with num_units=None since it's a subordinate charm
     # and will be installed with the related consumer application
@@ -40,7 +41,10 @@ async def test_database_relation(ops_test: OpsTest) -> None:
             mysqlrouter_charm, application_name=MYSQL_ROUTER_APP_NAME, num_units=None
         ),
         ops_test.model.deploy(
-            application_charm, application_name=APPLICATION_APP_NAME, num_units=1
+            APPLICATION_APP_NAME,
+            application_name=APPLICATION_APP_NAME,
+            num_units=1,
+            channel="latest/edge",
         ),
     )
 
@@ -87,7 +91,7 @@ async def test_database_relation(ops_test: OpsTest) -> None:
     server_config_credentials = await get_server_config_credentials(mysql_unit)
 
     select_inserted_data_sql = (
-        f"SELECT data FROM `application-test-database`.app_data WHERE data = '{inserted_data}'",
+        f"SELECT data FROM `{TEST_DATABASE}`.{TEST_TABLE} WHERE data = '{inserted_data}'",
     )
     selected_data = await execute_queries_on_unit(
         mysql_unit_address,
@@ -103,7 +107,7 @@ async def test_database_relation(ops_test: OpsTest) -> None:
     async with ops_test.fast_forward():
         await application_app.add_unit()
 
-        ops_test.model.block_until(lambda: len(application_app.units) == 2)
+        await ops_test.model.block_until(lambda: len(application_app.units) == 2)
 
         await ops_test.model.wait_for_idle(
             apps=[MYSQL_APP_NAME, MYSQL_ROUTER_APP_NAME, APPLICATION_APP_NAME],
