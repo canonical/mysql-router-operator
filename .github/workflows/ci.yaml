@@ -70,7 +70,13 @@ jobs:
           # https://bugs.launchpad.net/charm-keystone/+bug/1990243
           # - integration-shared-db
           - integration-database
-    name: ${{ matrix.tox-environments }}
+        ubuntu-versions:
+          # Update whenever charmcraft.yaml is changed
+          - series: focal
+            bases-index: 0
+          - series: jammy
+            bases-index: 1
+    name: ${{ matrix.tox-environments }} | ${{ matrix.ubuntu-versions.series }}
     needs:
       - lib-check
       - lint
@@ -103,6 +109,6 @@ jobs:
             echo "mark_expression=not unstable" >> $GITHUB_OUTPUT
           fi
       - name: Run integration tests
-        run: tox run -e ${{ matrix.tox-environments }} -- -m '${{ steps.select-tests.outputs.mark_expression }}'
+        run: tox run -e ${{ matrix.tox-environments }} -- -m '${{ steps.select-tests.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }}
         env:
           CI_PACKED_CHARMS: ${{ needs.build.outputs.charms }}
