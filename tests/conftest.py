@@ -4,7 +4,9 @@ from argparse import ArgumentError
 
 
 def pytest_addoption(parser):
-    parser.addoption("--mysql-router-charm-series", help="Ubuntu series for mysql router charm (e.g. jammy)")
+    parser.addoption(
+        "--mysql-router-charm-series", help="Ubuntu series for mysql router charm (e.g. jammy)"
+    )
     parser.addoption(
         "--mysql-router-charm-bases-index",
         type=int,
@@ -17,7 +19,8 @@ def pytest_configure(config):
         config.option.mysql_router_charm_bases_index is None
     ):
         raise ArgumentError(
-            None, "--mysql-router-charm-series and --mysql-router-charm-bases-index must be given together"
+            None,
+            "--mysql-router-charm-series and --mysql-router-charm-bases-index must be given together",
         )
     # Note: Update defaults whenever charmcraft.yaml is changed
     if config.option.mysql_router_charm_series is None:

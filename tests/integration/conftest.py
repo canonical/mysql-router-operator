@@ -9,9 +9,11 @@ from pathlib import Path
 import pytest
 from pytest_operator.plugin import OpsTest
 
+
 @pytest.fixture(scope="session")
 def mysql_router_charm_series(pytestconfig) -> str:
     return pytestconfig.option.mysql_router_charm_series
+
 
 @pytest.fixture(scope="module")
 def ops_test(ops_test: OpsTest, pytestconfig) -> OpsTest:
