@@ -19,7 +19,7 @@ MODEL_CONFIG = {"logging-config": "<root>=INFO;unit=DEBUG"}
 
 @pytest.mark.abort_on_fail
 @pytest.mark.order(1)
-async def test_build_deploy_and_relate(ops_test: OpsTest) -> None:
+async def test_build_deploy_and_relate(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
     """Test encryption when backend database is using TLS."""
     # Deploy TLS Certificates operator.
     await ops_test.model.set_config(MODEL_CONFIG)
@@ -35,7 +35,10 @@ async def test_build_deploy_and_relate(ops_test: OpsTest) -> None:
         # tls, test app and router
         await asyncio.gather(
             ops_test.model.deploy(
-                mysqlrouter_charm, application_name=MYSQL_ROUTER_APP_NAME, num_units=None
+                mysqlrouter_charm,
+                application_name=MYSQL_ROUTER_APP_NAME,
+                num_units=None,
+                series=mysql_router_charm_series,
             ),
             ops_test.model.deploy(
                 TLS_APP_NAME, application_name=TLS_APP_NAME, channel="stable", config=tls_config

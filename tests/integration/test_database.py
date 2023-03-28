@@ -26,7 +26,7 @@ SLOW_TIMEOUT = 15 * 60
 
 @pytest.mark.order(1)
 @pytest.mark.abort_on_fail
-async def test_database_relation(ops_test: OpsTest) -> None:
+async def test_database_relation(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
     """Test the database relation."""
     # Build and deploy applications
     mysqlrouter_charm = await ops_test.build_charm(".")
@@ -38,7 +38,10 @@ async def test_database_relation(ops_test: OpsTest) -> None:
             "mysql", channel="latest/edge", application_name=MYSQL_APP_NAME, num_units=1
         ),
         ops_test.model.deploy(
-            mysqlrouter_charm, application_name=MYSQL_ROUTER_APP_NAME, num_units=None
+            mysqlrouter_charm,
+            application_name=MYSQL_ROUTER_APP_NAME,
+            num_units=None,
+            series=mysql_router_charm_series,
         ),
         ops_test.model.deploy(
             APPLICATION_APP_NAME,
