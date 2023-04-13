@@ -111,7 +111,7 @@ jobs:
         uses: charmed-kubernetes/actions-operator@main
         with:
           provider: lxd
-          bootstrap-options: "--agent-version 2.9.42 --constraints mem=1G"
+          bootstrap-options: "--model-default 'logging-config=<root>=INFO;unit=DEBUG' --agent-version 2.9.42 --constraints mem=1G"
       - name: Download packed charm(s)
         uses: actions/download-artifact@v3
         with:
@@ -128,9 +128,15 @@ jobs:
             echo "mark_expression=not unstable" >> $GITHUB_OUTPUT
           fi
       - name: Run integration tests
-        run: tox run -e ${{ matrix.tox-environments }} -- -m '${{ steps.select-tests.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }} --junit-xml=pytest_report.xml
+        run: tox run -e ${{ matrix.tox-environments }} -- -m '${{ steps.select-tests.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }} --junit-xml=pytest_report.xml --keep-models
         env:
           CI_PACKED_CHARMS: ${{ needs.build.outputs.charms }}
+      - name: Setup upterm session
+        if: success() || failure()
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-actor: true
+          limit-access-to-users: taurus-forever
       - name: 'Foresight: Collect test results'
         uses: runforesight/foresight-test-kit-action@v1
         if: ${{ success() || failure() }}
