@@ -111,7 +111,8 @@ jobs:
         uses: charmed-kubernetes/actions-operator@main
         with:
           provider: lxd
-          bootstrap-options: "--model-default 'logging-config=<root>=INFO;unit=DEBUG' --agent-version 2.9.42 --bootstrap-constraints 'cores=2 mem=1G'"
+          bootstrap-options: "--model-default 'logging-config=<root>=INFO;unit=DEBUG' --agent-version 2.9.42"
+          bootstrap-constraints: "cores=2 mem=1G"
       - name: Download packed charm(s)
         uses: actions/download-artifact@v3
         with:
