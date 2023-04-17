@@ -95,7 +95,6 @@ jobs:
             bases-index: 1
     name: ${{ matrix.tox-environments }} | ${{ matrix.ubuntu-versions.series }}
     needs:
-      - lib-check
       - lint
       - unit-test
       - build
