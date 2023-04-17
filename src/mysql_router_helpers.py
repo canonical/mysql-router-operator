@@ -58,7 +58,7 @@ class MySQLRouter:
         """Install charmed-mysql snap and configure MySQLRouter."""
         try:
             logger.debug("Retrieving snap cache")
-            cache = snap.Cache()
+            cache = snap.SnapCache()
             charmed_mysql = cache[CHARMED_MYSQL_SNAP]
 
             if not charmed_mysql.present:
