@@ -3,25 +3,18 @@
 
 """Helper class to manage the MySQL Router lifecycle."""
 
-import grp
 import logging
-import os
-import pwd
 import subprocess
 
-import jinja2
 import mysql.connector
-from charms.operator_libs_linux.v0 import apt, passwd
-from charms.operator_libs_linux.v1 import systemd
+from charms.operator_libs_linux.v1 import snap
 
 from constants import (
-    MYSQL_HOME_DIRECTORY,
-    MYSQL_ROUTER_APT_PACKAGE,
-    MYSQL_ROUTER_GROUP,
-    MYSQL_ROUTER_SERVICE_NAME,
-    MYSQL_ROUTER_SYSTEMD_DIRECTORY,
-    MYSQL_ROUTER_UNIT_TEMPLATE,
-    MYSQL_ROUTER_USER,
+    CHARMED_MYSQL_ROUTER,
+    CHARMED_MYSQL_ROUTER_SERVICE,
+    CHARMED_MYSQL_SNAP,
+    CHARMED_MYSQL_SNAP_REVISION,
+    SNAP_DAEMON_USER,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,8 +38,8 @@ class Error(Exception):
         return self.args[0]
 
 
-class MySQLRouterInstallAndConfigureError(Error):
-    """Exception raised when there is an issue installing MySQLRouter."""
+class MySQLRouterInstallCharmedMySQLError(Error):
+    """Exception raised when there is an issue installing charmed-mysql snap."""
 
 
 class MySQLRouterBootstrapError(Error):
@@ -61,49 +54,19 @@ class MySQLRouter:
     """Class to encapsulate all operations related to MySQLRouter."""
 
     @staticmethod
-    def install_and_configure_mysql_router() -> None:
-        """Install and configure MySQLRouter."""
+    def install_charmed_mysql() -> None:
+        """Install charmed-mysql snap and configure MySQLRouter."""
         try:
-            apt.update()
-            apt.add_package(MYSQL_ROUTER_APT_PACKAGE)
+            logger.debug("Retrieving snap cache")
+            cache = snap.Cache()
+            charmed_mysql = cache[CHARMED_MYSQL_SNAP]
 
-            if not passwd.group_exists(MYSQL_ROUTER_GROUP):
-                passwd.add_group(MYSQL_ROUTER_GROUP, system_group=True)
-
-            if not passwd.user_exists(MYSQL_ROUTER_USER):
-                passwd.add_user(
-                    MYSQL_ROUTER_USER,
-                    shell="/usr/sbin/nologin",
-                    system_user=True,
-                    primary_group=MYSQL_ROUTER_GROUP,
-                    home_dir=MYSQL_HOME_DIRECTORY,
-                )
-
-            if not os.path.exists(MYSQL_HOME_DIRECTORY):
-                os.makedirs(MYSQL_HOME_DIRECTORY, mode=0o755, exist_ok=True)
-
-                user_id = pwd.getpwnam(MYSQL_ROUTER_USER).pw_uid
-                group_id = grp.getgrnam(MYSQL_ROUTER_GROUP).gr_gid
-
-                os.chown(MYSQL_HOME_DIRECTORY, user_id, group_id)
+            if not charmed_mysql.present:
+                logger.debug("Install charmed-mysql snap")
+                charmed_mysql.ensure(snap.SnapState.Latest, revision=CHARMED_MYSQL_SNAP_REVISION)
         except Exception as e:
-            logger.exception(f"Failed to install the {MYSQL_ROUTER_APT_PACKAGE} apt package.")
-            raise MySQLRouterInstallAndConfigureError(e.stderr)
-
-    @staticmethod
-    def _render_and_copy_mysqlrouter_systemd_unit_file(app_name):
-        with open(MYSQL_ROUTER_UNIT_TEMPLATE, "r") as file:
-            template = jinja2.Template(file.read())
-
-        rendered_template = template.render(charm_app_name=app_name)
-        systemd_file_path = f"{MYSQL_ROUTER_SYSTEMD_DIRECTORY}/mysqlrouter.service"
-
-        with open(systemd_file_path, "w+") as file:
-            file.write(rendered_template)
-
-        os.chmod(systemd_file_path, 0o644)
-        mysql_user = pwd.getpwnam(MYSQL_ROUTER_USER)
-        os.chown(systemd_file_path, uid=mysql_user.pw_uid, gid=mysql_user.pw_gid)
+            logger.exception(f"Failed to install the {CHARMED_MYSQL_SNAP} snap.")
+            raise MySQLRouterInstallCharmedMySQLError(e.stderr)
 
     @staticmethod
     def bootstrap_and_start_mysql_router(
@@ -131,16 +94,13 @@ class MySQLRouter:
         # via encryption (see more at
         # https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html)
         bootstrap_mysqlrouter_command = [
-            "sudo",
-            "/usr/bin/mysqlrouter",
+            CHARMED_MYSQL_ROUTER,
             "--user",
-            MYSQL_ROUTER_USER,
+            SNAP_DAEMON_USER,
             "--name",
             name,
             "--bootstrap",
             f"{user}:{password}@{db_host}",
-            "--directory",
-            f"{MYSQL_HOME_DIRECTORY}/{name}",
             "--conf-use-sockets",
             "--conf-bind-address",
             "127.0.0.1",
@@ -159,32 +119,22 @@ class MySQLRouter:
         try:
             subprocess.run(bootstrap_mysqlrouter_command)
 
-            subprocess.run(f"sudo chmod 755 {MYSQL_HOME_DIRECTORY}/{name}".split())
+            cache = snap.SnapCache()
+            charmed_mysql = cache[CHARMED_MYSQL_SNAP]
 
-            MySQLRouter._render_and_copy_mysqlrouter_systemd_unit_file(name)
+            charmed_mysql.start(services=[CHARMED_MYSQL_ROUTER_SERVICE])
 
-            if not systemd.daemon_reload():
-                error_message = "Failed to load the mysqlrouter systemd service"
-                logger.exception(error_message)
-                raise MySQLRouterBootstrapError(error_message)
-
-            systemd.service_start(MYSQL_ROUTER_SERVICE_NAME)
-            if not MySQLRouter.is_mysqlrouter_running():
-                error_message = "Failed to start the mysqlrouter systemd service"
+            if not charmed_mysql.services[CHARMED_MYSQL_ROUTER_SERVICE]["active"]:
+                error_message = "Failed to start the mysqlrouter snap service"
                 logger.exception(error_message)
                 raise MySQLRouterBootstrapError(error_message)
         except subprocess.CalledProcessError as e:
-            logger.exception("Failed to bootstrap mysqlrouter")
+            logger.exception("Failed to bootstrap and start mysqlrouter")
             raise MySQLRouterBootstrapError(e.stderr)
-        except systemd.SystemdError:
-            error_message = "Failed to set up mysqlrouter as a systemd service"
+        except snap.SnapError:
+            error_message = f"Failed to start snap service {CHARMED_MYSQL_ROUTER_SERVICE}"
             logger.exception(error_message)
             raise MySQLRouterBootstrapError(error_message)
-
-    @staticmethod
-    def is_mysqlrouter_running() -> bool:
-        """Indicates whether MySQLRouter is running as a systemd service."""
-        return systemd.service_running(MYSQL_ROUTER_SERVICE_NAME)
 
     @staticmethod
     def create_user_with_database_privileges(

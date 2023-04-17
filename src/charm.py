@@ -11,12 +11,14 @@ import logging
 import subprocess
 from typing import Optional
 
-from charms.operator_libs_linux.v1 import systemd
+from charms.operator_libs_linux.v1 import snap
 from ops.charm import CharmBase, RelationChangedEvent
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, WaitingStatus
 
 from constants import (
+    CHARMED_MYSQL_ROUTER_SERVICE,
+    CHARMED_MYSQL_SNAP,
     LEGACY_SHARED_DB,
     MYSQL_ROUTER_LEADER_BOOTSTRAPED,
     MYSQL_ROUTER_REQUIRES_DATA,
@@ -25,7 +27,7 @@ from constants import (
 from mysql_router_helpers import (
     MySQLRouter,
     MySQLRouterBootstrapError,
-    MySQLRouterInstallAndConfigureError,
+    MySQLRouterInstallCharmedMySQLError,
 )
 from relations.database_provides import DatabaseProvidesRelation
 from relations.database_requires import DatabaseRequiresRelation
@@ -110,8 +112,8 @@ class MySQLRouterOperatorCharm(CharmBase):
         self.unit.status = MaintenanceStatus("Installing packages")
 
         try:
-            MySQLRouter.install_and_configure_mysql_router()
-        except MySQLRouterInstallAndConfigureError:
+            MySQLRouter.install_charmed_mysql()
+        except MySQLRouterInstallCharmedMySQLError:
             self.unit.status = BlockedStatus("Failed to install mysqlrouter")
             return
 
@@ -160,9 +162,14 @@ class MySQLRouterOperatorCharm(CharmBase):
             MYSQL_ROUTER_LEADER_BOOTSTRAPED
         ):
             try:
-                mysqlrouter_running = MySQLRouter.is_mysqlrouter_running()
-            except systemd.SystemdError as e:
-                logger.exception("Failed to check if mysqlrouter with systemd", exc_info=e)
+                cache = snap.SnapCache()
+                charmed_mysql = cache[CHARMED_MYSQL_SNAP]
+
+                mysqlrouter_running = charmed_mysql.services[CHARMED_MYSQL_ROUTER_SERVICE][
+                    "active"
+                ]
+            except snap.SnapError:
+                logger.exception("Failed to check if mysqlrouter service is running")
                 self.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
                 return
 

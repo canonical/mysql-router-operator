@@ -12,7 +12,7 @@ from charm import MySQLRouterOperatorCharm
 from constants import MYSQL_ROUTER_REQUIRES_DATA, PEER
 from mysql_router_helpers import (
     MySQLRouterBootstrapError,
-    MySQLRouterInstallAndConfigureError,
+    MySQLRouterInstallCharmedMySQLError,
 )
 
 
@@ -67,17 +67,17 @@ class TestCharm(unittest.TestCase):
         )
 
     @patch("subprocess.check_call")
-    @patch("mysql_router_helpers.MySQLRouter.install_and_configure_mysql_router")
-    def test_on_install(self, _install_and_configure_mysql_router, _check_call):
+    @patch("mysql_router_helpers.MySQLRouter.install_charmed_mysql")
+    def test_on_install(self, _install_charmed_mysql, _check_call):
         self.charm.on.install.emit()
 
         self.assertTrue(isinstance(self.harness.model.unit.status, WaitingStatus))
 
     @patch(
-        "mysql_router_helpers.MySQLRouter.install_and_configure_mysql_router",
-        side_effect=MySQLRouterInstallAndConfigureError(),
+        "mysql_router_helpers.MySQLRouter.install_charmed_mysql",
+        side_effect=MySQLRouterInstallCharmedMySQLError(),
     )
-    def test_on_install_exception(self, _install_and_configure_mysql_router):
+    def test_on_install_exception(self, _install_charmed_mysql):
         self.charm.on.install.emit()
 
         self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
