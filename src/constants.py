@@ -4,8 +4,9 @@
 """File containing constants to be used in the charm."""
 
 CHARMED_MYSQL_SNAP = "charmed-mysql"
-CHARMED_MYSQL_SNAP_REVISION = 45
+CHARMED_MYSQL_SNAP_REVISION = 48
 SNAP_DAEMON_USER = "snap_daemon"
+CHARMED_MYSQL_DATA_DIRECTORY = "/var/snap/charmed-mysql/current"
 CHARMED_MYSQL_COMMON_DIRECTORY = "/var/snap/charmed-mysql/common"
 CHARMED_MYSQL_ROUTER = "charmed-mysql.mysqlrouter"
 CHARMED_MYSQL_ROUTER_SERVICE = "mysqlrouter-service"

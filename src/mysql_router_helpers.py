@@ -10,6 +10,8 @@ import mysql.connector
 from charms.operator_libs_linux.v1 import snap
 
 from constants import (
+    CHARMED_MYSQL_DATA_DIRECTORY,
+    CHARMED_MYSQL_COMMON_DIRECTORY,
     CHARMED_MYSQL_ROUTER,
     CHARMED_MYSQL_ROUTER_SERVICE,
     CHARMED_MYSQL_SNAP,
@@ -94,6 +96,7 @@ class MySQLRouter:
         # via encryption (see more at
         # https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html)
         bootstrap_mysqlrouter_command = [
+            "sudo",
             CHARMED_MYSQL_ROUTER,
             "--user",
             SNAP_DAEMON_USER,
@@ -117,7 +120,16 @@ class MySQLRouter:
             bootstrap_mysqlrouter_command.append("--force")
 
         try:
-            subprocess.run(bootstrap_mysqlrouter_command)
+            subprocess.run(bootstrap_mysqlrouter_command, check=True)
+
+            replace_socket_location_commands = [
+                "sudo",
+                "sed",
+                "-Ei",
+                f"s:/tmp/(.+).sock:{CHARMED_MYSQL_COMMON_DIRECTORY}/var/run/mysqlrouter/\\1.sock:g",
+                f"{CHARMED_MYSQL_DATA_DIRECTORY}/etc/mysqlrouter/mysqlrouter.conf",
+            ]
+            subprocess.run(replace_socket_location_commands, check=True)
 
             cache = snap.SnapCache()
             charmed_mysql = cache[CHARMED_MYSQL_SNAP]
