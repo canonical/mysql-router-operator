@@ -10,8 +10,8 @@ import mysql.connector
 from charms.operator_libs_linux.v1 import snap
 
 from constants import (
-    CHARMED_MYSQL_DATA_DIRECTORY,
     CHARMED_MYSQL_COMMON_DIRECTORY,
+    CHARMED_MYSQL_DATA_DIRECTORY,
     CHARMED_MYSQL_ROUTER,
     CHARMED_MYSQL_ROUTER_SERVICE,
     CHARMED_MYSQL_SNAP,

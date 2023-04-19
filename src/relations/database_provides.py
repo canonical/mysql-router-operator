@@ -148,10 +148,12 @@ class DatabaseProvidesRelation(Object):
             provides_relation_id, application_username, application_password
         )
         self.database.set_endpoints(
-            provides_relation_id, f"file://{CHARMED_MYSQL_COMMON_DIRECTORY}/var/run/mysqlrouter/mysql.sock"
+            provides_relation_id,
+            f"file://{CHARMED_MYSQL_COMMON_DIRECTORY}/var/run/mysqlrouter/mysql.sock",
         )
         self.database.set_read_only_endpoints(
-            provides_relation_id, f"file://{CHARMED_MYSQL_COMMON_DIRECTORY}/var/run/mysqlrouter/mysqlro.sock"
+            provides_relation_id,
+            f"file://{CHARMED_MYSQL_COMMON_DIRECTORY}/var/run/mysqlrouter/mysqlro.sock",
         )
 
         self.charm.app_peer_data[MYSQL_ROUTER_LEADER_BOOTSTRAPED] = "true"

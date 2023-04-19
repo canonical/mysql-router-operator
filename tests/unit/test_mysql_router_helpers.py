@@ -3,7 +3,7 @@
 
 import unittest
 from subprocess import CalledProcessError
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 from charms.operator_libs_linux.v1 import snap
 
@@ -11,6 +11,7 @@ from constants import CHARMED_MYSQL_ROUTER_SERVICE, CHARMED_MYSQL_SNAP
 from mysql_router_helpers import MySQLRouter, MySQLRouterBootstrapError
 
 bootstrap_cmd = [
+    "sudo",
     "charmed-mysql.mysqlrouter",
     "--user",
     "snap_daemon",
@@ -29,6 +30,13 @@ bootstrap_cmd = [
     "http_server.bind_address=127.0.0.1",
     "--conf-use-gr-notifications",
 ]
+replace_socket_location_cmd = [
+    "sudo",
+    "sed",
+    "-Ei",
+    "s:/tmp/(.+).sock:/var/snap/charmed-mysql/common/var/run/mysqlrouter/\\1.sock:g",
+    "/var/snap/charmed-mysql/current/etc/mysqlrouter/mysqlrouter.conf",
+]
 
 
 class TestMysqlRouterHelpers(unittest.TestCase):
@@ -43,7 +51,15 @@ class TestMysqlRouterHelpers(unittest.TestCase):
             "test_user", "qweqwe", "testapp", "10.10.0.1", "3306"
         )
 
-        _run.assert_called_with(bootstrap_cmd)
+        self.assertEqual(
+            sorted(_run.mock_calls),
+            sorted(
+                [
+                    call(bootstrap_cmd, check=True),
+                    call(replace_socket_location_cmd, check=True),
+                ]
+            ),
+        )
         _charmed_mysql_mock.start.assert_called_once()
 
     @patch("mysql_router_helpers.subprocess.run")
@@ -57,7 +73,15 @@ class TestMysqlRouterHelpers(unittest.TestCase):
             "test_user", "qweqwe", "testapp", "10.10.0.1", "3306", force=True
         )
 
-        _run.assert_called_with(bootstrap_cmd + ["--force"])
+        self.assertEqual(
+            sorted(_run.mock_calls),
+            sorted(
+                [
+                    call(bootstrap_cmd + ["--force"], check=True),
+                    call(replace_socket_location_cmd, check=True),
+                ]
+            ),
+        )
         _charmed_mysql_mock.start.assert_called_once()
 
     @patch("mysql_router_helpers.logger")
@@ -71,7 +95,7 @@ class TestMysqlRouterHelpers(unittest.TestCase):
                 "test_user", "qweqwe", "testapp", "10.10.0.1", "3306"
             )
 
-        _run.assert_called_with(bootstrap_cmd)
+        _run.assert_called_once_with(bootstrap_cmd, check=True)
         _logger.exception.assert_called_with("Failed to bootstrap and start mysqlrouter")
 
     @patch("mysql_router_helpers.logger")
@@ -85,7 +109,15 @@ class TestMysqlRouterHelpers(unittest.TestCase):
                 "test_user", "qweqwe", "testapp", "10.10.0.1", "3306"
             )
 
-        _run.assert_called_once_with(bootstrap_cmd)
+        self.assertEqual(
+            sorted(_run.mock_calls),
+            sorted(
+                [
+                    call(bootstrap_cmd, check=True),
+                    call(replace_socket_location_cmd, check=True),
+                ]
+            ),
+        )
         _logger.exception.assert_called_with(
             f"Failed to start snap service {CHARMED_MYSQL_ROUTER_SERVICE}"
         )
@@ -106,5 +138,13 @@ class TestMysqlRouterHelpers(unittest.TestCase):
                 "test_user", "qweqwe", "testapp", "10.10.0.1", "3306"
             )
 
-        _run.assert_called_once_with(bootstrap_cmd)
+        self.assertEqual(
+            sorted(_run.mock_calls),
+            sorted(
+                [
+                    call(bootstrap_cmd, check=True),
+                    call(replace_socket_location_cmd, check=True),
+                ]
+            ),
+        )
         _logger.exception.assert_called_with("Failed to start the mysqlrouter snap service")
