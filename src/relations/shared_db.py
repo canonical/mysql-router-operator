@@ -8,7 +8,7 @@ import logging
 
 from ops.charm import RelationChangedEvent
 from ops.framework import Object
-from ops.model import Application, BlockedStatus, Unit
+from ops.model import BlockedStatus, Unit
 
 from constants import (
     LEGACY_SHARED_DB,
@@ -52,17 +52,6 @@ class SharedDBRelation(Object):
         """Indicates whether a shared-db relation exists."""
         shared_db_relations = self.charm.model.relations.get(LEGACY_SHARED_DB)
         return bool(shared_db_relations)
-
-    def _get_related_app_name(self) -> str:
-        """Helper to get the name of the related `shared-db` application."""
-        if not self._shared_db_relation_exists():
-            return None
-
-        for key in self.charm.model.relations[LEGACY_SHARED_DB][0].data:
-            if type(key) == Application and key.name != self.charm.app.name:
-                return key.name
-
-        return None
 
     def _get_related_unit_name(self) -> str:
         """Helper to get the name of the related `shared-db` unit."""
@@ -136,14 +125,12 @@ class SharedDBRelation(Object):
         parsed_shared_db_data = json.loads(self.charm.app_peer_data[LEGACY_SHARED_DB_DATA])
 
         db_host = parsed_requires_data["endpoints"].split(",")[0].split(":")[0]
-        related_app_name = self._get_related_app_name()
         application_password = generate_random_password(PASSWORD_LENGTH)
 
         try:
             MySQLRouter.bootstrap_and_start_mysql_router(
                 parsed_requires_data["username"],
                 database_password,
-                related_app_name,
                 db_host,
                 "3306",
             )

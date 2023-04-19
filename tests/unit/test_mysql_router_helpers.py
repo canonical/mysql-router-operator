@@ -15,8 +15,6 @@ bootstrap_cmd = [
     "charmed-mysql.mysqlrouter",
     "--user",
     "snap_daemon",
-    "--name",
-    "testapp",
     "--bootstrap",
     "test_user:qweqwe@10.10.0.1",
     "--conf-use-sockets",
@@ -47,9 +45,7 @@ class TestMysqlRouterHelpers(unittest.TestCase):
         _cache = {CHARMED_MYSQL_SNAP: _charmed_mysql_mock}
         _snap_cache.return_value.__getitem__.side_effect = _cache.__getitem__
 
-        MySQLRouter.bootstrap_and_start_mysql_router(
-            "test_user", "qweqwe", "testapp", "10.10.0.1", "3306"
-        )
+        MySQLRouter.bootstrap_and_start_mysql_router("test_user", "qweqwe", "10.10.0.1", "3306")
 
         self.assertEqual(
             sorted(_run.mock_calls),
@@ -70,7 +66,7 @@ class TestMysqlRouterHelpers(unittest.TestCase):
         _snap_cache.return_value.__getitem__.side_effect = _cache.__getitem__
 
         MySQLRouter.bootstrap_and_start_mysql_router(
-            "test_user", "qweqwe", "testapp", "10.10.0.1", "3306", force=True
+            "test_user", "qweqwe", "10.10.0.1", "3306", force=True
         )
 
         self.assertEqual(
@@ -92,7 +88,7 @@ class TestMysqlRouterHelpers(unittest.TestCase):
         _run.side_effect = e
         with self.assertRaises(MySQLRouterBootstrapError):
             MySQLRouter.bootstrap_and_start_mysql_router(
-                "test_user", "qweqwe", "testapp", "10.10.0.1", "3306"
+                "test_user", "qweqwe", "10.10.0.1", "3306"
             )
 
         _run.assert_called_once_with(bootstrap_cmd, check=True)
@@ -106,7 +102,7 @@ class TestMysqlRouterHelpers(unittest.TestCase):
         _snap_cache.return_value.__getitem__.side_effect = e
         with self.assertRaises(MySQLRouterBootstrapError):
             MySQLRouter.bootstrap_and_start_mysql_router(
-                "test_user", "qweqwe", "testapp", "10.10.0.1", "3306"
+                "test_user", "qweqwe", "10.10.0.1", "3306"
             )
 
         self.assertEqual(
@@ -135,7 +131,7 @@ class TestMysqlRouterHelpers(unittest.TestCase):
 
         with self.assertRaises(MySQLRouterBootstrapError):
             MySQLRouter.bootstrap_and_start_mysql_router(
-                "test_user", "qweqwe", "testapp", "10.10.0.1", "3306"
+                "test_user", "qweqwe", "10.10.0.1", "3306"
             )
 
         self.assertEqual(

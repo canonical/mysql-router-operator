@@ -131,17 +131,11 @@ class MySQLRouterOperatorCharm(CharmBase):
             self.unit.status = MaintenanceStatus("Upgrading charm")
 
             requires_data = json.loads(self.app_peer_data.get(MYSQL_ROUTER_REQUIRES_DATA))
-            related_app_name = (
-                self.shared_db_relation._get_related_app_name()
-                if self.shared_db_relation._shared_db_relation_exists()
-                else self.database_provides_relation._get_related_app_name()
-            )
 
             try:
                 MySQLRouter.bootstrap_and_start_mysql_router(
                     requires_data["username"],
                     self._get_secret("app", "database-password"),
-                    related_app_name,
                     requires_data["endpoints"].split(",")[0].split(":")[0],
                     "3306",
                     force=True,
@@ -183,17 +177,11 @@ class MySQLRouterOperatorCharm(CharmBase):
                     return
 
                 requires_data = json.loads(self.app_peer_data.get(MYSQL_ROUTER_REQUIRES_DATA))
-                related_app_name = (
-                    self.shared_db_relation._get_related_app_name()
-                    if self.shared_db_relation._shared_db_relation_exists()
-                    else self.database_provides_relation._get_related_app_name()
-                )
 
                 try:
                     MySQLRouter.bootstrap_and_start_mysql_router(
                         requires_data["username"],
                         self._get_secret("app", "database-password"),
-                        related_app_name,
                         requires_data["endpoints"].split(",")[0].split(":")[0],
                         "3306",
                     )

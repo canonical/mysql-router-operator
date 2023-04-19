@@ -74,7 +74,6 @@ class MySQLRouter:
     def bootstrap_and_start_mysql_router(
         user,
         password,
-        name,
         db_host,
         port,
         force=False,
@@ -84,7 +83,6 @@ class MySQLRouter:
         Args:
             user: The user to connect to the database with
             password: The password to connect to the database with
-            name: The name of application that will use mysqlrouter
             db_host: The hostname of the database to connect to
             port: The port at which to bootstrap mysqlrouter to
             force: Overwrite existing config if any
@@ -100,8 +98,6 @@ class MySQLRouter:
             CHARMED_MYSQL_ROUTER,
             "--user",
             SNAP_DAEMON_USER,
-            "--name",
-            name,
             "--bootstrap",
             f"{user}:{password}@{db_host}",
             "--conf-use-sockets",

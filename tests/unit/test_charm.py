@@ -82,15 +82,11 @@ class TestCharm(unittest.TestCase):
 
         self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
 
-    @patch("charm.DatabaseProvidesRelation._get_related_app_name")
     @patch("charm.MySQLRouterOperatorCharm._get_secret")
     @patch("mysql_router_helpers.MySQLRouter.bootstrap_and_start_mysql_router")
-    def test_on_upgrade_charm(
-        self, bootstrap_and_start_mysql_router, get_secret, get_related_app_name
-    ):
+    def test_on_upgrade_charm(self, bootstrap_and_start_mysql_router, get_secret):
         self.charm.unit.status = ActiveStatus()
         get_secret.return_value = "s3kr1t"
-        get_related_app_name.return_value = "testapp"
         self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA] = json.dumps(
             {
                 "username": "test_user",
@@ -101,7 +97,7 @@ class TestCharm(unittest.TestCase):
 
         self.assertTrue(isinstance(self.harness.model.unit.status, ActiveStatus))
         bootstrap_and_start_mysql_router.assert_called_with(
-            "test_user", "s3kr1t", "testapp", "10.10.0.1", "3306", force=True
+            "test_user", "s3kr1t", "10.10.0.1", "3306", force=True
         )
 
     @patch("mysql_router_helpers.MySQLRouter.bootstrap_and_start_mysql_router")
@@ -112,15 +108,11 @@ class TestCharm(unittest.TestCase):
         self.assertTrue(isinstance(self.harness.model.unit.status, WaitingStatus))
         bootstrap_and_start_mysql_router.assert_not_called()
 
-    @patch("charm.DatabaseProvidesRelation._get_related_app_name")
     @patch("charm.MySQLRouterOperatorCharm._get_secret")
     @patch("mysql_router_helpers.MySQLRouter.bootstrap_and_start_mysql_router")
-    def test_on_upgrade_charm_error(
-        self, bootstrap_and_start_mysql_router, get_secret, get_related_app_name
-    ):
+    def test_on_upgrade_charm_error(self, bootstrap_and_start_mysql_router, get_secret):
         bootstrap_and_start_mysql_router.side_effect = MySQLRouterBootstrapError()
         get_secret.return_value = "s3kr1t"
-        get_related_app_name.return_value = "testapp"
         self.charm.unit.status = ActiveStatus()
         self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA] = json.dumps(
             {
@@ -132,5 +124,5 @@ class TestCharm(unittest.TestCase):
 
         self.assertTrue(isinstance(self.harness.model.unit.status, BlockedStatus))
         bootstrap_and_start_mysql_router.assert_called_with(
-            "test_user", "s3kr1t", "testapp", "10.10.0.1", "3306", force=True
+            "test_user", "s3kr1t", "10.10.0.1", "3306", force=True
         )

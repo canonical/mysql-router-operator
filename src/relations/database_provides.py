@@ -11,7 +11,7 @@ from charms.data_platform_libs.v0.database_provides import (
     DatabaseRequestedEvent,
 )
 from ops.framework import Object
-from ops.model import Application, BlockedStatus
+from ops.model import BlockedStatus
 
 from constants import (
     CHARMED_MYSQL_COMMON_DIRECTORY,
@@ -55,17 +55,6 @@ class DatabaseProvidesRelation(Object):
         database_provides_relations = self.charm.model.relations.get(DATABASE_PROVIDES_RELATION)
         return bool(database_provides_relations)
 
-    def _get_related_app_name(self) -> str:
-        """Helper to get the name of the related `database-provides` application."""
-        if not self._database_provides_relation_exists():
-            return None
-
-        for key in self.charm.model.relations[DATABASE_PROVIDES_RELATION][0].data:
-            if type(key) == Application and key.name != self.charm.app.name:
-                return key.name
-
-        return None
-
     # =======================
     #  Handlers
     # =======================
@@ -107,13 +96,11 @@ class DatabaseProvidesRelation(Object):
         db_host = parsed_database_requires_data["endpoints"].split(",")[0].split(":")[0]
         mysqlrouter_username = parsed_database_requires_data["username"]
         mysqlrouter_user_password = self.charm._get_secret("app", "database-password")
-        related_app_name = self._get_related_app_name()
 
         try:
             MySQLRouter.bootstrap_and_start_mysql_router(
                 mysqlrouter_username,
                 mysqlrouter_user_password,
-                related_app_name,
                 db_host,
                 "3306",
             )
