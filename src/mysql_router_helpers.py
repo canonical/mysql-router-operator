@@ -118,14 +118,14 @@ class MySQLRouter:
         try:
             subprocess.run(bootstrap_mysqlrouter_command, check=True)
 
-            replace_socket_location_commands = [
+            replace_socket_location_command = [
                 "sudo",
                 "sed",
                 "-Ei",
                 f"s:/tmp/(.+).sock:{CHARMED_MYSQL_COMMON_DIRECTORY}/var/run/mysqlrouter/\\1.sock:g",
                 f"{CHARMED_MYSQL_DATA_DIRECTORY}/etc/mysqlrouter/mysqlrouter.conf",
             ]
-            subprocess.run(replace_socket_location_commands, check=True)
+            subprocess.run(replace_socket_location_command, check=True)
 
             cache = snap.SnapCache()
             charmed_mysql = cache[CHARMED_MYSQL_SNAP]
