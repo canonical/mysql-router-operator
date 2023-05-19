@@ -29,7 +29,8 @@ Juju CLI:
 Juju agent: 
 
 <!-- App revision from "juju status" or (advanced) commit hash -->
-Charm revision: 
+mysql charm revision: 
+mysql-router charm revision: 
 
 <!-- Run "lxd version" -->
 LXD: 
