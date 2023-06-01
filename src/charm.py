@@ -18,7 +18,6 @@ import tenacity
 
 import relations.database_provides
 import relations.database_requires
-import relations.tls
 import workload
 
 logger = logging.getLogger(__name__)
@@ -43,8 +42,6 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
 
         # Start workload after pod restart
         self.framework.observe(self.on.upgrade_charm, self.reconcile_database_relations)
-
-        self.tls = relations.tls.RelationEndpoint(self)
 
     def get_workload(self, *, event):
         """MySQL Router workload"""
@@ -223,7 +220,7 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
             if isinstance(event, ops.UpgradeCharmEvent):
                 # Pod restart (https://juju.is/docs/sdk/start-event#heading--emission-sequence)
                 workload_.cleanup_after_pod_restart()
-            workload_.enable(tls=self.tls.certificate_saved, unit_name=self.unit.name)
+            workload_.enable(unit_name=self.unit.name)
         elif workload_.container_ready:
             workload_.disable()
         self.set_status(event=event)
