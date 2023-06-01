@@ -31,7 +31,11 @@ exclude = [".git", "__pycache__", ".tox", "build", "dist", "*.egg_info", "venv"]
 select = ["E", "W", "F", "C", "N", "R", "D", "H"]
 # Ignore W503, E501 because using black creates errors with this
 # Ignore D107 Missing docstring in __init__
-ignore = ["W503", "E501", "D107"]
+# Ignore D105 Missing docstring in magic method
+# Ignore D415 Docstring first line punctuation (doesn't make sense for properties)
+# Ignore D403 First word of the first line should be properly capitalized (false positive on "MySQL")
+# Ignore N818 Exception should be named with an Error suffix
+ignore = ["W503", "E501", "D107", "D105", "D415", "D403", "N818"]
 # D100, D101, D102, D103: Ignore missing docstrings in tests
 per-file-ignores = ["tests/*:D100,D101,D102,D103,D104"]
 docstring-convention = "google"
