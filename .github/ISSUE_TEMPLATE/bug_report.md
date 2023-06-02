@@ -30,8 +30,8 @@ Juju CLI:
 Juju agent: 
 
 <!-- App revision from `juju status` or (advanced) commit hash -->
-mysql-k8s charm revision: 
-mysql-router-k8s charm revision: 
+mysql charm revision: 
+mysql-router charm revision: 
 
 <!-- Run `lxd version` -->
 LXD: 
