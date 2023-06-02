@@ -36,15 +36,8 @@ mysql-router charm revision:
 LXD: 
 
 ## Log output
-<details>
-<summary> juju debug-log --replay </summary>
+<!-- Run "juju debug-log --replay > juju-debug-log.txt" and upload "juju-debug-log.txt" file here -->
 
-<!-- Paste the full output of "juju debug-log --replay" between the triple backticks (```) -->
-```shell
-
-
-```
-</details>
 
 <!-- (Optional) Copy the logs that are relevant to the bug & paste inside triple backticks below -->
 
