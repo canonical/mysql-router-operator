@@ -81,7 +81,7 @@ jobs:
             bases-index: 1
     name: ${{ matrix.tox-environments }} | ${{ matrix.ubuntu-versions.series }}
     needs:
-      - lint
+#      - lint
       # TODO: re-enable after adding unit tests
       # - unit-test
       - build
