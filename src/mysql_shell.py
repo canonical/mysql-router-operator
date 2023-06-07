@@ -110,33 +110,3 @@ class Shell:
         logger.debug(f"Deleting {username=}")
         self._run_sql([f"DROP USER `{username}`"])
         logger.debug(f"Deleted {username=}")
-
-    def delete_router_user_after_pod_restart(self, router_id: str) -> None:
-        """Delete MySQL Router user created by a previous instance of this unit.
-
-        Before pod restart, the charm does not have an opportunity to delete the MySQL Router user.
-        During MySQL Router bootstrap, a new user is created. Before bootstrap, the old user
-        should be deleted.
-        """
-        logger.debug(f"Deleting MySQL Router user {router_id=} created by {self.username=}")
-        self._run_sql(
-            [
-                f"SELECT CONCAT('DROP USER ', GROUP_CONCAT(QUOTE(USER), '@', QUOTE(HOST))) INTO @sql FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='{self.username}' AND ATTRIBUTE->'$.router_id'='{router_id}'",
-                "PREPARE stmt FROM @sql",
-                "EXECUTE stmt",
-                "DEALLOCATE PREPARE stmt",
-            ]
-        )
-        logger.debug(f"Deleted MySQL Router user {router_id=} created by {self.username=}")
-
-    def remove_router_from_cluster_metadata(self, router_id: str) -> None:
-        """Remove MySQL Router from InnoDB Cluster metadata.
-
-        On pod restart, MySQL Router bootstrap will fail without `--force` if cluster metadata
-        already exists for the router ID.
-        """
-        logger.debug(f"Removing {router_id=} from cluster metadata")
-        self._run_commands(
-            ["cluster = dba.get_cluster()", f'cluster.remove_router_metadata("{router_id}")']
-        )
-        logger.debug(f"Removed {router_id=} from cluster metadata")

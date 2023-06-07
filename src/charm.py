@@ -202,7 +202,6 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
             f"{isinstance(workload_, workload.AuthenticatedWorkload)=}, "
             f"{workload_.container_ready=}, "
             f"{self.database_requires.is_relation_breaking(event)=}, "
-            f"{isinstance(event, ops.UpgradeCharmEvent)=}"
         )
         if self.unit.is_leader() and self.database_requires.is_relation_breaking(event):
             self.database_provides.delete_all_databags()
@@ -217,9 +216,6 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
                 shell=workload_.shell,
             )
         if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
-            if isinstance(event, ops.UpgradeCharmEvent):
-                # Pod restart (https://juju.is/docs/sdk/start-event#heading--emission-sequence)
-                workload_.cleanup_after_pod_restart()
             workload_.enable(unit_name=self.unit.name)
         elif workload_.container_ready:
             workload_.disable()

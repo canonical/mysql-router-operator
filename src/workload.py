@@ -148,15 +148,6 @@ class AuthenticatedWorkload(Workload):
         # MySQL Router is bootstrapped without `--directory`—there is one system-wide instance.
         return f"{socket.getfqdn()}::system"
 
-    def cleanup_after_pod_restart(self) -> None:
-        """Remove MySQL Router cluster metadata & user after pod restart.
-
-        (Storage is not persisted on pod restart—MySQL Router's config file is deleted.
-        Therefore, MySQL Router needs to be bootstrapped again.)
-        """
-        self.shell.remove_router_from_cluster_metadata(self._router_id)
-        self.shell.delete_router_user_after_pod_restart(self._router_id)
-
     def _bootstrap_router(self) -> None:
         """Bootstrap MySQL Router and enable service."""
         logger.debug(
