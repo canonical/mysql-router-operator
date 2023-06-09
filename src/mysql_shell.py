@@ -11,8 +11,9 @@ import json
 import logging
 import secrets
 import string
+import typing
 
-import ops
+import container
 
 _PASSWORD_LENGTH = 24
 logger = logging.getLogger(__name__)
@@ -20,21 +21,29 @@ logger = logging.getLogger(__name__)
 
 # TODO python3.10 min version: Add `(kw_only=True)`
 @dataclasses.dataclass
+class RouterUserInformation:
+    """MySQL Router user information"""
+
+    username: str
+    router_id: str
+
+
+# TODO python3.10 min version: Add `(kw_only=True)`
+@dataclasses.dataclass
 class Shell:
     """MySQL Shell connected to MySQL cluster"""
 
-    _container: ops.Container
+    _container: container.Container
     username: str
     _password: str
     _host: str
     _port: str
 
-    _TEMPORARY_SCRIPT_FILE = "/tmp/script.py"
-
-    def _run_commands(self, commands: list[str]) -> None:
+    def _run_commands(self, commands: list[str]) -> str:
         """Connect to MySQL cluster and run commands."""
         # Redact password from log
         logged_commands = commands.copy()
+        # TODO: Password is still logged on user creation
         logged_commands.insert(
             0, f"shell.connect('{self.username}:***@{self._host}:{self._port}')"
         )
@@ -42,17 +51,18 @@ class Shell:
         commands.insert(
             0, f"shell.connect('{self.username}:{self._password}@{self._host}:{self._port}')"
         )
-        self._container.push(self._TEMPORARY_SCRIPT_FILE, "\n".join(commands))
+        temporary_script_file = self._container.path("/tmp/script.py")
+        temporary_script_file.write_text("\n".join(commands))
         try:
-            process = self._container.exec(
-                ["mysqlsh", "--no-wizard", "--python", "--file", self._TEMPORARY_SCRIPT_FILE]
+            output = self._container.run_mysql_shell(
+                ["--no-wizard", "--python", "--file", str(temporary_script_file)]
             )
-            process.wait_output()
-        except ops.pebble.ExecError as e:
+        except container.CalledProcessError as e:
             logger.exception(f"Failed to run {logged_commands=}\nstderr:\n{e.stderr}\n")
             raise
         finally:
-            self._container.remove_path(self._TEMPORARY_SCRIPT_FILE)
+            temporary_script_file.unlink()
+        return output
 
     def _run_sql(self, sql_statements: list[str]) -> None:
         """Connect to MySQL cluster and execute SQL."""
@@ -104,6 +114,48 @@ class Shell:
         logger.debug(f"Adding {attributes=} to {username=}")
         self._run_sql([f"ALTER USER `{username}` ATTRIBUTE '{attributes}'"])
         logger.debug(f"Added {attributes=} to {username=}")
+
+    def get_mysql_router_user_for_unit(
+        self, unit_name: str
+    ) -> typing.Optional[RouterUserInformation]:
+        """Get MySQL Router user created by a previous instance of the unit.
+
+        Get username & router ID attribute.
+
+        Before container restart, the charm does not have an opportunity to delete the MySQL
+        Router user or cluster metadata created during MySQL Router bootstrap. After container
+        restart, the user and cluster metadata should be deleted before bootstrapping MySQL Router
+        again.
+        """
+        logger.debug(f"Getting MySQL Router user for {unit_name=}")
+        rows = json.loads(
+            self._run_commands(
+                [
+                    f"result = session.run_sql(\"SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='{self.username}' AND ATTRIBUTE->'$.created_by_juju_unit'='{unit_name}'\")",
+                    "print(result.fetch_all())",
+                ]
+            )
+        )
+        if not rows:
+            logger.debug(f"No MySQL Router user found for {unit_name=}")
+            return
+        assert len(rows) == 1
+        username, router_id = rows[0]
+        user_info = RouterUserInformation(username=username, router_id=router_id)
+        logger.debug(f"MySQL Router user found for {unit_name=}: {user_info}")
+        return user_info
+
+    def remove_router_from_cluster_metadata(self, router_id: str) -> None:
+        """Remove MySQL Router from InnoDB Cluster metadata.
+
+        On container restart, MySQL Router bootstrap will fail without `--force` if cluster
+        metadata already exists for the router ID.
+        """
+        logger.debug(f"Removing {router_id=} from cluster metadata")
+        self._run_commands(
+            ["cluster = dba.get_cluster()", f'cluster.remove_router_metadata("{router_id}")']
+        )
+        logger.debug(f"Removed {router_id=} from cluster metadata")
 
     def delete_user(self, username: str) -> None:
         """Delete user."""

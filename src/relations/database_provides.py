@@ -74,8 +74,14 @@ class _RelationThatRequestedUser(_Relation):
 
     def _set_databag(self, *, username: str, password: str, router_endpoint: str) -> None:
         """Share connection information with application charm."""
-        read_write_endpoint = f"{router_endpoint}:6446"
-        read_only_endpoint = f"{router_endpoint}:6447"
+        # TODO: remove `file://`?
+        # TODO: get socket path from variable
+        read_write_endpoint = (
+            "file:///var/snap/charmed-mysql/common/var/run/mysqlrouter/mysql.sock"
+        )
+        read_only_endpoint = (
+            "file:///var/snap/charmed-mysql/common/var/run/mysqlrouter/mysqlro.sock"
+        )
         logger.debug(
             f"Setting databag {self._id=} {self._database=}, {username=}, {read_write_endpoint=}, {read_only_endpoint=}"
         )

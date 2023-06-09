@@ -4,14 +4,12 @@
 """MySQL Router workload"""
 
 import configparser
-import dataclasses
 import logging
-import pathlib
 import socket
+import string
 import typing
 
-import ops
-
+import container
 import mysql_shell
 
 if typing.TYPE_CHECKING:
@@ -21,112 +19,91 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-# TODO python3.10 min version: Add `(kw_only=True)`
-@dataclasses.dataclass
 class Workload:
     """MySQL Router workload"""
 
-    _container: ops.Container
-
-    CONTAINER_NAME = "mysql-router"
-    _SERVICE_NAME = "mysql_router"
-    _UNIX_USERNAME = "mysql"
-    _ROUTER_CONFIG_DIRECTORY = pathlib.Path("/etc/mysqlrouter")
-    _ROUTER_DATA_DIRECTORY = pathlib.Path("/var/lib/mysqlrouter")
-    _ROUTER_CONFIG_FILE = "mysqlrouter.conf"
+    def __init__(self, container_: container.Container) -> None:
+        self._container = container_
+        self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
+        self._tls_key_file = self._container.router_config_directory / "custom-key.pem"
+        self._tls_certificate_file = (
+            self._container.router_config_directory / "custom-certificate.pem"
+        )
 
     @property
     def container_ready(self) -> bool:
-        """Whether container is ready"""
-        return self._container.can_connect()
+        """Whether container is ready
 
-    @property
-    def _enabled(self) -> bool:
-        """Service status"""
-        service = self._container.get_services(self._SERVICE_NAME).get(self._SERVICE_NAME)
-        if service is None:
-            return False
-        return service.startup == ops.pebble.ServiceStartup.ENABLED
+        Only applies to Kubernetes charm
+        """
+        return self._container.ready
 
     @property
     def version(self) -> str:
         """MySQL Router version"""
-        process = self._container.exec(["mysqlrouter", "--version"])
-        raw_version, _ = process.wait_output()
-        for version in raw_version.split():
-            if version.startswith("8"):
-                return version
+        version = self._container.run_mysql_router(["--version"])
+        for component in version.split():
+            if component.startswith("8"):
+                return component
         return ""
-
-    def _update_layer(self, *, enabled: bool) -> None:
-        """Update and restart services.
-
-        Args:
-            enabled: Whether MySQL Router service is enabled
-        """
-        command = (
-            f"mysqlrouter --config {self._ROUTER_CONFIG_DIRECTORY / self._ROUTER_CONFIG_FILE}"
-        )
-        if enabled:
-            startup = ops.pebble.ServiceStartup.ENABLED.value
-        else:
-            startup = ops.pebble.ServiceStartup.DISABLED.value
-        layer = ops.pebble.Layer(
-            {
-                "summary": "mysql router layer",
-                "description": "the pebble config layer for mysql router",
-                "services": {
-                    self._SERVICE_NAME: {
-                        "override": "replace",
-                        "summary": "mysql router",
-                        "command": command,
-                        "startup": startup,
-                        "user": self._UNIX_USERNAME,
-                        "group": self._UNIX_USERNAME,
-                    },
-                },
-            }
-        )
-        self._container.add_layer(self._SERVICE_NAME, layer, combine=True)
-        self._container.replan()
-
-    def _create_directory(self, path: pathlib.Path) -> None:
-        """Create directory.
-
-        Args:
-            path: Full filesystem path
-        """
-        path = str(path)
-        self._container.make_dir(path, user=self._UNIX_USERNAME, group=self._UNIX_USERNAME)
-
-    def _delete_directory(self, path: pathlib.Path) -> None:
-        """Delete directory.
-
-        Args:
-            path: Full filesystem path
-        """
-        path = str(path)
-        self._container.remove_path(path, recursive=True)
 
     def disable(self) -> None:
         """Stop and disable MySQL Router service."""
-        if not self._enabled:
+        if not self._container.mysql_router_service_enabled:
             return
         logger.debug("Disabling MySQL Router service")
-        self._update_layer(enabled=False)
-        self._delete_directory(self._ROUTER_CONFIG_DIRECTORY)
-        self._create_directory(self._ROUTER_CONFIG_DIRECTORY)
-        self._delete_directory(self._ROUTER_DATA_DIRECTORY)
+        self._container.update_mysql_router_service(enabled=False)
+        self._container.router_config_directory.rmtree()
+        self._container.router_config_directory.mkdir()
+        self._router_data_directory.rmtree()
         logger.debug("Disabled MySQL Router service")
 
+    @property
+    def _tls_config_file_data(self) -> str:
+        """Render config file template to string.
 
-# TODO python3.10 min version: Add `(kw_only=True)`
-@dataclasses.dataclass
+        Config file enables TLS on MySQL Router.
+        """
+        with open("templates/tls.cnf", "r") as template_file:
+            template = string.Template(template_file.read())
+        config_string = template.substitute(
+            tls_ssl_key_file=self._tls_key_file,
+            tls_ssl_cert_file=self._tls_certificate_file,
+        )
+        return config_string
+
+    def enable_tls(self, *, key: str, certificate: str):
+        """Enable TLS."""
+        logger.debug("Enabling TLS")
+        self._container.tls_config_file.write_text(self._tls_config_file_data)
+        self._tls_key_file.write_text(key)
+        self._tls_certificate_file.write_text(certificate)
+        logger.debug("Enabled TLS")
+
+    def disable_tls(self) -> None:
+        """Disable TLS."""
+        logger.debug("Disabling TLS")
+        for file in (
+            self._container.tls_config_file,
+            self._tls_key_file,
+            self._tls_certificate_file,
+        ):
+            file.unlink()
+        logger.debug("Disabled TLS")
+
+
 class AuthenticatedWorkload(Workload):
     """Workload with connection to MySQL cluster"""
 
-    _connection_info: "relations.database_requires.ConnectionInformation"
-    _charm: "charm.MySQLRouterOperatorCharm"
+    def __init__(
+        self,
+        container_: container.Container,
+        connection_info: "relations.database_requires.ConnectionInformation",
+        charm_: "charm.MySQLRouterOperatorCharm",
+    ) -> None:
+        super().__init__(container_)
+        self._connection_info = connection_info
+        self._charm = charm_
 
     @property
     def shell(self) -> mysql_shell.Shell:
@@ -148,43 +125,46 @@ class AuthenticatedWorkload(Workload):
         # MySQL Router is bootstrapped without `--directory`—there is one system-wide instance.
         return f"{socket.getfqdn()}::system"
 
-    def _bootstrap_router(self) -> None:
+    def cleanup_after_potential_container_restart(self, *, unit_name: str) -> None:
+        """Remove MySQL Router cluster metadata & user after (potential) container restart.
+
+        (Storage is not persisted on container restart—MySQL Router's config file is deleted.
+        Therefore, MySQL Router needs to be bootstrapped again.)
+        """
+        if user_info := self.shell.get_mysql_router_user_for_unit(unit_name):
+            self.shell.remove_router_from_cluster_metadata(user_info.router_id)
+            self.shell.delete_user(user_info.username)
+
+    def _get_bootstrap_command(self, password: str) -> list[str]:
+        return [
+            "--bootstrap",
+            self._connection_info.username
+            + ":"
+            + password
+            + "@"
+            + self._connection_info.host
+            + ":"
+            + self._connection_info.port,
+            "--strict",
+            "--user",
+            self._container.UNIX_USERNAME,
+            "--conf-set-option",
+            "http_server.bind_address=127.0.0.1",
+            "--conf-use-gr-notifications",
+        ]
+
+    def _bootstrap_router(self, *, tls: bool) -> None:
         """Bootstrap MySQL Router and enable service."""
         logger.debug(
-            f"Bootstrapping router {self._connection_info.host=}, {self._connection_info.port=}"
+            f"Bootstrapping router {tls=}, {self._connection_info.host=}, {self._connection_info.port=}"
         )
-
-        def _get_command(password: str):
-            return [
-                "mysqlrouter",
-                "--bootstrap",
-                self._connection_info.username
-                + ":"
-                + password
-                + "@"
-                + self._connection_info.host
-                + ":"
-                + self._connection_info.port,
-                "--strict",
-                "--user",
-                self._UNIX_USERNAME,
-                "--conf-set-option",
-                "http_server.bind_address=127.0.0.1",
-                "--conf-use-gr-notifications",
-            ]
-
         # Redact password from log
-        logged_command = _get_command("***")
+        logged_command = self._get_bootstrap_command("***")
 
-        command = _get_command(self._connection_info.password)
+        command = self._get_bootstrap_command(self._connection_info.password)
         try:
-            # Bootstrap MySQL Router
-            process = self._container.exec(
-                command,
-                timeout=30,
-            )
-            process.wait_output()
-        except ops.pebble.ExecError as e:
+            self._container.run_mysql_router(command, timeout=30)
+        except container.CalledProcessError as e:
             # Use `logger.error` instead of `logger.exception` so password isn't logged
             logger.error(f"Failed to bootstrap router\n{logged_command=}\nstderr:\n{e.stderr}\n")
             # Original exception contains password
@@ -193,11 +173,8 @@ class AuthenticatedWorkload(Workload):
             # `from None` disables exception chaining so that the original exception is not
             # included in the traceback
             raise Exception("Failed to bootstrap router") from None
-        # Enable service
-        self._update_layer(enabled=True)
-
         logger.debug(
-            f"Bootstrapped router {self._connection_info.host=}, {self._connection_info.port=}"
+            f"Bootstrapped router {tls=}, {self._connection_info.host=}, {self._connection_info.port=}"
         )
 
     @property
@@ -208,23 +185,48 @@ class AuthenticatedWorkload(Workload):
         `/etc/mysqlrouter/mysqlrouter.conf`. This file contains the username that was created
         during bootstrap.
         """
+        # TODO: remove path from docstring
         config = configparser.ConfigParser()
-        config.read_file(
-            self._container.pull(self._ROUTER_CONFIG_DIRECTORY / self._ROUTER_CONFIG_FILE)
-        )
+        config.read_string(self._container.router_config_file.read_text())
         return config["metadata_cache:bootstrap"]["user"]
 
-    def enable(self, *, unit_name: str) -> None:
+    def enable(self, *, tls: bool, unit_name: str) -> None:
         """Start and enable MySQL Router service."""
-        if self._enabled:
+        if self._container.mysql_router_service_enabled:
             # If the host or port changes, MySQL Router will receive topology change
             # notifications from MySQL.
             # Therefore, if the host or port changes, we do not need to restart MySQL Router.
             return
         logger.debug("Enabling MySQL Router service")
-        self._bootstrap_router()
+        self._bootstrap_router(tls=tls)
+        self._container.update_mysql_router_service(enabled=True, tls=tls)
+        # TODO: move before enable service
         self.shell.add_attributes_to_mysql_router_user(
             username=self._router_username, router_id=self._router_id, unit_name=unit_name
         )
         logger.debug("Enabled MySQL Router service")
         self._charm.wait_until_mysql_router_ready()
+
+    def _restart(self, *, tls: bool) -> None:
+        """Restart MySQL Router to enable or disable TLS."""
+        logger.debug("Restarting MySQL Router")
+        assert self._container.mysql_router_service_enabled is True
+        self._bootstrap_router(tls=tls)
+        self._container.update_mysql_router_service(enabled=True, tls=tls)
+        logger.debug("Restarted MySQL Router")
+        self._charm.wait_until_mysql_router_ready()
+        # wait_until_mysql_router_ready will set WaitingStatus—override it with current charm
+        # status
+        self._charm.set_status(event=None)
+
+    def enable_tls(self, *, key: str, certificate: str):
+        """Enable TLS and restart MySQL Router."""
+        super().enable_tls(key=key, certificate=certificate)
+        if self._container.mysql_router_service_enabled:
+            self._restart(tls=True)
+
+    def disable_tls(self) -> None:
+        """Disable TLS and restart MySQL Router."""
+        super().disable_tls()
+        if self._container.mysql_router_service_enabled:
+            self._restart(tls=False)

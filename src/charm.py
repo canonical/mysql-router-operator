@@ -9,15 +9,14 @@
 import logging
 import socket
 
-import lightkube
-import lightkube.models.core_v1
-import lightkube.models.meta_v1
-import lightkube.resources.core_v1
+import charms.operator_libs_linux.v2.snap as snap_lib
 import ops
 import tenacity
 
 import relations.database_provides
 import relations.database_requires
+import snap
+import socket_workload
 import workload
 
 logger = logging.getLogger(__name__)
@@ -34,42 +33,28 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
         self.database_provides = relations.database_provides.RelationEndpoint(self)
 
         self.framework.observe(self.on.install, self._on_install)
+        self.framework.observe(self.on.remove, self._on_remove)
         self.framework.observe(self.on.start, self._on_start)
-        self.framework.observe(
-            getattr(self.on, "mysql_router_pebble_ready"), self._on_mysql_router_pebble_ready
-        )
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
-
-        # Start workload after pod restart
-        self.framework.observe(self.on.upgrade_charm, self.reconcile_database_relations)
 
     def get_workload(self, *, event):
         """MySQL Router workload"""
-        container = self.unit.get_container(workload.Workload.CONTAINER_NAME)
+        container = snap.Snap()
         if connection_info := self.database_requires.get_connection_info(event=event):
-            return workload.AuthenticatedWorkload(
-                _container=container,
-                _connection_info=connection_info,
-                _charm=self,
+            return socket_workload.AuthenticatedSocketWorkload(
+                container_=container,
+                connection_info=connection_info,
+                charm_=self,
             )
-        return workload.Workload(_container=container)
-
-    @property
-    def model_service_domain(self):
-        """K8s service domain for Juju model"""
-        # Example: "mysql-router-k8s-0.mysql-router-k8s-endpoints.my-model.svc.cluster.local"
-        fqdn = socket.getfqdn()
-        # Example: "mysql-router-k8s-0.mysql-router-k8s-endpoints."
-        prefix = f"{self.unit.name.replace('/', '-')}.{self.app.name}-endpoints."
-        assert fqdn.startswith(f"{prefix}{self.model.name}.")
-        # Example: my-model.svc.cluster.local
-        return fqdn.removeprefix(prefix)
+        return socket_workload.SocketWorkload(container_=container)
 
     @property
     def _endpoint(self) -> str:
         """K8s endpoint for MySQL Router"""
+        # TODO: remove
         # Example: mysql-router-k8s.my-model.svc.cluster.local
-        return f"{self.app.name}.{self.model_service_domain}"
+        return "foo"
+        # return f"{self.app.name}.{self.model_service_domain}"
 
     @staticmethod
     def _prioritize_statuses(statuses: list[ops.StatusBase]) -> ops.StatusBase:
@@ -136,59 +121,6 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
         else:
             logger.debug("MySQL Router is ready")
 
-    def _patch_service(self, *, name: str, ro_port: int, rw_port: int) -> None:
-        """Patch Juju-created k8s service.
-
-        The k8s service will be tied to pod-0 so that the service is auto cleaned by
-        k8s when the last pod is scaled down.
-
-        Args:
-            name: The name of the service.
-            ro_port: The read only port.
-            rw_port: The read write port.
-        """
-        logger.debug(f"Patching k8s service {name=}, {ro_port=}, {rw_port=}")
-        client = lightkube.Client()
-        pod0 = client.get(
-            res=lightkube.resources.core_v1.Pod,
-            name=self.app.name + "-0",
-            namespace=self.model.name,
-        )
-        service = lightkube.resources.core_v1.Service(
-            metadata=lightkube.models.meta_v1.ObjectMeta(
-                name=name,
-                namespace=self.model.name,
-                ownerReferences=pod0.metadata.ownerReferences,
-                labels={
-                    "app.kubernetes.io/name": self.app.name,
-                },
-            ),
-            spec=lightkube.models.core_v1.ServiceSpec(
-                ports=[
-                    lightkube.models.core_v1.ServicePort(
-                        name="mysql-ro",
-                        port=ro_port,
-                        targetPort=ro_port,
-                    ),
-                    lightkube.models.core_v1.ServicePort(
-                        name="mysql-rw",
-                        port=rw_port,
-                        targetPort=rw_port,
-                    ),
-                ],
-                selector={"app.kubernetes.io/name": self.app.name},
-            ),
-        )
-        client.patch(
-            res=lightkube.resources.core_v1.Service,
-            obj=service,
-            name=service.metadata.name,
-            namespace=service.metadata.namespace,
-            force=True,
-            field_manager=self.model.app.name,
-        )
-        logger.debug(f"Patched k8s service {name=}, {ro_port=}, {rw_port=}")
-
     # =======================
     #  Handlers
     # =======================
@@ -223,21 +155,30 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
 
     def _on_install(self, _) -> None:
         """Patch existing k8s service to include read-write and read-only services."""
-        if not self.unit.is_leader():
-            return
-        try:
-            self._patch_service(name=self.app.name, ro_port=6447, rw_port=6446)
-        except lightkube.ApiError:
-            logger.exception("Failed to patch k8s service")
-            raise
+        # TODO update docstring
+        # TODO: move to workload.py?
+        # TODO set workload version
+        _SNAP_NAME = "charmed-mysql"
+        _SNAP_REVISION = "51"
+        mysql_snap = snap_lib.SnapCache()[_SNAP_NAME]
+        if mysql_snap.present:
+            logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
+            raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
+        logger.debug(f"Installing {_SNAP_NAME=}, {_SNAP_REVISION=}")
+        # TODO: set status
+        # TODO catch/retry on error?
+        mysql_snap.ensure(snap_lib.SnapState.Present, revision=_SNAP_REVISION)
+        logger.debug(f"Installed {_SNAP_NAME=}, {_SNAP_REVISION=}")
+        self.unit.set_workload_version(self.get_workload(event=None).version)
+
+    def _on_remove(self, _) -> None:
+        _SNAP_NAME = "charmed-mysql"
+        mysql_snap = snap_lib.SnapCache()[_SNAP_NAME]
+        mysql_snap.ensure(snap_lib.SnapState.Absent)
 
     def _on_start(self, _) -> None:
         # Set status on first start if no relations active
         self.set_status(event=None)
-
-    def _on_mysql_router_pebble_ready(self, _) -> None:
-        self.unit.set_workload_version(self.get_workload(event=None).version)
-        self.reconcile_database_relations()
 
     def _on_leader_elected(self, _) -> None:
         # Update app status
