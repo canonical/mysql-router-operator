@@ -11,7 +11,9 @@ _UNIX_USERNAME = None  # TODO
 _SNAP_NAME = "charmed-mysql"
 
 
-class _SnapPath(pathlib.PosixPath):
+class _Path(pathlib.PosixPath, container.Path):
+    _UNIX_USERNAME = _UNIX_USERNAME
+
     def __new__(cls, *args, **kwargs):
         path = super().__new__(cls, *args, **kwargs)
         if str(path).startswith("/etc/mysqlrouter") or str(path).startswith(
@@ -23,16 +25,21 @@ class _SnapPath(pathlib.PosixPath):
         elif str(path).startswith("/tmp"):
             parent = f"/tmp/snap-private-tmp/snap.{_SNAP_NAME}"
         else:
-            return path
-        assert str(path).startswith("/")
-        return super().__new__(cls, parent, path.relative_to("/"), **kwargs)
+            parent = None
+        if parent:
+            assert str(path).startswith("/")
+            path = super().__new__(cls, parent, path.relative_to("/"), **kwargs)
+        path._container_parent = parent
+        return path
 
     def __rtruediv__(self, other):
         return type(self)(other, self)
 
-
-class _Path(_SnapPath, container.Path):
-    _UNIX_USERNAME = _UNIX_USERNAME
+    @property
+    def relative_to_container(self) -> pathlib.PurePosixPath:
+        if parent := self._container_parent:
+            return self.relative_to(parent)
+        return self
 
     def read_text(self, encoding="utf-8", *args) -> str:
         return super().read_text(encoding, *args)

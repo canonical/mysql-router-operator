@@ -20,6 +20,14 @@ class Path(pathlib.PurePosixPath, abc.ABC):
     def _UNIX_USERNAME(self) -> str:
         pass
 
+    @property
+    @abc.abstractmethod
+    def relative_to_container(self) -> pathlib.PurePosixPath:
+        """Path from container root (instead of machine root)
+
+        Only differs from `self` on machine charm
+        """
+
     @abc.abstractmethod
     def read_text(self) -> str:
         """Open the file in text mode, read it, and close the file."""
