@@ -150,7 +150,7 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
         if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
             workload_.enable(
                 unit_name=self.unit.name,
-                tls=False,  # TODO
+                tls=None,  # TODO
             )
         elif workload_.container_ready:
             workload_.disable()

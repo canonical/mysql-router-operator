@@ -60,8 +60,8 @@ class Snap(container.Container):
 
     def __init__(self) -> None:
         super().__init__(
-            mysql_router_command=f"/snap/bin/{_SNAP_NAME}.mysqlrouter",
-            mysql_shell_command=f"/snap/bin/{_SNAP_NAME}.mysqlsh",
+            mysql_router_command=f"{_SNAP_NAME}.mysqlrouter",
+            mysql_shell_command=f"{_SNAP_NAME}.mysqlsh",
         )
 
     @property
