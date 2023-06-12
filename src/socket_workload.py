@@ -32,7 +32,9 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload
             if not section_name.startswith("routing:"):
                 continue
             section["socket"] = str(
-                self._container.path("/run/mysqlrouter") / pathlib.PurePath(section["socket"]).name
+                # TODO use /run instead of /var/run?
+                self._container.path("/var/run/mysqlrouter")
+                / pathlib.PurePath(section["socket"]).name
             )
         with io.StringIO() as output:
             config.write(output)
