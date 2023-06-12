@@ -7,7 +7,7 @@ import charms.operator_libs_linux.v2.snap as snap_lib
 
 import container
 
-_UNIX_USERNAME = "mysql"  # TODO
+_UNIX_USERNAME = "snap_daemon"  # TODO
 _SNAP_NAME = "charmed-mysql"
 
 
