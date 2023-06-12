@@ -38,7 +38,7 @@ class _Path(pathlib.PosixPath, container.Path):
     @property
     def relative_to_container(self) -> pathlib.PurePosixPath:
         if parent := self._container_parent:
-            return pathlib.PurePosixPath(self).relative_to(parent)
+            return pathlib.PurePosixPath("/", self.relative_to(parent))
         return self
 
     def read_text(self, encoding="utf-8", *args) -> str:
