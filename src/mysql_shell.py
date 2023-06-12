@@ -55,7 +55,7 @@ class Shell:
         temporary_script_file.write_text("\n".join(commands))
         try:
             output = self._container.run_mysql_shell(
-                ["--no-wizard", "--python", "--file", str(temporary_script_file)]
+                ["--no-wizard", "--python", "--file", "/tmp/script.py"]
             )
         except container.CalledProcessError as e:
             logger.exception(f"Failed to run {logged_commands=}\nstderr:\n{e.stderr}\n")
