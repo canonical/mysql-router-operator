@@ -7,7 +7,7 @@ import charms.operator_libs_linux.v2.snap as snap_lib
 
 import container
 
-_UNIX_USERNAME = None  # TODO
+_UNIX_USERNAME = "mysql"  # TODO
 _SNAP_NAME = "charmed-mysql"
 
 
@@ -60,10 +60,11 @@ class Snap(container.Container):
 
     def __init__(self) -> None:
         super().__init__(
-            mysql_router_command=f"{_SNAP_NAME}.mysqlrouter",
-            mysql_shell_command=f"{_SNAP_NAME}.mysqlsh",
+            mysql_router_command=f"/snap/bin/{_SNAP_NAME}.mysqlrouter",
+            mysql_shell_command=f"/snap/bin/{_SNAP_NAME}.mysqlsh",
         )
 
+    @property
     def ready(self) -> bool:
         return True
 
