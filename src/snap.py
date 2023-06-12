@@ -25,7 +25,7 @@ class _SnapPath(pathlib.PosixPath):
         else:
             return path
         assert str(path).startswith("/")
-        return parent / path.relative_to("/")
+        return super().__new__(cls, parent, path.relative_to("/"), **kwargs)
 
     def __rtruediv__(self, other):
         return type(self)(other, self)
