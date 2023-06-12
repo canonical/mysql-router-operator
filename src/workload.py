@@ -146,8 +146,6 @@ class AuthenticatedWorkload(Workload):
             + ":"
             + self._connection_info.port,
             "--strict",
-            "--user",
-            self._container.UNIX_USERNAME,
             "--conf-set-option",
             "http_server.bind_address=127.0.0.1",
             "--conf-use-gr-notifications",

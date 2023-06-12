@@ -7,13 +7,10 @@ import charms.operator_libs_linux.v2.snap as snap_lib
 
 import container
 
-_UNIX_USERNAME = "snap_daemon"  # TODO
 _SNAP_NAME = "charmed-mysql"
 
 
 class _Path(pathlib.PosixPath, container.Path):
-    _UNIX_USERNAME = _UNIX_USERNAME
-
     def __new__(cls, *args, **kwargs):
         path = super().__new__(cls, *args, **kwargs)
         if str(path).startswith("/etc/mysqlrouter") or str(path).startswith(
@@ -54,7 +51,6 @@ class _Path(pathlib.PosixPath, container.Path):
 
 
 class Snap(container.Container):
-    UNIX_USERNAME = _UNIX_USERNAME
     _SNAP_REVISION = "51"
     _SERVICE_NAME = "mysqlrouter-service"
 

@@ -17,11 +17,6 @@ class Installer(abc.ABC):
 class Path(pathlib.PurePosixPath, abc.ABC):
     @property
     @abc.abstractmethod
-    def _UNIX_USERNAME(self) -> str:
-        pass
-
-    @property
-    @abc.abstractmethod
     def relative_to_container(self) -> pathlib.PurePosixPath:
         """Path from container root (instead of machine root)
 
@@ -57,11 +52,6 @@ class CalledProcessError(subprocess.CalledProcessError):
 
 
 class Container(abc.ABC):
-    @property
-    @abc.abstractmethod
-    def UNIX_USERNAME(self) -> str:
-        pass
-
     @property
     def router_config_directory(self) -> Path:
         return self.path("/etc/mysqlrouter")
