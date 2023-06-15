@@ -4,16 +4,6 @@ import subprocess
 import typing
 
 
-class Installer(abc.ABC):
-    @abc.abstractmethod
-    def install(self):
-        pass
-
-    @abc.abstractmethod
-    def uninstall(self):
-        pass
-
-
 class Path(pathlib.PurePosixPath, abc.ABC):
     @property
     @abc.abstractmethod
