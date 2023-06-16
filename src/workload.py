@@ -179,11 +179,8 @@ class AuthenticatedWorkload(Workload):
     def _router_username(self) -> str:
         """Read MySQL Router username from config file.
 
-        During bootstrap, MySQL Router creates a config file at
-        `/etc/mysqlrouter/mysqlrouter.conf`. This file contains the username that was created
-        during bootstrap.
+        During bootstrap, MySQL Router creates a config file which includes a generated username.
         """
-        # TODO: remove path from docstring
         config = configparser.ConfigParser()
         config.read_string(self._container.router_config_file.read_text())
         return config["metadata_cache:bootstrap"]["user"]

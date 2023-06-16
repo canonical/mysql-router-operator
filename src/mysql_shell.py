@@ -43,7 +43,6 @@ class Shell:
         """Connect to MySQL cluster and run commands."""
         # Redact password from log
         logged_commands = commands.copy()
-        # TODO: Password is still logged on user creation
         logged_commands.insert(
             0, f"shell.connect('{self.username}:***@{self._host}:{self._port}')"
         )
