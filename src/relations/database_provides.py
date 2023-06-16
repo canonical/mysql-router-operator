@@ -72,34 +72,44 @@ class _RelationThatRequestedUser(_Relation):
                 app_name=relation.app.name, endpoint_name=relation.name
             )
 
-    def _set_databag(self, *, username: str, password: str, router_endpoint: str) -> None:
+    def _set_databag(
+        self,
+        *,
+        username: str,
+        password: str,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+    ) -> None:
         """Share connection information with application charm."""
-        # TODO: remove `file://`?
-        # TODO: get socket path from variable
-        read_write_endpoint = (
-            "file:///var/snap/charmed-mysql/common/var/run/mysqlrouter/mysql.sock"
-        )
-        read_only_endpoint = (
-            "file:///var/snap/charmed-mysql/common/var/run/mysqlrouter/mysqlro.sock"
-        )
         logger.debug(
-            f"Setting databag {self._id=} {self._database=}, {username=}, {read_write_endpoint=}, {read_only_endpoint=}"
+            f"Setting databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
         )
         self._interface.set_database(self._id, self._database)
         self._interface.set_credentials(self._id, username, password)
-        self._interface.set_endpoints(self._id, read_write_endpoint)
-        self._interface.set_read_only_endpoints(self._id, read_only_endpoint)
+        self._interface.set_endpoints(self._id, router_read_write_endpoint)
+        self._interface.set_read_only_endpoints(self._id, router_read_only_endpoint)
         logger.debug(
-            f"Set databag {self._id=} {self._database=}, {username=}, {read_write_endpoint=}, {read_only_endpoint=}"
+            f"Set databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
         )
 
-    def create_database_and_user(self, *, router_endpoint: str, shell: mysql_shell.Shell) -> None:
+    def create_database_and_user(
+        self,
+        *,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+        shell: mysql_shell.Shell,
+    ) -> None:
         """Create database & user and update databag."""
         username = self._get_username(shell.username)
         password = shell.create_application_database_and_user(
             username=username, database=self._database
         )
-        self._set_databag(username=username, password=password, router_endpoint=router_endpoint)
+        self._set_databag(
+            username=username,
+            password=password,
+            router_read_write_endpoint=router_read_write_endpoint,
+            router_read_only_endpoint=router_read_only_endpoint,
+        )
 
 
 class _UserNotCreated(Exception):
@@ -166,7 +176,8 @@ class RelationEndpoint:
         self,
         *,
         event,
-        router_endpoint: str,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
         shell: mysql_shell.Shell,
     ) -> None:
         """Create requested users and delete inactive users.
@@ -175,7 +186,9 @@ class RelationEndpoint:
         created by this charm. Therefore, this charm does not need to delete users when that
         relation is broken.
         """
-        logger.debug(f"Reconciling users {event=}, {router_endpoint=}")
+        logger.debug(
+            f"Reconciling users {event=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+        )
         requested_users = []
         for relation in self._interface.relations:
             try:
@@ -193,11 +206,17 @@ class RelationEndpoint:
         logger.debug(f"State of reconcile users {requested_users=}, {self._created_users=}")
         for relation in requested_users:
             if relation not in self._created_users:
-                relation.create_database_and_user(router_endpoint=router_endpoint, shell=shell)
+                relation.create_database_and_user(
+                    router_read_write_endpoint=router_read_write_endpoint,
+                    router_read_only_endpoint=router_read_only_endpoint,
+                    shell=shell,
+                )
         for relation in self._created_users:
             if relation not in requested_users:
                 relation.delete_user(shell=shell)
-        logger.debug(f"Reconciled users {event=}, {router_endpoint=}")
+        logger.debug(
+            f"Reconciled users {event=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+        )
 
     def delete_all_databags(self) -> None:
         """Remove connection information from all databags.

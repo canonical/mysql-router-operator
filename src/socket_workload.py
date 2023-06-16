@@ -11,6 +11,14 @@ class SocketWorkload(workload.Workload):
 
 
 class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload):
+    @property
+    def read_write_endpoint(self) -> str:
+        return f'file://{self._container.path("/run/mysqlrouter/mysql.sock")}'
+
+    @property
+    def read_only_endpoint(self) -> str:
+        return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
+
     def _get_bootstrap_command(self, password: str):
         command = super()._get_bootstrap_command(password)
         command.extend(

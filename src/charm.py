@@ -45,16 +45,9 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
                 container_=container,
                 connection_info=connection_info,
                 charm_=self,
+                host="",  # TODO: replace with IP address when enabling TCP
             )
         return socket_workload.SocketWorkload(container_=container)
-
-    @property
-    def _endpoint(self) -> str:
-        """K8s endpoint for MySQL Router"""
-        # TODO: remove
-        # Example: mysql-router-k8s.my-model.svc.cluster.local
-        return "foo"
-        # return f"{self.app.name}.{self.model_service_domain}"
 
     @staticmethod
     def _prioritize_statuses(statuses: list[ops.StatusBase]) -> ops.StatusBase:
@@ -144,7 +137,8 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
         ):
             self.database_provides.reconcile_users(
                 event=event,
-                router_endpoint=self._endpoint,
+                router_read_write_endpoint=workload_.read_write_endpoint,
+                router_read_only_endpoint=workload_.read_only_endpoint,
                 shell=workload_.shell,
             )
         if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class Workload:
     """MySQL Router workload"""
 
-    def __init__(self, container_: container.Container) -> None:
+    def __init__(self, *, container_: container.Container) -> None:
         self._container = container_
         self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
         self._tls_key_file = self._container.router_config_directory / "custom-key.pem"
@@ -97,13 +97,24 @@ class AuthenticatedWorkload(Workload):
 
     def __init__(
         self,
+        *,
         container_: container.Container,
         connection_info: "relations.database_requires.ConnectionInformation",
+        host: str,
         charm_: "charm.MySQLRouterOperatorCharm",
     ) -> None:
-        super().__init__(container_)
+        super().__init__(container_=container_)
         self._connection_info = connection_info
+        self._host = host
         self._charm = charm_
+
+    @property
+    def read_write_endpoint(self) -> str:
+        return f"{self._host}:6446"
+
+    @property
+    def read_only_endpoint(self) -> str:
+        return f"{self._host}:6447"
 
     @property
     def shell(self) -> mysql_shell.Shell:
