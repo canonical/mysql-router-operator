@@ -5,7 +5,6 @@ import pathlib
 import workload
 
 
-# TODO: rename to Workload?
 class SocketWorkload(workload.Workload):
     pass
 
