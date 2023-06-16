@@ -44,8 +44,6 @@ class _Path(pathlib.PosixPath, container.Path):
     def write_text(self, data: str, encoding="utf-8", *args):
         return super().write_text(data, encoding, *args)
 
-    # TODO: override unlink with not exists no fail?
-
     def rmtree(self):
         shutil.rmtree(self)
 

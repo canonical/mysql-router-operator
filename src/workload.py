@@ -88,7 +88,7 @@ class Workload:
             self._tls_key_file,
             self._tls_certificate_file,
         ):
-            file.unlink()
+            file.unlink(missing_ok=True)
         logger.debug("Disabled TLS")
 
 

@@ -22,7 +22,7 @@ class Path(pathlib.PurePosixPath, abc.ABC):
         """Open the file in text mode, write to it, and close the file."""
 
     @abc.abstractmethod
-    def unlink(self):
+    def unlink(self, *, missing_ok=False):
         """Remove this file or link."""
 
     @abc.abstractmethod
