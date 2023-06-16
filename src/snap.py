@@ -17,7 +17,7 @@ class _Path(pathlib.PosixPath, container.Path):
             "/var/lib/mysqlrouter"
         ):
             parent = f"/var/snap/{_SNAP_NAME}/current"
-        elif str(path).startswith("/var/run"):  # TODO: user /run instead of /var/run?
+        elif str(path).startswith("/run"):
             parent = f"/var/snap/{_SNAP_NAME}/common"
         elif str(path).startswith("/tmp"):
             parent = f"/tmp/snap-private-tmp/snap.{_SNAP_NAME}"
