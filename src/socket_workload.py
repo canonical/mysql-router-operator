@@ -31,8 +31,17 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload
         )
         return command
 
-    def _change_socket_file_locations(self) -> None:
-        # TODO: rename
+    def _update_configured_socket_file_locations(self) -> None:
+        """Update configured socket file locations from `/tmp` to `/run/mysqlrouter`.
+
+        Called after MySQL Router bootstrap & before MySQL Router service is enabled
+
+        Change configured location of socket files before socket files are created by MySQL Router
+        service.
+
+        Needed since `/tmp` inside a snap is not accessible to non-root users. The socket files
+        must be accessible to applications related via database_provides endpoint.
+        """
         config = configparser.ConfigParser()
         config.read_string(self._container.router_config_file.read_text())
         for section_name, section in config.items():
@@ -47,4 +56,4 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload
 
     def _bootstrap_router(self, *, tls: bool) -> None:
         super()._bootstrap_router(tls=tls)
-        self._change_socket_file_locations()
+        self._update_configured_socket_file_locations()
