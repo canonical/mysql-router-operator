@@ -1,13 +1,55 @@
+import logging
 import pathlib
 import shutil
 import subprocess
 import typing
 
 import charms.operator_libs_linux.v2.snap as snap_lib
+import ops
+import tenacity
 
 import container
 
 _SNAP_NAME = "charmed-mysql"
+
+logger = logging.getLogger(__name__)
+
+
+class Installer(container.Installer):
+    _SNAP_REVISION = "57"
+
+    @property
+    def _snap(self) -> snap_lib.Snap:
+        return snap_lib.SnapCache()[_SNAP_NAME]
+
+    def install(self, *, unit: ops.Unit, **_):
+        if self._snap.present:
+            logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
+            raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
+        logger.debug(f"Installing {_SNAP_NAME=}, {self._SNAP_REVISION=}")
+        unit.status = ops.MaintenanceStatus("Installing snap")
+
+        def _set_retry_status(_) -> None:
+            unit.status = ops.MaintenanceStatus("Snap install failed. Retrying...")
+
+        try:
+            for attempt in tenacity.Retrying(
+                stop=tenacity.stop_after_delay(60 * 5),
+                wait=tenacity.wait_exponential(multiplier=10),
+                retry=tenacity.retry_if_exception_type(snap_lib.SnapError),
+                after=_set_retry_status,
+                reraise=True,
+            ):
+                with attempt:
+                    self._snap.ensure(
+                        state=snap_lib.SnapState.Present, revision=self._SNAP_REVISION
+                    )
+        except snap_lib.SnapError:
+            raise
+        logger.debug(f"Installed {_SNAP_NAME=}, {self._SNAP_REVISION=}")
+
+    def uninstall(self):
+        self._snap.ensure(state=snap_lib.SnapState.Absent)
 
 
 class _Path(pathlib.PosixPath, container.Path):

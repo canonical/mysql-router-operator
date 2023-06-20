@@ -9,7 +9,6 @@
 import logging
 import socket
 
-import charms.operator_libs_linux.v2.snap as snap_lib
 import ops
 import tenacity
 
@@ -100,9 +99,10 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
         self.unit.status = ops.WaitingStatus("MySQL Router starting")
         try:
             for attempt in tenacity.Retrying(
-                reraise=True,
                 stop=tenacity.stop_after_delay(30),
                 wait=tenacity.wait_fixed(5),
+                retry=tenacity.retry_if_exception_type(AssertionError),
+                reraise=True,
             ):
                 with attempt:
                     for port in (6446, 6447):
@@ -151,27 +151,13 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
         self.set_status(event=event)
 
     def _on_install(self, _) -> None:
-        """Patch existing k8s service to include read-write and read-only services."""
-        # TODO update docstring
-        # TODO: move to workload.py?
-        # TODO set workload version
-        _SNAP_NAME = "charmed-mysql"
-        _SNAP_REVISION = "57"
-        mysql_snap = snap_lib.SnapCache()[_SNAP_NAME]
-        if mysql_snap.present:
-            logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
-            raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
-        logger.debug(f"Installing {_SNAP_NAME=}, {_SNAP_REVISION=}")
-        # TODO: set status
-        # TODO catch/retry on error?
-        mysql_snap.ensure(snap_lib.SnapState.Present, revision=_SNAP_REVISION)
-        logger.debug(f"Installed {_SNAP_NAME=}, {_SNAP_REVISION=}")
-        self.unit.set_workload_version(self.get_workload(event=None).version)
+        snap.Installer().install(unit=self.unit)
+        workload_ = self.get_workload(event=None)
+        if workload_.container_ready:  # check for VM instead?
+            self.unit.set_workload_version(workload_.version)
 
     def _on_remove(self, _) -> None:
-        _SNAP_NAME = "charmed-mysql"
-        mysql_snap = snap_lib.SnapCache()[_SNAP_NAME]
-        mysql_snap.ensure(snap_lib.SnapState.Absent)
+        snap.Installer().uninstall()
 
     def _on_start(self, _) -> None:
         # Set status on first start if no relations active
