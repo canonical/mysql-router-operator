@@ -45,7 +45,7 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
                 container_=container,
                 connection_info=connection_info,
                 charm_=self,
-                host="",  # TODO: replace with IP address when enabling TCP
+                host="",  # TODO TLS: replace with IP address when enabling TCP
             )
         return socket_workload.SocketWorkload(container_=container)
 
@@ -144,7 +144,7 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
         if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
             workload_.enable(
                 unit_name=self.unit.name,
-                tls=None,  # TODO
+                tls=False,  # TODO TLS
             )
         elif workload_.container_ready:
             workload_.disable()
