@@ -110,10 +110,12 @@ class AuthenticatedWorkload(Workload):
 
     @property
     def read_write_endpoint(self) -> str:
+        """MySQL Router read-write endpoint"""
         return f"{self._host}:6446"
 
     @property
     def read_only_endpoint(self) -> str:
+        """MySQL Router read-only endpoint"""
         return f"{self._host}:6447"
 
     @property
