@@ -49,7 +49,7 @@ class _Path(pathlib.PosixPath, container.Path):
 
 
 class Snap(container.Container):
-    _SNAP_REVISION = "51"
+    _SNAP_REVISION = "57"
     _SERVICE_NAME = "mysqlrouter-service"
 
     def __init__(self) -> None:

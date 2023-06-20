@@ -156,7 +156,7 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
         # TODO: move to workload.py?
         # TODO set workload version
         _SNAP_NAME = "charmed-mysql"
-        _SNAP_REVISION = "51"
+        _SNAP_REVISION = "57"
         mysql_snap = snap_lib.SnapCache()[_SNAP_NAME]
         if mysql_snap.present:
             logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
