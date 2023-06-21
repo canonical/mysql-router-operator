@@ -18,7 +18,6 @@ MYSQLROUTER_APP_NAME = "mysqlrouter"
 TIMEOUT = 15 * 60
 
 
-@pytest.mark.order(1)
 @pytest.mark.abort_on_fail
 async def test_shared_db(ops_test: OpsTest, mysql_router_charm_series: str):
     """Test the shared-db legacy relation."""
