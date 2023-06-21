@@ -46,8 +46,7 @@ class MachineRouterCharm(abstract_charm.MySQLRouterCharm):
     def _on_install(self, _) -> None:
         snap.Installer().install(unit=self.unit)
 
-    @staticmethod
-    def _on_remove(_) -> None:
+    def _on_remove(self, _) -> None:
         snap.Installer().uninstall()
 
 
