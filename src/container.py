@@ -8,18 +8,6 @@ import pathlib
 import subprocess
 import typing
 
-import ops
-
-
-class Installer(abc.ABC):
-    @abc.abstractmethod
-    def install(self, *, unit: ops.Unit, model_name: str, app_name: str):
-        pass
-
-    @abc.abstractmethod
-    def uninstall(self):
-        pass
-
 
 class Path(pathlib.PurePosixPath, abc.ABC):
     """Workload container (snap or ROCK) filesystem path"""

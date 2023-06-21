@@ -20,5 +20,6 @@ bases:
         channel: "22.04"
 parts:
   charm:
+    charm-entrypoint: src/machine_charm.py
     charm-binary-python-packages:
       - mysql-connector-python==8.0.32

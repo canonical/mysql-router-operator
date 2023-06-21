@@ -1,52 +1,65 @@
-#!/usr/bin/env python3
-# Copyright 2022 Canonical Ltd.
+# Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
-#
-# Learn more at: https://juju.is/docs/sdk
 
-"""MySQL Router kubernetes (k8s) charm"""
+"""MySQL Router charm"""
 
+import abc
 import logging
 import socket
 
 import ops
 import tenacity
 
+import container
 import relations.database_provides
 import relations.database_requires
-import snap
-import socket_workload
 import workload
 
 logger = logging.getLogger(__name__)
 
 
-class MySQLRouterOperatorCharm(ops.CharmBase):
-    """Operator charm for MySQL Router"""
+class MySQLRouterCharm(ops.CharmBase, abc.ABC):
+    """MySQL Router charm"""
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
-
-        self.database_requires = relations.database_requires.RelationEndpoint(self)
-
-        self.database_provides = relations.database_provides.RelationEndpoint(self)
-
-        self.framework.observe(self.on.install, self._on_install)
-        self.framework.observe(self.on.remove, self._on_remove)
+        self._workload_type = workload.Workload
+        self._authenticated_workload_type = workload.AuthenticatedWorkload
+        self._database_requires = relations.database_requires.RelationEndpoint(self)
+        self._database_provides = relations.database_provides.RelationEndpoint(self)
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
 
+    @property
+    def _tls_certificate_saved(self) -> bool:
+        """Whether a TLS certificate is available to use"""
+        # TODO VM TLS: Remove property after implementing TLS on machine charm
+        return False
+
+    @property
+    @abc.abstractmethod
+    def _container(self) -> container.Container:
+        """Workload container (snap or ROCK)"""
+
+    @property
+    @abc.abstractmethod
+    def _read_write_endpoint(self) -> str:
+        """MySQL Router read-write endpoint"""
+
+    @property
+    @abc.abstractmethod
+    def _read_only_endpoint(self) -> str:
+        """MySQL Router read-only endpoint"""
+
     def get_workload(self, *, event):
         """MySQL Router workload"""
-        container = snap.Snap()
-        if connection_info := self.database_requires.get_connection_info(event=event):
-            return socket_workload.AuthenticatedSocketWorkload(
-                container_=container,
+        if connection_info := self._database_requires.get_connection_info(event=event):
+            return self._authenticated_workload_type(
+                container_=self._container,
                 connection_info=connection_info,
                 charm_=self,
-                host="",  # TODO TLS: replace with IP address when enabling TCP
             )
-        return socket_workload.SocketWorkload(container_=container)
+        return self._workload_type(container_=self._container)
 
     @staticmethod
     def _prioritize_statuses(statuses: list[ops.StatusBase]) -> ops.StatusBase:
@@ -70,7 +83,7 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
     def _determine_app_status(self, *, event) -> ops.StatusBase:
         """Report app status."""
         statuses = []
-        for endpoint in (self.database_requires, self.database_provides):
+        for endpoint in (self._database_requires, self._database_provides):
             if status := endpoint.get_status(event):
                 statuses.append(status)
         return self._prioritize_statuses(statuses)
@@ -99,10 +112,9 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
         self.unit.status = ops.WaitingStatus("MySQL Router starting")
         try:
             for attempt in tenacity.Retrying(
+                reraise=True,
                 stop=tenacity.stop_after_delay(30),
                 wait=tenacity.wait_fixed(5),
-                retry=tenacity.retry_if_exception_type(AssertionError),
-                reraise=True,
             ):
                 with attempt:
                     for port in (6446, 6447):
@@ -126,38 +138,26 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
             f"{self.unit.is_leader()=}, "
             f"{isinstance(workload_, workload.AuthenticatedWorkload)=}, "
             f"{workload_.container_ready=}, "
-            f"{self.database_requires.is_relation_breaking(event)=}, "
+            f"{self._database_requires.is_relation_breaking(event)=}"
         )
-        if self.unit.is_leader() and self.database_requires.is_relation_breaking(event):
-            self.database_provides.delete_all_databags()
+        if self.unit.is_leader() and self._database_requires.is_relation_breaking(event):
+            self._database_provides.delete_all_databags()
         elif (
             self.unit.is_leader()
             and isinstance(workload_, workload.AuthenticatedWorkload)
             and workload_.container_ready
         ):
-            self.database_provides.reconcile_users(
+            self._database_provides.reconcile_users(
                 event=event,
-                router_read_write_endpoint=workload_.read_write_endpoint,
-                router_read_only_endpoint=workload_.read_only_endpoint,
+                router_read_write_endpoint=self._read_write_endpoint,
+                router_read_only_endpoint=self._read_only_endpoint,
                 shell=workload_.shell,
             )
         if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
-            workload_.enable(
-                unit_name=self.unit.name,
-                tls=False,  # TODO TLS
-            )
+            workload_.enable(tls=self._tls_certificate_saved, unit_name=self.unit.name)
         elif workload_.container_ready:
             workload_.disable()
         self.set_status(event=event)
-
-    def _on_install(self, _) -> None:
-        snap.Installer().install(unit=self.unit)
-        workload_ = self.get_workload(event=None)
-        if workload_.container_ready:  # check for VM instead?
-            self.unit.set_workload_version(workload_.version)
-
-    def _on_remove(self, _) -> None:
-        snap.Installer().uninstall()
 
     def _on_start(self, _) -> None:
         # Set status on first start if no relations active
@@ -166,7 +166,3 @@ class MySQLRouterOperatorCharm(ops.CharmBase):
     def _on_leader_elected(self, _) -> None:
         # Update app status
         self.set_status(event=None)
-
-
-if __name__ == "__main__":
-    ops.main.main(MySQLRouterOperatorCharm)

@@ -15,14 +15,14 @@ _SNAP_NAME = "charmed-mysql"
 logger = logging.getLogger(__name__)
 
 
-class Installer(container.Installer):
+class Installer:
     _SNAP_REVISION = "57"
 
     @property
     def _snap(self) -> snap_lib.Snap:
         return snap_lib.SnapCache()[_SNAP_NAME]
 
-    def install(self, *, unit: ops.Unit, **_):
+    def install(self, *, unit: ops.Unit):
         if self._snap.present:
             logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
             raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
@@ -115,7 +115,7 @@ class Snap(container.Container):
     def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
         super().update_mysql_router_service(enabled=enabled, tls=tls)
         if tls:
-            raise NotImplementedError  # TODO TLS
+            raise NotImplementedError  # TODO VM TLS
         if enabled:
             self._snap.start([self._SERVICE_NAME], enable=True)
         else:

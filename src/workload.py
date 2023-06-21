@@ -13,7 +13,7 @@ import container
 import mysql_shell
 
 if typing.TYPE_CHECKING:
-    import charm
+    import abstract_charm
     import relations.database_requires
 
 logger = logging.getLogger(__name__)
@@ -100,23 +100,11 @@ class AuthenticatedWorkload(Workload):
         *,
         container_: container.Container,
         connection_info: "relations.database_requires.ConnectionInformation",
-        host: str,
-        charm_: "charm.MySQLRouterOperatorCharm",
+        charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
         super().__init__(container_=container_)
         self._connection_info = connection_info
-        self._host = host
         self._charm = charm_
-
-    @property
-    def read_write_endpoint(self) -> str:
-        """MySQL Router read-write endpoint"""
-        return f"{self._host}:6446"
-
-    @property
-    def read_only_endpoint(self) -> str:
-        """MySQL Router read-only endpoint"""
-        return f"{self._host}:6447"
 
     @property
     def shell(self) -> mysql_shell.Shell:
@@ -138,15 +126,17 @@ class AuthenticatedWorkload(Workload):
         # MySQL Router is bootstrapped without `--directory`—there is one system-wide instance.
         return f"{socket.getfqdn()}::system"
 
-    def cleanup_after_potential_container_restart(self, *, unit_name: str) -> None:
+    def _cleanup_after_potential_container_restart(self) -> None:
         """Remove MySQL Router cluster metadata & user after (potential) container restart.
 
         (Storage is not persisted on container restart—MySQL Router's config file is deleted.
         Therefore, MySQL Router needs to be bootstrapped again.)
         """
-        if user_info := self.shell.get_mysql_router_user_for_unit(unit_name):
+        if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+            logger.debug("Cleaning up after container restart")
             self.shell.remove_router_from_cluster_metadata(user_info.router_id)
             self.shell.delete_user(user_info.username)
+            logger.debug("Cleaned up after container restart")
 
     def _get_bootstrap_command(self, password: str) -> list[str]:
         return [
@@ -206,6 +196,8 @@ class AuthenticatedWorkload(Workload):
             # Therefore, if the host or port changes, we do not need to restart MySQL Router.
             return
         logger.debug("Enabling MySQL Router service")
+        # TODO: VM?
+        self._cleanup_after_potential_container_restart()
         self._bootstrap_router(tls=tls)
         self.shell.add_attributes_to_mysql_router_user(
             username=self._router_username, router_id=self._router_id, unit_name=unit_name

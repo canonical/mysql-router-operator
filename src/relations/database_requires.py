@@ -13,7 +13,7 @@ import relations.remote_databag as remote_databag
 import status_exception
 
 if typing.TYPE_CHECKING:
-    import charm
+    import abstract_charm
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +67,7 @@ class RelationEndpoint:
 
     NAME = "backend-database"
 
-    def __init__(self, charm_: "charm.MySQLRouterOperatorCharm") -> None:
+    def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
         self._interface = data_interfaces.DatabaseRequires(
             charm_,
             relation_name=self.NAME,
