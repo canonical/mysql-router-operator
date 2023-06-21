@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 class MachineRouterCharm(abstract_charm.MySQLRouterCharm):
+    """MySQL Router machine charm"""
+
     def __init__(self, *args) -> None:
         super().__init__(*args)
         self._workload_type = socket_workload.SocketWorkload

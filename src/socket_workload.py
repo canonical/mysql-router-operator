@@ -1,3 +1,8 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+"""MySQl Router workload with Unix sockets enabled"""
+
 import configparser
 import io
 import pathlib
@@ -6,10 +11,12 @@ import workload
 
 
 class SocketWorkload(workload.Workload):
-    pass
+    """MySQl Router workload with Unix sockets enabled"""
 
 
 class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload):
+    """Workload with connection to MySQL cluster and with Unix sockets enabled"""
+
     def _get_bootstrap_command(self, password: str):
         command = super()._get_bootstrap_command(password)
         command.extend(

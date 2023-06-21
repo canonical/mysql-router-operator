@@ -3,8 +3,9 @@
 name: mysql-router
 display-name: MySQL Router
 maintainers:
-  - Shayan Patel <shayan.patel@canonical.com>
+  - Carl Csaposs <carl.csaposs@canonical.com>
   - Paulo Machado <paulo.machado@canonical.com>
+  - Shayan Patel <shayan.patel@canonical.com>
 description: |
   Machine charmed operator for mysql-router.
 summary: |
@@ -12,20 +13,22 @@ summary: |
   Enables effective access to a MySQL cluster with Group Replication.
 subordinate: true
 provides:
-  shared-db:
-    interface: mysql-shared
-    scope: container
+# TODO: re-implement legacy relation
+#  shared-db:
+#    interface: mysql-shared
+#    scope: container
   database:
     interface: mysql_client
     scope: container
 requires:
   backend-database:
     interface: mysql_client
+  # Workaround: Subordinate charms are required to have at least one `requires` endpoint with
+  # `scope: container`
   juju-info:
     interface: juju-info
     scope: container
-peers:
-  mysql-router-peers:
-    interface: mysql_router_peers
-series:
-  - focal
+# TODO TLS VM: re-enable peer relation
+#peers:
+#  mysql-router-peers:
+#    interface: mysql_router_peers

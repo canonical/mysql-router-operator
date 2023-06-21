@@ -1,3 +1,8 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+"""Workload snap container & installer"""
+
 import logging
 import pathlib
 import shutil
@@ -16,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 class Installer:
+    """Workload snap installer"""
+
     _SNAP_REVISION = "57"
 
     @property
@@ -23,6 +30,7 @@ class Installer:
         return snap_lib.SnapCache()[_SNAP_NAME]
 
     def install(self, *, unit: ops.Unit):
+        """Install snap."""
         if self._snap.present:
             logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
             raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
@@ -49,7 +57,10 @@ class Installer:
         logger.debug(f"Installed {_SNAP_NAME=}, {self._SNAP_REVISION=}")
 
     def uninstall(self):
+        """Uninstall snap."""
+        logger.debug(f"Uninstalling {_SNAP_NAME=}")
         self._snap.ensure(state=snap_lib.SnapState.Absent)
+        logger.debug(f"Uninstalled {_SNAP_NAME=}")
 
 
 class _Path(pathlib.PosixPath, container.Path):
@@ -91,6 +102,8 @@ class _Path(pathlib.PosixPath, container.Path):
 
 
 class Snap(container.Container):
+    """Workload snap container"""
+
     _SNAP_REVISION = "57"
     _SERVICE_NAME = "mysqlrouter-service"
 
