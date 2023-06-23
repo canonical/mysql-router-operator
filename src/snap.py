@@ -23,7 +23,7 @@ _SNAP_NAME = "charmed-mysql"
 class Installer:
     """Workload snap installer"""
 
-    _SNAP_REVISION = "61"
+    _SNAP_REVISION = "64"
 
     @property
     def _snap(self) -> snap_lib.Snap:
