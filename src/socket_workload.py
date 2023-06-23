@@ -5,10 +5,12 @@
 
 import configparser
 import io
+import logging
 import pathlib
 
 import workload
 
+logger = logging.getLogger(__name__)
 
 class SocketWorkload(workload.Workload):
     """MySQl Router workload with Unix sockets enabled"""
@@ -43,6 +45,7 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload
         Needed since `/tmp` inside a snap is not accessible to non-root users. The socket files
         must be accessible to applications related via database_provides endpoint.
         """
+        logger.debug("Updating configured socket file locations")
         config = configparser.ConfigParser()
         config.read_string(self._container.router_config_file.read_text())
         for section_name, section in config.items():
@@ -54,6 +57,7 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload
         with io.StringIO() as output:
             config.write(output)
             self._container.router_config_file.write_text(output.getvalue())
+        logger.debug("Updated configured socket file locations")
 
     def _bootstrap_router(self, *, tls: bool) -> None:
         super()._bootstrap_router(tls=tls)
