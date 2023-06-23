@@ -38,8 +38,9 @@ class Installer:
         unit.status = ops.MaintenanceStatus("Installing snap")
 
         def _set_retry_status(_) -> None:
-            unit.status = ops.MaintenanceStatus("Snap install failed. Retrying...")
-            logger.debug("Snap install failed. Retrying...")
+            message = "Snap install failed. Retrying..."
+            unit.status = ops.MaintenanceStatus(message)
+            logger.debug(message)
 
         try:
             for attempt in tenacity.Retrying(
