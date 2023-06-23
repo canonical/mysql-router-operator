@@ -130,6 +130,8 @@ class AuthenticatedWorkload(Workload):
     def _cleanup_after_potential_container_restart(self) -> None:
         """Remove MySQL Router cluster metadata & user after (potential) container restart.
 
+        Only applies to Kubernetes charm
+
         (Storage is not persisted on container restart—MySQL Router's config file is deleted.
         Therefore, MySQL Router needs to be bootstrapped again.)
         """
@@ -197,7 +199,6 @@ class AuthenticatedWorkload(Workload):
             # Therefore, if the host or port changes, we do not need to restart MySQL Router.
             return
         logger.debug("Enabling MySQL Router service")
-        # TODO: VM?
         self._cleanup_after_potential_container_restart()
         self._bootstrap_router(tls=tls)
         self.shell.add_attributes_to_mysql_router_user(
