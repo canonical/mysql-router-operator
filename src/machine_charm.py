@@ -15,6 +15,7 @@ import snap
 import socket_workload
 
 logger = logging.getLogger(__name__)
+# TODO VM TLS: open ports for `juju expose`
 
 
 class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
