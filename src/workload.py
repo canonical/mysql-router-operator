@@ -5,6 +5,7 @@
 
 import configparser
 import logging
+import pathlib
 import socket
 import string
 import typing
@@ -65,8 +66,7 @@ class Workload:
 
         Config file enables TLS on MySQL Router.
         """
-        with open("templates/tls.cnf", "r") as template_file:
-            template = string.Template(template_file.read())
+        template = string.Template(pathlib.Path("templates/tls.cnf").read_text(encoding="utf-8"))
         config_string = template.substitute(
             tls_ssl_key_file=self._tls_key_file,
             tls_ssl_cert_file=self._tls_certificate_file,
