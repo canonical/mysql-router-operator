@@ -98,9 +98,9 @@ class _Path(pathlib.PosixPath, container.Path):
         return super().read_text(encoding, *args, **kwargs)
 
     def write_text(self, data: str, encoding="utf-8", *args, **kwargs):
-        output = super().write_text(data, encoding, *args, **kwargs)
+        return_value = super().write_text(data, encoding, *args, **kwargs)
         shutil.chown(self, user=self._UNIX_USERNAME, group=self._UNIX_USERNAME)
-        return output
+        return return_value
 
     def mkdir(self, *args, **kwargs) -> None:
         super().mkdir(*args, **kwargs)
