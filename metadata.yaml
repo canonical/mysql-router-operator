@@ -23,6 +23,7 @@ provides:
 requires:
   backend-database:
     interface: mysql_client
+    limit: 1
   # Workaround: Subordinate charms are required to have at least one `requires` endpoint with
   # `scope: container`
   juju-info:
