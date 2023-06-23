@@ -17,8 +17,8 @@ import socket_workload
 logger = logging.getLogger(__name__)
 
 
-class MachineRouterCharm(abstract_charm.MySQLRouterCharm):
-    """MySQL Router machine charm"""
+class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
+    """MySQL Router machine subordinate charm"""
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -51,4 +51,4 @@ class MachineRouterCharm(abstract_charm.MySQLRouterCharm):
 
 
 if __name__ == "__main__":
-    ops.main.main(MachineRouterCharm)
+    ops.main.main(MachineSubordinateRouterCharm)
