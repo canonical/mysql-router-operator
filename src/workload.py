@@ -56,6 +56,7 @@ class Workload:
         self._container.router_config_directory.rmtree()
         self._container.router_config_directory.mkdir()
         self._router_data_directory.rmtree()
+        self._router_data_directory.mkdir()
         logger.debug("Disabled MySQL Router service")
 
     @property

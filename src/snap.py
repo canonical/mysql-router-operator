@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class Installer:
     """Workload snap installer"""
 
-    _SNAP_REVISION = "57"
+    _SNAP_REVISION = "61"
 
     @property
     def _snap(self) -> snap_lib.Snap:
@@ -39,6 +39,7 @@ class Installer:
 
         def _set_retry_status(_) -> None:
             unit.status = ops.MaintenanceStatus("Snap install failed. Retrying...")
+            logger.debug("Snap install failed. Retrying...")
 
         try:
             for attempt in tenacity.Retrying(
@@ -64,6 +65,8 @@ class Installer:
 
 
 class _Path(pathlib.PosixPath, container.Path):
+    _UNIX_USERNAME = "snap_daemon"
+
     def __new__(cls, *args, **kwargs):
         path = super().__new__(cls, *args, **kwargs)
         if str(path).startswith("/etc/mysqlrouter") or str(path).startswith(
@@ -91,11 +94,17 @@ class _Path(pathlib.PosixPath, container.Path):
             return pathlib.PurePosixPath("/", self.relative_to(parent))
         return self
 
-    def read_text(self, encoding="utf-8", *args) -> str:
-        return super().read_text(encoding, *args)
+    def read_text(self, encoding="utf-8", *args, **kwargs) -> str:
+        return super().read_text(encoding, *args, **kwargs)
 
-    def write_text(self, data: str, encoding="utf-8", *args):
-        return super().write_text(data, encoding, *args)
+    def write_text(self, data: str, encoding="utf-8", *args, **kwargs):
+        output = super().write_text(data, encoding, *args, **kwargs)
+        shutil.chown(self, user=self._UNIX_USERNAME, group=self._UNIX_USERNAME)
+        return output
+
+    def mkdir(self, *args, **kwargs) -> None:
+        super().mkdir(*args, **kwargs)
+        shutil.chown(self, user=self._UNIX_USERNAME, group=self._UNIX_USERNAME)
 
     def rmtree(self):
         shutil.rmtree(self)
