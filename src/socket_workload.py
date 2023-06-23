@@ -12,6 +12,7 @@ import workload
 
 logger = logging.getLogger(__name__)
 
+
 class SocketWorkload(workload.Workload):
     """MySQl Router workload with Unix sockets enabled"""
 
