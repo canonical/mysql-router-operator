@@ -15,9 +15,9 @@ import tenacity
 
 import container
 
-_SNAP_NAME = "charmed-mysql"
-
 logger = logging.getLogger(__name__)
+
+_SNAP_NAME = "charmed-mysql"
 
 
 class Installer:

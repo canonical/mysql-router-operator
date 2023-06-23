@@ -15,8 +15,9 @@ import typing
 
 import container
 
-_PASSWORD_LENGTH = 24
 logger = logging.getLogger(__name__)
+
+_PASSWORD_LENGTH = 24
 
 
 # TODO python3.10 min version: Add `(kw_only=True)`
