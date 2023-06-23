@@ -45,6 +45,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
     def _on_install(self, _) -> None:
         snap.Installer().install(unit=self.unit)
+        self.unit.set_workload_version(self.get_workload(event=None).version)
 
     def _on_remove(self, _) -> None:
         snap.Installer().uninstall()
