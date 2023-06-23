@@ -18,51 +18,43 @@ import container
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
+_REVISION = "64"
+_snap = snap_lib.SnapCache()[_SNAP_NAME]
 
 
-class Installer:
-    """Workload snap installer"""
+def install(*, unit: ops.Unit):
+    """Install snap."""
+    if _snap.present:
+        logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
+        raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
+    logger.debug(f"Installing {_SNAP_NAME=}, {_REVISION=}")
+    unit.status = ops.MaintenanceStatus("Installing snap")
 
-    _SNAP_REVISION = "64"
+    def _set_retry_status(_) -> None:
+        message = "Snap install failed. Retrying..."
+        unit.status = ops.MaintenanceStatus(message)
+        logger.debug(message)
 
-    @property
-    def _snap(self) -> snap_lib.Snap:
-        return snap_lib.SnapCache()[_SNAP_NAME]
+    try:
+        for attempt in tenacity.Retrying(
+            stop=tenacity.stop_after_delay(60 * 5),
+            wait=tenacity.wait_exponential(multiplier=10),
+            retry=tenacity.retry_if_exception_type(snap_lib.SnapError),
+            after=_set_retry_status,
+            reraise=True,
+        ):
+            with attempt:
+                _snap.ensure(state=snap_lib.SnapState.Present, revision=_REVISION)
+    except snap_lib.SnapError:
+        raise
+    logger.debug(f"Installed {_SNAP_NAME=}, {_REVISION=}")
 
-    def install(self, *, unit: ops.Unit):
-        """Install snap."""
-        if self._snap.present:
-            logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
-            raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
-        logger.debug(f"Installing {_SNAP_NAME=}, {self._SNAP_REVISION=}")
-        unit.status = ops.MaintenanceStatus("Installing snap")
 
-        def _set_retry_status(_) -> None:
-            message = "Snap install failed. Retrying..."
-            unit.status = ops.MaintenanceStatus(message)
-            logger.debug(message)
-
-        try:
-            for attempt in tenacity.Retrying(
-                stop=tenacity.stop_after_delay(60 * 5),
-                wait=tenacity.wait_exponential(multiplier=10),
-                retry=tenacity.retry_if_exception_type(snap_lib.SnapError),
-                after=_set_retry_status,
-                reraise=True,
-            ):
-                with attempt:
-                    self._snap.ensure(
-                        state=snap_lib.SnapState.Present, revision=self._SNAP_REVISION
-                    )
-        except snap_lib.SnapError:
-            raise
-        logger.debug(f"Installed {_SNAP_NAME=}, {self._SNAP_REVISION=}")
-
-    def uninstall(self):
-        """Uninstall snap."""
-        logger.debug(f"Uninstalling {_SNAP_NAME=}")
-        self._snap.ensure(state=snap_lib.SnapState.Absent)
-        logger.debug(f"Uninstalled {_SNAP_NAME=}")
+def uninstall():
+    """Uninstall snap."""
+    logger.debug(f"Uninstalling {_SNAP_NAME=}")
+    _snap.ensure(state=snap_lib.SnapState.Absent)
+    logger.debug(f"Uninstalled {_SNAP_NAME=}")
 
 
 class _Path(pathlib.PosixPath, container.Path):
@@ -127,21 +119,17 @@ class Snap(container.Container):
         return True
 
     @property
-    def _snap(self) -> snap_lib.Snap:
-        return snap_lib.SnapCache()[_SNAP_NAME]
-
-    @property
     def mysql_router_service_enabled(self) -> bool:
-        return self._snap.services[self._SERVICE_NAME]["active"]
+        return _snap.services[self._SERVICE_NAME]["active"]
 
     def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
         super().update_mysql_router_service(enabled=enabled, tls=tls)
         if tls:
             raise NotImplementedError  # TODO VM TLS
         if enabled:
-            self._snap.start([self._SERVICE_NAME], enable=True)
+            _snap.start([self._SERVICE_NAME], enable=True)
         else:
-            self._snap.stop([self._SERVICE_NAME], disable=True)
+            _snap.stop([self._SERVICE_NAME], disable=True)
 
     def _run_command(self, command: list[str], *, timeout: typing.Optional[int]) -> str:
         try:
