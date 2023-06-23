@@ -158,7 +158,7 @@ class AuthenticatedWorkload(Workload):
         ]
 
     def _bootstrap_router(self, *, tls: bool) -> None:
-        """Bootstrap MySQL Router and enable service."""
+        """Bootstrap MySQL Router."""
         logger.debug(
             f"Bootstrapping router {tls=}, {self._connection_info.host=}, {self._connection_info.port=}"
         )
