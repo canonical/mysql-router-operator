@@ -21,6 +21,8 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload
         command = super()._get_bootstrap_command(password)
         command.extend(
             [
+                "--conf-bind-address",
+                "127.0.0.1",
                 "--conf-use-sockets",
                 # For unix sockets, authentication fails on first connection if this option is not
                 # set. Workaround for https://bugs.mysql.com/bug.php?id=107291
