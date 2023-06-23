@@ -65,18 +65,18 @@ class ConnectionInformation:
 class RelationEndpoint:
     """Relation endpoint for MySQL charm"""
 
-    NAME = "backend-database"
+    _NAME = "backend-database"
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
         self._interface = data_interfaces.DatabaseRequires(
             charm_,
-            relation_name=self.NAME,
+            relation_name=self._NAME,
             # Database name disregarded by MySQL charm if "mysqlrouter" extra user role requested
             database_name="mysql_innodb_cluster_metadata",
             extra_user_roles="mysqlrouter",
         )
         charm_.framework.observe(
-            charm_.on[self.NAME].relation_created,
+            charm_.on[self._NAME].relation_created,
             charm_.reconcile_database_relations,
         )
         charm_.framework.observe(
@@ -88,7 +88,7 @@ class RelationEndpoint:
             charm_.reconcile_database_relations,
         )
         charm_.framework.observe(
-            charm_.on[self.NAME].relation_broken,
+            charm_.on[self._NAME].relation_broken,
             charm_.reconcile_database_relations,
         )
 

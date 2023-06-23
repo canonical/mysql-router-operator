@@ -143,12 +143,12 @@ class _RelationWithCreatedUser(_Relation):
 class RelationEndpoint:
     """Relation endpoint for application charm(s)"""
 
-    NAME = "database"
+    _NAME = "database"
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
-        self._interface = data_interfaces.DatabaseProvides(charm_, relation_name=self.NAME)
+        self._interface = data_interfaces.DatabaseProvides(charm_, relation_name=self._NAME)
         charm_.framework.observe(
-            charm_.on[self.NAME].relation_joined,
+            charm_.on[self._NAME].relation_joined,
             charm_.reconcile_database_relations,
         )
         charm_.framework.observe(
@@ -156,7 +156,7 @@ class RelationEndpoint:
             charm_.reconcile_database_relations,
         )
         charm_.framework.observe(
-            charm_.on[self.NAME].relation_broken,
+            charm_.on[self._NAME].relation_broken,
             charm_.reconcile_database_relations,
         )
 
@@ -257,4 +257,4 @@ class RelationEndpoint:
         for exception in exceptions:
             if isinstance(exception, remote_databag.IncompleteDatabag):
                 return exception.status
-        return ops.BlockedStatus(f"Missing relation: {self.NAME}")
+        return ops.BlockedStatus(f"Missing relation: {self._NAME}")
