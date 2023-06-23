@@ -17,7 +17,7 @@ class SocketWorkload(workload.Workload):
 class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload):
     """Workload with connection to MySQL cluster and with Unix sockets enabled"""
 
-    def _get_bootstrap_command(self, password: str):
+    def _get_bootstrap_command(self, password: str) -> list[str]:
         command = super()._get_bootstrap_command(password)
         command.extend(
             [
