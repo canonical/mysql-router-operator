@@ -14,7 +14,7 @@ import workload
 logger = logging.getLogger(__name__)
 
 
-class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload):
+class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload):
     """Workload with connection to MySQL cluster and with Unix sockets enabled"""
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
