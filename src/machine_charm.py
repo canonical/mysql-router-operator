@@ -23,7 +23,6 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
-        self._workload_type = socket_workload.SocketWorkload
         self._authenticated_workload_type = socket_workload.AuthenticatedSocketWorkload
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.remove, self._on_remove)
