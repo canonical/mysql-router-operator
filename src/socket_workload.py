@@ -7,6 +7,7 @@ import configparser
 import io
 import logging
 import pathlib
+import typing
 
 import workload
 
@@ -20,7 +21,8 @@ class SocketWorkload(workload.Workload):
 class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload, SocketWorkload):
     """Workload with connection to MySQL cluster and with Unix sockets enabled"""
 
-    def _get_bootstrap_command(self, password: str) -> list[str]:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def _get_bootstrap_command(self, password: str) -> typing.List[str]:
         command = super()._get_bootstrap_command(password)
         command.extend(
             [

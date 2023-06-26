@@ -6,6 +6,7 @@
 import abc
 import logging
 import socket
+import typing
 
 import ops
 import tenacity
@@ -62,7 +63,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         return self._workload_type(container_=self._container)
 
     @staticmethod
-    def _prioritize_statuses(statuses: list[ops.StatusBase]) -> ops.StatusBase:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def _prioritize_statuses(statuses: typing.List[ops.StatusBase]) -> ops.StatusBase:
         """Report the highest priority status.
 
         (Statuses of the same type are reported in the order they were added to `statuses`)

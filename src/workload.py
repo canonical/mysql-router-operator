@@ -141,7 +141,8 @@ class AuthenticatedWorkload(Workload):
             self.shell.delete_user(user_info.username)
             logger.debug("Cleaned up after container restart")
 
-    def _get_bootstrap_command(self, password: str) -> list[str]:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def _get_bootstrap_command(self, password: str) -> typing.List[str]:
         return [
             "--bootstrap",
             self._connection_info.username

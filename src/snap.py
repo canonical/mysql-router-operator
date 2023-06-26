@@ -131,7 +131,8 @@ class Snap(container.Container):
         else:
             _snap.stop([self._SERVICE_NAME], disable=True)
 
-    def _run_command(self, command: list[str], *, timeout: typing.Optional[int]) -> str:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def _run_command(self, command: typing.List[str], *, timeout: typing.Optional[int]) -> str:
         try:
             output = subprocess.run(
                 command,

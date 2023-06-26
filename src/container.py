@@ -44,7 +44,10 @@ class Path(pathlib.PurePosixPath, abc.ABC):
 class CalledProcessError(subprocess.CalledProcessError):
     """Command returned non-zero exit code"""
 
-    def __init__(self, *, returncode: int, cmd: list[str], output: str, stderr: str) -> None:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def __init__(
+        self, *, returncode: int, cmd: typing.List[str], output: str, stderr: str
+    ) -> None:
         super().__init__(returncode=returncode, cmd=cmd, output=output, stderr=stderr)
 
 
@@ -98,14 +101,16 @@ class Container(abc.ABC):
             assert tls is not None, "`tls` argument required when enabled=True"
 
     @abc.abstractmethod
-    def _run_command(self, command: list[str], *, timeout: typing.Optional[int]) -> str:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def _run_command(self, command: typing.List[str], *, timeout: typing.Optional[int]) -> str:
         """Run command in container.
 
         Raises:
             CalledProcessError: Command returns non-zero exit code
         """
 
-    def run_mysql_router(self, args: list[str], *, timeout: int = None) -> str:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def run_mysql_router(self, args: typing.List[str], *, timeout: int = None) -> str:
         """Run MySQL Router command.
 
         Raises:
@@ -114,7 +119,8 @@ class Container(abc.ABC):
         args.insert(0, self._mysql_router_command)
         return self._run_command(args, timeout=timeout)
 
-    def run_mysql_shell(self, args: list[str], *, timeout: int = None) -> str:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def run_mysql_shell(self, args: typing.List[str], *, timeout: int = None) -> str:
         """Run MySQL Shell command.
 
         Raises:

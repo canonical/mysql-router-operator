@@ -40,7 +40,8 @@ class Shell:
     _host: str
     _port: str
 
-    def _run_commands(self, commands: list[str]) -> str:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def _run_commands(self, commands: typing.List[str]) -> str:
         """Connect to MySQL cluster and run commands."""
         # Redact password from log
         logged_commands = commands.copy()
@@ -69,7 +70,8 @@ class Shell:
             temporary_script_file.unlink()
         return output
 
-    def _run_sql(self, sql_statements: list[str]) -> None:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def _run_sql(self, sql_statements: typing.List[str]) -> None:
         """Connect to MySQL cluster and execute SQL."""
         commands = []
         for statement in sql_statements:

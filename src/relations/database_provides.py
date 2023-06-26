@@ -161,7 +161,8 @@ class RelationEndpoint:
         )
 
     @property
-    def _created_users(self) -> list[_RelationWithCreatedUser]:
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def _created_users(self) -> typing.List[_RelationWithCreatedUser]:
         created_users = []
         for relation in self._interface.relations:
             try:
@@ -235,7 +236,8 @@ class RelationEndpoint:
     def get_status(self, event) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""
         requested_users = []
-        exceptions: list[status_exception.StatusException] = []
+        # TODO python3.10 min version: Use `list` instead of `typing.List`
+        exceptions: typing.List[status_exception.StatusException] = []
         for relation in self._interface.relations:
             try:
                 requested_users.append(
