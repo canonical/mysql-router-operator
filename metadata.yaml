@@ -19,7 +19,6 @@ provides:
 #    scope: container
   database:
     interface: mysql_client
-    scope: container
 requires:
   backend-database:
     interface: mysql_client
