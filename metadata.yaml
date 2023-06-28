@@ -16,6 +16,7 @@ provides:
   database:
     interface: mysql_client
     scope: container
+  # DEPRECATED shared-db: Legacy "mysql-shared" interface
   deprecated-shared-db:
     interface: mysql-shared
     scope: container
@@ -32,5 +33,6 @@ peers:
 # TODO TLS VM: re-enable peer relation
 #  mysql-router-peers:
 #    interface: mysql_router_peers
+  # DEPRECATED shared-db: Workaround for legacy "mysql-shared" interface using unit databags instead of app databag
   deprecated-shared-db-credentials:
     interface: _mysql_router_deprecated_shared_db_credentials
