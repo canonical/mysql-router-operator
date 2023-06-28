@@ -1,156 +1,262 @@
-# Copyright 2022 Canonical Ltd.
+# Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Library containing the implementation of the database provides relation."""
+"""Relation(s) to one or more application charms"""
 
-import json
 import logging
+import typing
 
-from charms.data_platform_libs.v0.database_provides import (
-    DatabaseProvides,
-    DatabaseRequestedEvent,
-)
-from ops.framework import Object
-from ops.model import Application, BlockedStatus
+import charms.data_platform_libs.v0.data_interfaces as data_interfaces
+import ops
 
-from constants import (
-    DATABASE_PROVIDES_RELATION,
-    MYSQL_ROUTER_LEADER_BOOTSTRAPED,
-    MYSQL_ROUTER_PROVIDES_DATA,
-    MYSQL_ROUTER_REQUIRES_DATA,
-    PASSWORD_LENGTH,
-    PEER,
-)
-from mysql_router_helpers import (
-    MySQLRouter,
-    MySQLRouterBootstrapError,
-    MySQLRouterCreateUserWithDatabasePrivilegesError,
-)
-from utils import generate_random_password
+import mysql_shell
+import relations.remote_databag as remote_databag
+import status_exception
+
+if typing.TYPE_CHECKING:
+    import abstract_charm
 
 logger = logging.getLogger(__name__)
 
 
-class DatabaseProvidesRelation(Object):
-    """Encapsulation of the relation between mysqlrouter and the consumer application."""
+class _RelationBreaking(Exception):
+    """Relation will be broken after the current event is handled"""
 
-    def __init__(self, charm):
-        super().__init__(charm, DATABASE_PROVIDES_RELATION)
 
-        self.charm = charm
-        self.database = DatabaseProvides(self.charm, relation_name=DATABASE_PROVIDES_RELATION)
+class _UnsupportedExtraUserRole(status_exception.StatusException):
+    """Application charm requested unsupported extra user role"""
 
-        self.framework.observe(self.database.on.database_requested, self._on_database_requested)
-
-        self.framework.observe(
-            self.charm.on[PEER].relation_changed, self._on_peer_relation_changed
+    def __init__(self, *, app_name: str, endpoint_name: str) -> None:
+        message = (
+            f"{app_name} app requested unsupported extra user role on {endpoint_name} endpoint"
         )
+        logger.warning(message)
+        super().__init__(ops.BlockedStatus(message))
 
-    # =======================
-    #  Helpers
-    # =======================
 
-    def _database_provides_relation_exists(self) -> bool:
-        database_provides_relations = self.charm.model.relations.get(DATABASE_PROVIDES_RELATION)
-        return bool(database_provides_relations)
+class _Relation:
+    """Relation to one application charm"""
 
-    def _get_related_app_name(self) -> str:
-        """Helper to get the name of the related `database-provides` application."""
-        if not self._database_provides_relation_exists():
-            return None
+    def __init__(self, *, relation: ops.Relation) -> None:
+        self._id = relation.id
 
-        for key in self.charm.model.relations[DATABASE_PROVIDES_RELATION][0].data:
-            if type(key) == Application and key.name != self.charm.app.name:
-                return key.name
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, _Relation):
+            return False
+        return self._id == other._id
 
-        return None
+    def _get_username(self, database_requires_username: str) -> str:
+        """Database username"""
+        # Prefix username with username from database requires relation.
+        # This ensures a unique username if MySQL Router is deployed in a different Juju model
+        # from MySQL.
+        # (Relation IDs are only unique within a Juju model.)
+        return f"{database_requires_username}-{self._id}"
 
-    # =======================
-    #  Handlers
-    # =======================
 
-    def _on_database_requested(self, event: DatabaseRequestedEvent) -> None:
-        """Handle the database requested event."""
-        if not self.charm.unit.is_leader():
-            return
+class _RelationThatRequestedUser(_Relation):
+    """Related application charm that has requested a database & user"""
 
-        self.charm.app_peer_data[MYSQL_ROUTER_PROVIDES_DATA] = json.dumps(
-            {
-                "database": event.database,
-                "extra_user_roles": event.extra_user_roles,
-            }
-        )
-
-    def _on_peer_relation_changed(self, _) -> None:
-        """Handle the peer relation changed event."""
-        if not self.charm.unit.is_leader():
-            return
-
-        if self.charm.app_peer_data.get(MYSQL_ROUTER_LEADER_BOOTSTRAPED):
-            return
-
-        if not self.charm.app_peer_data.get(MYSQL_ROUTER_REQUIRES_DATA):
-            return
-
-        database_provides_relations = self.charm.model.relations.get(DATABASE_PROVIDES_RELATION)
-        if not database_provides_relations:
-            return
-
-        parsed_database_requires_data = json.loads(
-            self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA]
-        )
-        parsed_database_provides_data = json.loads(
-            self.charm.app_peer_data[MYSQL_ROUTER_PROVIDES_DATA]
-        )
-
-        db_host = parsed_database_requires_data["endpoints"].split(",")[0].split(":")[0]
-        mysqlrouter_username = parsed_database_requires_data["username"]
-        mysqlrouter_user_password = self.charm._get_secret("app", "database-password")
-        related_app_name = self._get_related_app_name()
-
-        try:
-            MySQLRouter.bootstrap_and_start_mysql_router(
-                mysqlrouter_username,
-                mysqlrouter_user_password,
-                related_app_name,
-                db_host,
-                "3306",
+    def __init__(
+        self, *, relation: ops.Relation, interface: data_interfaces.DatabaseProvides, event
+    ) -> None:
+        super().__init__(relation=relation)
+        self._interface = interface
+        if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == self._id:
+            raise _RelationBreaking
+        # Application charm databag
+        databag = remote_databag.RemoteDatabag(interface=interface, relation=relation)
+        self._database: str = databag["database"]
+        if databag.get("extra-user-roles"):
+            raise _UnsupportedExtraUserRole(
+                app_name=relation.app.name, endpoint_name=relation.name
             )
-        except MySQLRouterBootstrapError:
-            self.charm.unit.status = BlockedStatus("Failed to bootstrap mysqlrouter")
+
+    def _set_databag(
+        self,
+        *,
+        username: str,
+        password: str,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+    ) -> None:
+        """Share connection information with application charm."""
+        logger.debug(
+            f"Setting databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+        )
+        self._interface.set_database(self._id, self._database)
+        self._interface.set_credentials(self._id, username, password)
+        self._interface.set_endpoints(self._id, router_read_write_endpoint)
+        self._interface.set_read_only_endpoints(self._id, router_read_only_endpoint)
+        logger.debug(
+            f"Set databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+        )
+
+    def create_database_and_user(
+        self,
+        *,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+        shell: mysql_shell.Shell,
+    ) -> None:
+        """Create database & user and update databag."""
+        username = self._get_username(shell.username)
+        password = shell.create_application_database_and_user(
+            username=username, database=self._database
+        )
+        self._set_databag(
+            username=username,
+            password=password,
+            router_read_write_endpoint=router_read_write_endpoint,
+            router_read_only_endpoint=router_read_only_endpoint,
+        )
+
+
+class _UserNotCreated(Exception):
+    """Database & user has not been provided to related application charm"""
+
+
+class _RelationWithCreatedUser(_Relation):
+    """Related application charm that has been provided with a database & user"""
+
+    def __init__(
+        self, *, relation: ops.Relation, interface: data_interfaces.DatabaseProvides
+    ) -> None:
+        super().__init__(relation=relation)
+        self._local_databag = relation.data[interface.local_app]
+        for key in ("database", "username", "password", "endpoints"):
+            if key not in self._local_databag:
+                raise _UserNotCreated
+
+    def delete_databag(self) -> None:
+        """Remove connection information from databag."""
+        logger.debug(f"Deleting databag {self._id=}")
+        self._local_databag.clear()
+        logger.debug(f"Deleted databag {self._id=}")
+
+    def delete_user(self, *, shell: mysql_shell.Shell) -> None:
+        """Delete user and update databag."""
+        self.delete_databag()
+        shell.delete_user(self._get_username(shell.username))
+
+
+class RelationEndpoint:
+    """Relation endpoint for application charm(s)"""
+
+    _NAME = "database"
+
+    def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
+        self._interface = data_interfaces.DatabaseProvides(charm_, relation_name=self._NAME)
+        charm_.framework.observe(
+            charm_.on[self._NAME].relation_joined,
+            charm_.reconcile_database_relations,
+        )
+        charm_.framework.observe(
+            self._interface.on.database_requested,
+            charm_.reconcile_database_relations,
+        )
+        charm_.framework.observe(
+            charm_.on[self._NAME].relation_broken,
+            charm_.reconcile_database_relations,
+        )
+
+    @property
+    # TODO python3.10 min version: Use `list` instead of `typing.List`
+    def _created_users(self) -> typing.List[_RelationWithCreatedUser]:
+        created_users = []
+        for relation in self._interface.relations:
+            try:
+                created_users.append(
+                    _RelationWithCreatedUser(relation=relation, interface=self._interface)
+                )
+            except _UserNotCreated:
+                pass
+        return created_users
+
+    def reconcile_users(
+        self,
+        *,
+        event,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+        shell: mysql_shell.Shell,
+    ) -> None:
+        """Create requested users and delete inactive users.
+
+        When the relation to the MySQL charm is broken, the MySQL charm will delete all users
+        created by this charm. Therefore, this charm does not need to delete users when that
+        relation is broken.
+        """
+        logger.debug(
+            f"Reconciling users {event=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+        )
+        requested_users = []
+        for relation in self._interface.relations:
+            try:
+                requested_users.append(
+                    _RelationThatRequestedUser(
+                        relation=relation, interface=self._interface, event=event
+                    )
+                )
+            except (
+                _RelationBreaking,
+                remote_databag.IncompleteDatabag,
+                _UnsupportedExtraUserRole,
+            ):
+                pass
+        logger.debug(f"State of reconcile users {requested_users=}, {self._created_users=}")
+        for relation in requested_users:
+            if relation not in self._created_users:
+                relation.create_database_and_user(
+                    router_read_write_endpoint=router_read_write_endpoint,
+                    router_read_only_endpoint=router_read_only_endpoint,
+                    shell=shell,
+                )
+        for relation in self._created_users:
+            if relation not in requested_users:
+                relation.delete_user(shell=shell)
+        logger.debug(
+            f"Reconciled users {event=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+        )
+
+    def delete_all_databags(self) -> None:
+        """Remove connection information from all databags.
+
+        Called when relation with MySQL is breaking
+
+        When the MySQL relation is re-established, it could be a different MySQL cluster—new users
+        will need to be created.
+        """
+        logger.debug("Deleting all application databags")
+        for relation in self._created_users:
+            # MySQL charm will delete user; just delete databag
+            relation.delete_databag()
+        logger.debug("Deleted all application databags")
+
+    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+        """Report non-active status."""
+        requested_users = []
+        # TODO python3.10 min version: Use `list` instead of `typing.List`
+        exceptions: typing.List[status_exception.StatusException] = []
+        for relation in self._interface.relations:
+            try:
+                requested_users.append(
+                    _RelationThatRequestedUser(
+                        relation=relation, interface=self._interface, event=event
+                    )
+                )
+            except _RelationBreaking:
+                pass
+            except (remote_databag.IncompleteDatabag, _UnsupportedExtraUserRole) as exception:
+                exceptions.append(exception)
+        # Always report unsupported extra user role
+        for exception in exceptions:
+            if isinstance(exception, _UnsupportedExtraUserRole):
+                return exception.status
+        if requested_users:
+            # At least one relation is active—do not report about inactive relations
             return
-
-        provides_relation_id = database_provides_relations[0].id
-        application_username = f"application-user-{provides_relation_id}"
-        application_password = generate_random_password(PASSWORD_LENGTH)
-
-        try:
-            MySQLRouter.create_user_with_database_privileges(
-                application_username,
-                application_password,
-                "%",
-                parsed_database_provides_data["database"],
-                mysqlrouter_username,
-                mysqlrouter_user_password,
-                db_host,
-                "3306",
-            )
-        except MySQLRouterCreateUserWithDatabasePrivilegesError:
-            self.charm.unit.status = BlockedStatus("Failed to create application user")
-            return
-
-        self.charm._set_secret(
-            "app", f"application-user-{provides_relation_id}-password", application_password
-        )
-
-        self.database.set_credentials(
-            provides_relation_id, application_username, application_password
-        )
-        self.database.set_endpoints(
-            provides_relation_id, f"file:///var/lib/mysql/{related_app_name}/mysql.sock"
-        )
-        self.database.set_read_only_endpoints(
-            provides_relation_id, f"file:///var/lib/mysql/{related_app_name}/mysqlro.sock"
-        )
-
-        self.charm.app_peer_data[MYSQL_ROUTER_LEADER_BOOTSTRAPED] = "true"
+        for exception in exceptions:
+            if isinstance(exception, remote_databag.IncompleteDatabag):
+                return exception.status
+        return ops.BlockedStatus(f"Missing relation: {self._NAME}")

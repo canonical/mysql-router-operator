@@ -24,7 +24,6 @@ TEST_TABLE = "random_data"
 SLOW_TIMEOUT = 15 * 60
 
 
-@pytest.mark.order(1)
 @pytest.mark.abort_on_fail
 async def test_database_relation(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
     """Test the database relation."""

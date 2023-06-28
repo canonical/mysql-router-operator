@@ -1,150 +1,117 @@
-# Copyright 2022 Canonical Ltd.
+# Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Library containing the implementation of the database requires relation."""
+"""Relation to MySQL charm"""
 
-import json
 import logging
-from typing import Dict
+import typing
 
-from charms.data_platform_libs.v0.database_requires import (
-    DatabaseCreatedEvent,
-    DatabaseEndpointsChangedEvent,
-    DatabaseRequires,
-)
-from ops.charm import RelationJoinedEvent
-from ops.framework import Object
-from ops.model import BlockedStatus
+import charms.data_platform_libs.v0.data_interfaces as data_interfaces
+import ops
 
-from constants import (
-    DATABASE_REQUIRES_RELATION,
-    LEGACY_SHARED_DB_DATA,
-    MYSQL_ROUTER_PROVIDES_DATA,
-    MYSQL_ROUTER_REQUIRES_DATA,
-)
+import relations.remote_databag as remote_databag
+import status_exception
+
+if typing.TYPE_CHECKING:
+    import abstract_charm
 
 logger = logging.getLogger(__name__)
 
 
-class DatabaseRequiresRelation(Object):
-    """Encapsulation of the relation between mysqlrouter and mysql database."""
+class _MissingRelation(status_exception.StatusException):
+    """Relation to MySQL charm does (or will) not exist"""
 
-    def __init__(self, charm):
-        super().__init__(charm, DATABASE_REQUIRES_RELATION)
+    def __init__(self, *, endpoint_name: str) -> None:
+        super().__init__(ops.BlockedStatus(f"Missing relation: {endpoint_name}"))
 
-        self.charm = charm
 
-        self.framework.observe(
-            self.charm.on[DATABASE_REQUIRES_RELATION].relation_joined,
-            self._on_database_requires_relation_joined,
-        )
+class _RelationBreaking(_MissingRelation):
+    """Relation to MySQL charm will be broken after the current event is handled
 
-        shared_db_data = self._get_shared_db_data()
-        provides_data = self._get_provides_data()
+    Relation currently exists
+    """
 
-        if provides_data and shared_db_data:
-            logger.error("Both shared-db and database relations created")
-            self.charm.unit.status = BlockedStatus("Both shared-db and database relations exists")
-            return
 
-        if not shared_db_data and not provides_data:
-            return
+class ConnectionInformation:
+    """Information for connection to MySQL cluster
 
-        database_name = shared_db_data["database"] if shared_db_data else provides_data["database"]
+    User has permission to:
+    - Create databases & users
+    - Grant all privileges on a database to a user
+    (Different from user that MySQL Router runs with after bootstrap.)
+    """
 
-        self.database_requires_relation = DatabaseRequires(
-            self.charm,
-            relation_name=DATABASE_REQUIRES_RELATION,
-            database_name=database_name,
+    def __init__(self, *, interface: data_interfaces.DatabaseRequires, event) -> None:
+        relations = interface.relations
+        endpoint_name = interface.relation_name
+        if not relations:
+            raise _MissingRelation(endpoint_name=endpoint_name)
+        assert len(relations) == 1
+        relation = relations[0]
+        if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == relation.id:
+            # Relation will be broken after the current event is handled
+            raise _RelationBreaking(endpoint_name=endpoint_name)
+        # MySQL charm databag
+        databag = remote_databag.RemoteDatabag(interface=interface, relation=relation)
+        endpoints = databag["endpoints"].split(",")
+        assert len(endpoints) == 1
+        endpoint = endpoints[0]
+        self.host: str = endpoint.split(":")[0]
+        self.port: str = endpoint.split(":")[1]
+        self.username: str = databag["username"]
+        self.password: str = databag["password"]
+
+
+class RelationEndpoint:
+    """Relation endpoint for MySQL charm"""
+
+    _NAME = "backend-database"
+
+    def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
+        self._interface = data_interfaces.DatabaseRequires(
+            charm_,
+            relation_name=self._NAME,
+            # Database name disregarded by MySQL charm if "mysqlrouter" extra user role requested
+            database_name="mysql_innodb_cluster_metadata",
             extra_user_roles="mysqlrouter",
         )
-        self.framework.observe(
-            self.database_requires_relation.on.database_created, self._on_database_created
+        charm_.framework.observe(
+            charm_.on[self._NAME].relation_created,
+            charm_.reconcile_database_relations,
         )
-        self.framework.observe(
-            self.database_requires_relation.on.endpoints_changed, self._on_endpoints_changed
+        charm_.framework.observe(
+            self._interface.on.database_created,
+            charm_.reconcile_database_relations,
         )
-
-    # =======================
-    #  Helpers
-    # =======================
-
-    def _get_shared_db_data(self) -> Dict:
-        """Helper to get the `shared-db` relation data from the app peer databag."""
-        peers = self.charm._peers
-        if not peers:
-            return None
-
-        shared_db_data = self.charm.app_peer_data.get(LEGACY_SHARED_DB_DATA)
-        if not shared_db_data:
-            return None
-
-        return json.loads(shared_db_data)
-
-    def _get_provides_data(self) -> Dict:
-        """Helper to get the provides relation data from the app peer databag."""
-        peers = self.charm._peers
-        if not peers:
-            return None
-
-        provides_data = self.charm.app_peer_data.get(MYSQL_ROUTER_PROVIDES_DATA)
-        if not provides_data:
-            return None
-
-        return json.loads(provides_data)
-
-    # =======================
-    #  Handlers
-    # =======================
-
-    def _on_database_requires_relation_joined(self, event: RelationJoinedEvent) -> None:
-        """Handle the backend-database relation joined event.
-
-        Waits until the database (provides) relation with the application is formed
-        before triggering the database_requires relation joined event (which will
-        request the database).
-        """
-        if not self.charm.unit.is_leader():
-            return
-
-        provides_data = self._get_provides_data()
-        if not provides_data:
-            event.defer()
-            return
-
-        self.database_requires_relation._on_relation_joined_event(event)
-
-    def _on_database_created(self, event: DatabaseCreatedEvent) -> None:
-        """Handle the database created event.
-
-        Set the relation data in the app peer databag for the `shared-db`/`database-provides`
-        code to be able to bootstrap mysqlrouter, create an application
-        user and relay the application user credentials to the consumer application.
-        """
-        if not self.charm.unit.is_leader():
-            return
-
-        self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA] = json.dumps(
-            {
-                "username": event.username,
-                "endpoints": event.endpoints,
-            }
+        charm_.framework.observe(
+            self._interface.on.endpoints_changed,
+            charm_.reconcile_database_relations,
+        )
+        charm_.framework.observe(
+            charm_.on[self._NAME].relation_broken,
+            charm_.reconcile_database_relations,
         )
 
-        self.charm._set_secret("app", "database-password", event.password)
-
-    def _on_endpoints_changed(self, event: DatabaseEndpointsChangedEvent) -> None:
-        """Handle the database endpoints changed event.
-
-        Update the MYSQL_ROUTER_REQUIRES_DATA in the app peer databag so that
-        bootstraps of future units work.
-        """
-        if not self.charm.unit.is_leader():
+    def get_connection_info(self, *, event) -> typing.Optional[ConnectionInformation]:
+        """Information for connection to MySQL cluster"""
+        try:
+            return ConnectionInformation(interface=self._interface, event=event)
+        except (_MissingRelation, remote_databag.IncompleteDatabag):
             return
 
-        if self.charm.app_peer_data.get(MYSQL_ROUTER_REQUIRES_DATA):
-            requires_data = json.loads(self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA])
+    def is_relation_breaking(self, event) -> bool:
+        """Whether relation will be broken after the current event is handled"""
+        try:
+            ConnectionInformation(interface=self._interface, event=event)
+        except _RelationBreaking:
+            return True
+        except (_MissingRelation, remote_databag.IncompleteDatabag):
+            pass
+        return False
 
-            requires_data["endpoints"] = event.endpoints
-
-            self.charm.app_peer_data[MYSQL_ROUTER_REQUIRES_DATA] = json.dumps(requires_data)
+    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+        """Report non-active status."""
+        try:
+            ConnectionInformation(interface=self._interface, event=event)
+        except (_MissingRelation, remote_databag.IncompleteDatabag) as exception:
+            return exception.status
