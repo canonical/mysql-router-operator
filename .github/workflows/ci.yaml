@@ -69,9 +69,7 @@ jobs:
       fail-fast: false
       matrix:
         tox-environments:
-          # TODO: uncomment when the following bug is resolved:
-          # https://bugs.launchpad.net/charm-keystone/+bug/1990243
-          # - integration-shared-db
+          - integration-shared-db
           - integration-database
         ubuntu-versions:
           # Update whenever charmcraft.yaml is changed
