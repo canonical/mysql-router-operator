@@ -5,7 +5,6 @@
 
 Uses DEPRECATED "mysql-shared" relation interface
 """
-# TODO: update all logs to include legacy/deprecated
 
 import logging
 import typing
@@ -19,7 +18,14 @@ import status_exception
 if typing.TYPE_CHECKING:
     import abstract_charm
 
-logger = logging.getLogger(__name__)
+
+class LogPrefix(logging.LoggerAdapter):
+    """Add prefix to all log messages"""
+    def process(self, msg, kwargs):
+        return f"[DEPRECATED shared-db] {msg}", kwargs
+
+
+logger = LogPrefix(logging.getLogger(__name__))
 
 
 class _RemoteUnitDatabag(remote_databag.RemoteDatabag):
