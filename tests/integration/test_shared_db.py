@@ -54,14 +54,12 @@ async def test_shared_db(ops_test: OpsTest, mysql_router_charm_series: str):
             ops_test.model.wait_for_idle(
                 apps=[KEYSTONE_APP_NAME],
                 status="blocked",
-                raise_on_blocked=False,
                 timeout=TIMEOUT,
                 wait_for_exact_units=2,
             ),
             ops_test.model.wait_for_idle(
                 apps=[MYSQLROUTER_APP_NAME],
-                status="waiting",
-                raise_on_blocked=True,
+                status="blocked",
                 timeout=TIMEOUT,
             ),
         )
