@@ -162,10 +162,6 @@ class RelationEndpoint:
             logger.warning(
                 "'mysql-shared' relation interface is DEPRECATED and will be removed in a future release. Use 'mysql_client' interface instead."
             )
-        self._unit = charm_.unit
-        self._peer_app_databag = charm_.model.get_relation(
-            self._CREDENTIALS_PEER_RELATION_ENDPOINT_NAME
-        ).data[charm_.app]
         charm_.framework.observe(
             charm_.on[self._NAME].relation_changed,
             charm_.reconcile_database_relations,
@@ -178,6 +174,13 @@ class RelationEndpoint:
             charm_.on[self._CREDENTIALS_PEER_RELATION_ENDPOINT_NAME].relation_changed,
             self._update_unit_databag,
         )
+        self._charm = charm_
+
+    @property
+    def _peer_app_databag(self) -> ops.RelationDataContent:
+        return self._charm.model.get_relation(self._CREDENTIALS_PEER_RELATION_ENDPOINT_NAME).data[
+            self._charm.app
+        ]
 
     def _update_unit_databag(self, event: ops.RelationChangedEvent) -> None:
         """Synchronize shared-db unit databag with peer app databag.
@@ -196,7 +199,7 @@ class RelationEndpoint:
                 requested_users.append(
                     _RelationThatRequestedUser(
                         relation=relation,
-                        unit=self._unit,
+                        unit=self._charm.unit,
                         peer_relation_app_databag=self._peer_app_databag,
                         event=event,
                     )
@@ -221,7 +224,7 @@ class RelationEndpoint:
                 created_users.append(
                     _RelationWithCreatedUser(
                         relation=relation,
-                        unit=self._unit,
+                        unit=self._charm.unit,
                         peer_relation_app_databag=self._peer_app_databag,
                     )
                 )
@@ -248,7 +251,7 @@ class RelationEndpoint:
                 requested_users.append(
                     _RelationThatRequestedUser(
                         relation=relation,
-                        unit=self._unit,
+                        unit=self._charm.unit,
                         peer_relation_app_databag=self._peer_app_databag,
                         event=event,
                     )
@@ -294,7 +297,7 @@ class RelationEndpoint:
                 requested_users.append(
                     _RelationThatRequestedUser(
                         relation=relation,
-                        unit=self._unit,
+                        unit=self._charm.unit,
                         peer_relation_app_databag=self._peer_app_databag,
                         event=event,
                     )
