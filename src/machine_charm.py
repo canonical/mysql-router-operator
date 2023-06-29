@@ -25,6 +25,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     def __init__(self, *args) -> None:
         super().__init__(*args)
         # DEPRECATED shared-db: Enable legacy "mysql-shared" interface
+        del self._database_provides
         self._database_provides = relations.database_providers_wrapper.RelationEndpoint(self)
 
         self._authenticated_workload_type = socket_workload.AuthenticatedSocketWorkload
