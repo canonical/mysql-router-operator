@@ -50,11 +50,9 @@ class _Relation:
         self,
         *,
         relation: ops.Relation,
-        unit: ops.Unit,
         peer_relation_app_databag: ops.RelationDataContent,
     ) -> None:
         self._id = relation.id
-        self.local_unit_databag = relation.data[unit]
         self._peer_app_databag = peer_relation_app_databag
         self._peer_databag_username_key = f"deprecated_shared_db_relation_{self._id}.username"
         self.peer_databag_password_key = f"deprecated_shared_db_relation_{self._id}.password"
@@ -65,7 +63,43 @@ class _Relation:
         return self._id == other._id
 
 
-class _RelationThatRequestedUser(_Relation):
+class _UnitThatNeedsUser(_Relation):
+    """Related application unit that has needs user password"""
+
+    def __init__(
+        self,
+        *,
+        relation: ops.Relation,
+        unit: ops.Unit,
+        peer_relation_app_databag: ops.RelationDataContent,
+    ) -> None:
+        super().__init__(relation=relation, peer_relation_app_databag=peer_relation_app_databag)
+        self._local_unit_databag = relation.data[unit]
+        self._remote_unit_databag = _RemoteUnitDatabag(relation)
+        assert len(relation.units) == 1
+        self._remote_unit_name = relation.units.copy().pop().name
+
+    def set_databag(
+        self,
+        *,
+        password: str,
+    ) -> None:
+        """Share connection information with application charm."""
+        logger.debug(f"Setting unit databag {self._id=} {self._remote_unit_name=}")
+        self._local_unit_databag["allowed_units"] = self._remote_unit_name
+        self._local_unit_databag["db_host"] = "127.0.0.1"
+        self._local_unit_databag["db_port"] = "3306"
+        self._local_unit_databag["wait_timeout"] = "3600"
+        self._local_unit_databag["password"] = password
+        logger.debug(f"Set unit databag {self._id=} {self._remote_unit_name=}")
+
+    def delete_databag(self) -> None:
+        logger.debug(f"Deleting unit databag {self._id=} {self._remote_unit_name=}")
+        self._local_unit_databag.clear()
+        logger.debug(f"Deleted unit databag {self._id=} {self._remote_unit_name=}")
+
+
+class _RelationThatRequestedUser(_UnitThatNeedsUser):
     """Related application charm that has requested a database & user"""
 
     def __init__(
@@ -76,35 +110,14 @@ class _RelationThatRequestedUser(_Relation):
         peer_relation_app_databag: ops.RelationDataContent,
         event,
     ) -> None:
+        if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == self._id:
+            raise _RelationBreaking
         super().__init__(
             relation=relation, unit=unit, peer_relation_app_databag=peer_relation_app_databag
         )
-        if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == self._id:
-            raise _RelationBreaking
-        self._remote_unit_databag = _RemoteUnitDatabag(relation)
-        assert len(relation.units) == 1
-        self._remote_unit_name = relation.units.copy().pop().name
         self._database: str = self._remote_unit_databag["database"]
         self._username: str = self._peer_app_databag.setdefault(
             self._peer_databag_username_key, self._remote_unit_databag["username"]
-        )
-
-    def set_databag(
-        self,
-        *,
-        password: str,
-    ) -> None:
-        """Share connection information with application charm."""
-        logger.debug(
-            f"Setting databag {self._id=} {self._database=}, {self._username=}, {self._remote_unit_name=}"
-        )
-        self.local_unit_databag["allowed_units"] = self._remote_unit_name
-        self.local_unit_databag["db_host"] = "127.0.0.1"
-        self.local_unit_databag["db_port"] = "3306"
-        self.local_unit_databag["wait_timeout"] = "3600"
-        self.local_unit_databag["password"] = password
-        logger.debug(
-            f"Set databag {self._id=} {self._database=}, {self._username=}, {self._remote_unit_name=}"
         )
 
     def create_database_and_user(
@@ -131,12 +144,9 @@ class _RelationWithCreatedUser(_Relation):
         self,
         *,
         relation: ops.Relation,
-        unit: ops.Unit,
         peer_relation_app_databag: ops.RelationDataContent,
     ) -> None:
-        super().__init__(
-            relation=relation, unit=unit, peer_relation_app_databag=peer_relation_app_databag
-        )
+        super().__init__(relation=relation, peer_relation_app_databag=peer_relation_app_databag)
         for key in (self._peer_databag_username_key, self.peer_databag_password_key):
             if key not in self._peer_app_databag:
                 raise _UserNotCreated
@@ -202,23 +212,19 @@ class RelationEndpoint(ops.Object):
         for relation in self._relations:
             try:
                 requested_users.append(
-                    _RelationThatRequestedUser(
+                    _UnitThatNeedsUser(
                         relation=relation,
                         unit=self._charm.unit,
                         peer_relation_app_databag=self._peer_app_databag,
-                        event=event,
                     )
                 )
-            except (
-                _RelationBreaking,
-                remote_databag.IncompleteDatabag,
-            ):
+            except remote_databag.IncompleteDatabag:
                 pass
         for relation in requested_users:
             if password := self._peer_app_databag.get(relation.peer_databag_password_key):
                 relation.set_databag(password=password)
             else:
-                relation.local_unit_databag.clear()
+                relation.delete_databag()
 
     @property
     # TODO python3.10 min version: Use `list` instead of `typing.List`
@@ -229,7 +235,6 @@ class RelationEndpoint(ops.Object):
                 created_users.append(
                     _RelationWithCreatedUser(
                         relation=relation,
-                        unit=self._charm.unit,
                         peer_relation_app_databag=self._peer_app_databag,
                     )
                 )
