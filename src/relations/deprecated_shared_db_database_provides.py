@@ -150,13 +150,14 @@ class _RelationWithCreatedUser(_Relation):
         self.delete_databag()
 
 
-class RelationEndpoint:
+class RelationEndpoint(ops.Object):
     """DEPRECATED relation endpoint for application charm(s)"""
 
     _NAME = "deprecated-shared-db"
     _CREDENTIALS_PEER_RELATION_ENDPOINT_NAME = "deprecated-shared-db-credentials"
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
+        super().__init__(charm_, self._NAME)
         self._relations = charm_.model.relations[self._NAME]
         if self._relations:
             logger.warning(
@@ -170,11 +171,11 @@ class RelationEndpoint:
             charm_.on[self._NAME].relation_broken,
             charm_.reconcile_database_relations,
         )
-        charm_.framework.observe(
-            charm_.on[self._CREDENTIALS_PEER_RELATION_ENDPOINT_NAME].relation_changed,
+        self._charm = charm_
+        self.framework.observe(
+            self._charm.on[self._CREDENTIALS_PEER_RELATION_ENDPOINT_NAME].relation_changed,
             self._update_unit_databag,
         )
-        self._charm = charm_
 
     @property
     def _peer_app_databag(self) -> ops.RelationDataContent:
