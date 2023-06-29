@@ -24,7 +24,7 @@ async def test_shared_db(ops_test: OpsTest, mysql_router_charm_series: str):
     charm = await ops_test.build_charm(".")
 
     mysql_app = await ops_test.model.deploy(
-        "mysql", channel="latest/edge", application_name=MYSQL_APP_NAME, num_units=1
+        "mysql", channel="8.0/edge", application_name=MYSQL_APP_NAME, num_units=1
     )
     keystone_app = await ops_test.model.deploy(
         "keystone", application_name=KEYSTONE_APP_NAME, series="focal", num_units=2
