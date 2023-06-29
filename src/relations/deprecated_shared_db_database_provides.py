@@ -26,7 +26,7 @@ class LogPrefix(logging.LoggerAdapter):
         return f"[DEPRECATED shared-db] {msg}", kwargs
 
 
-logger = LogPrefix(logging.getLogger(__name__))
+logger = LogPrefix(logging.getLogger(__name__), extra=None)
 
 
 class _RemoteUnitDatabag(remote_databag.RemoteDatabag):
