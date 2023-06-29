@@ -39,7 +39,7 @@ async def test_shared_db(ops_test: OpsTest, mysql_router_charm_series: str):
     )
 
     await ops_test.model.relate(
-        f"{KEYSTONE_APP_NAME}:shared-db", f"{MYSQLROUTER_APP_NAME}:shared-db"
+        f"{KEYSTONE_APP_NAME}:shared-db", f"{MYSQLROUTER_APP_NAME}:deprecated-shared-db"
     )
 
     async with ops_test.fast_forward():
