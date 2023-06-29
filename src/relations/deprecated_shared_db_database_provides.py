@@ -95,7 +95,8 @@ class _UnitThatNeedsUser(_Relation):
 
     def delete_databag(self) -> None:
         logger.debug(f"Deleting unit databag {self._id=} {self._remote_unit_name=}")
-        self._local_unit_databag.clear()
+        for key in ("allowed_units", "db_host", "db_port", "wait_timeout", "password"):
+            self._local_unit_databag.pop(key, None)
         logger.debug(f"Deleted unit databag {self._id=} {self._remote_unit_name=}")
 
 
