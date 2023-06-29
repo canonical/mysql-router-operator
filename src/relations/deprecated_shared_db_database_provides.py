@@ -100,7 +100,10 @@ class _UnitThatNeedsUser(_Relation):
 
 
 class _RelationThatRequestedUser(_UnitThatNeedsUser):
-    """Related application charm that has requested a database & user"""
+    """Related application charm that has requested a database & user
+
+    Only instantiated on leader unit
+    """
 
     def __init__(
         self,
@@ -160,7 +163,10 @@ class _RelationWithCreatedUser(_Relation):
 
     def delete_user(self, *, shell: mysql_shell.Shell) -> None:
         """Delete user and update databag."""
-        shell.delete_user(self._peer_app_databag[self._peer_databag_username_key])
+        username = self._peer_app_databag[self._peer_databag_username_key]
+        logger.debug(f"Deleting user {username=}")
+        shell.delete_user(username)
+        logger.debug(f"Deleted user {username=}")
         self.delete_databag()
 
 
@@ -197,7 +203,7 @@ class RelationEndpoint(ops.Object):
             self._charm.app
         ]
 
-    def _update_unit_databag(self, event: ops.RelationChangedEvent) -> None:
+    def _update_unit_databag(self, _) -> None:
         """Synchronize shared-db unit databag with peer app databag.
 
         The legacy shared-db interface was created before Juju implemented app databags.
@@ -208,6 +214,7 @@ class RelationEndpoint(ops.Object):
 
         Note: There is one peer relation but there can be multiple shared-db relations.
         """
+        logger.debug("Synchronizing unit databags")
         requested_users = []
         for relation in self._relations:
             try:
@@ -225,6 +232,7 @@ class RelationEndpoint(ops.Object):
                 relation.set_databag(password=password)
             else:
                 relation.delete_databag()
+        logger.debug("Synchronized unit databags")
 
     @property
     # TODO python3.10 min version: Use `list` instead of `typing.List`
