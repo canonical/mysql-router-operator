@@ -21,6 +21,7 @@ if typing.TYPE_CHECKING:
 
 class LogPrefix(logging.LoggerAdapter):
     """Add prefix to all log messages"""
+
     def process(self, msg, kwargs):
         return f"[DEPRECATED shared-db] {msg}", kwargs
 
