@@ -27,7 +27,7 @@ class _RemoteUnitDatabag(remote_databag.RemoteDatabag):
 
     def __init__(self, relation: ops.Relation) -> None:
         # Subordinate charms can only access principal unit's databag
-        assert len(relation.units) == 0
+        assert len(relation.units) == 1
         # Principal unit
         remote_unit = relation.units.copy().pop()
         dict.__init__(self, relation.data[remote_unit])
@@ -78,7 +78,7 @@ class _RelationThatRequestedUser(_Relation):
         if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == self._id:
             raise _RelationBreaking
         self._remote_unit_databag = _RemoteUnitDatabag(relation)
-        assert len(relation.units) == 0
+        assert len(relation.units) == 1
         self._remote_unit_name = relation.units.copy().pop().name
         self._database: str = self._remote_unit_databag["database"]
         self._username: str = self._peer_app_databag.setdefault(
