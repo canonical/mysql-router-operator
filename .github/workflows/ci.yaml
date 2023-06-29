@@ -77,6 +77,12 @@ jobs:
             bases-index: 0
           - series: jammy
             bases-index: 1
+        exclude:
+          # keystone charm used in integration-shared-db does not support jammy series
+          - tox-environments: integration-shared-db
+            ubuntu-versions:
+              series: jammy
+              bases-index: 1
     name: ${{ matrix.tox-environments }} | ${{ matrix.ubuntu-versions.series }}
     needs:
       - lint
