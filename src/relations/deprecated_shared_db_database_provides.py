@@ -121,7 +121,7 @@ class _RelationThatRequestedUser(_UnitThatNeedsUser):
         unit: ops.Unit,
         event,
     ) -> None:
-        if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == self._id:
+        if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == relation.id:
             raise _RelationBreaking
         super().__init__(
             relation=relation, unit=unit, peer_relation_app_databag=peer_relation_app_databag
