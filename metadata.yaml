@@ -17,7 +17,7 @@ provides:
     interface: mysql_client
     scope: container
   # DEPRECATED shared-db: Legacy "mysql-shared" interface
-  deprecated-shared-db:
+  shared-db:
     interface: mysql-shared
     scope: container
 requires:

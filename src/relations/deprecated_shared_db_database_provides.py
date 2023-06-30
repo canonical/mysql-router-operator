@@ -181,7 +181,7 @@ class _RelationWithCreatedUser(_Relation):
 class RelationEndpoint(ops.Object):
     """DEPRECATED relation endpoint for application charm(s)"""
 
-    _NAME = "deprecated-shared-db"
+    _NAME = "shared-db"
     _CREDENTIALS_PEER_RELATION_ENDPOINT_NAME = "deprecated-shared-db-credentials"
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
