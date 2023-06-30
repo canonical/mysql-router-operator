@@ -77,8 +77,8 @@ class _UnitThatNeedsUser(_Relation):
         self,
         *,
         relation: ops.Relation,
-        unit: ops.Unit,
         peer_relation_app_databag: ops.RelationDataContent,
+        unit: ops.Unit,
     ) -> None:
         super().__init__(relation=relation, peer_relation_app_databag=peer_relation_app_databag)
         self._local_unit_databag = relation.data[unit]
@@ -117,8 +117,8 @@ class _RelationThatRequestedUser(_UnitThatNeedsUser):
         self,
         *,
         relation: ops.Relation,
-        unit: ops.Unit,
         peer_relation_app_databag: ops.RelationDataContent,
+        unit: ops.Unit,
         event,
     ) -> None:
         if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == self._id:
