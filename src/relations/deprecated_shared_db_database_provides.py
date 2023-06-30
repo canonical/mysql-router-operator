@@ -33,13 +33,13 @@ class _RemoteUnitDatabag(remote_databag.RemoteDatabag):
     """Relation databag for remote unit"""
 
     def __init__(self, relation: ops.Relation) -> None:
-        # Subordinate charms can only access principal unit's databag
         self._app_name = relation.app.name
         self._endpoint_name = relation.name
         if not relation.units:
             raise remote_databag.IncompleteDatabag(
                 app_name=self._app_name, endpoint_name=self._endpoint_name
             )
+        # Subordinate charms can only access principal unit's databag
         assert len(relation.units) == 1
         # Principal unit
         remote_unit = relation.units.copy().pop()
