@@ -236,6 +236,10 @@ class RelationEndpoint:
     def get_status(self, event) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""
         requested_users = []
+        exception_reporting_priority = (
+            _UnsupportedExtraUserRole,
+            remote_databag.IncompleteDatabag,
+        )
         # TODO python3.10 min version: Use `list` instead of `typing.List`
         exceptions: typing.List[status_exception.StatusException] = []
         for relation in self._interface.relations:
@@ -247,16 +251,11 @@ class RelationEndpoint:
                 )
             except _RelationBreaking:
                 pass
-            except (remote_databag.IncompleteDatabag, _UnsupportedExtraUserRole) as exception:
+            except exception_reporting_priority as exception:
                 exceptions.append(exception)
-        # Always report unsupported extra user role
-        for exception in exceptions:
-            if isinstance(exception, _UnsupportedExtraUserRole):
-                return exception.status
-        if requested_users:
-            # At least one relation is active—do not report about inactive relations
-            return
-        for exception in exceptions:
-            if isinstance(exception, remote_databag.IncompleteDatabag):
-                return exception.status
-        return ops.BlockedStatus(f"Missing relation: {self._NAME}")
+        for exception_type in exception_reporting_priority:
+            for exception in exceptions:
+                if isinstance(exception, exception_type):
+                    return exception.status
+        if not requested_users:
+            return ops.BlockedStatus(f"Missing relation: {self._NAME}")
