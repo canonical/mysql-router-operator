@@ -12,6 +12,7 @@ import ops
 import tenacity
 
 import container
+import lifecycle
 import relations.database_provides
 import relations.database_requires
 import workload
@@ -28,6 +29,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self._authenticated_workload_type = workload.AuthenticatedWorkload
         self._database_requires = relations.database_requires.RelationEndpoint(self)
         self._database_provides = relations.database_provides.RelationEndpoint(self)
+        self.unit_lifecycle = lifecycle.Unit(self)
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
 
@@ -99,7 +101,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     def set_status(self, *, event) -> None:
         """Set charm status."""
-        if self.unit.is_leader():
+        if self.unit.is_leader() and not self.unit_lifecycle.tearing_down:
             self.app.status = self._determine_app_status(event=event)
             logger.debug(f"Set app status to {self.app.status}")
         self.unit.status = self._determine_unit_status(event=event)
@@ -138,23 +140,23 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         logger.debug(
             "State of reconcile "
             f"{self.unit.is_leader()=}, "
+            f"{self.unit_lifecycle.tearing_down=}"
             f"{isinstance(workload_, workload.AuthenticatedWorkload)=}, "
             f"{workload_.container_ready=}, "
             f"{self._database_requires.is_relation_breaking(event)=}"
         )
-        if self.unit.is_leader() and self._database_requires.is_relation_breaking(event):
-            self._database_provides.delete_all_databags()
-        elif (
-            self.unit.is_leader()
-            and isinstance(workload_, workload.AuthenticatedWorkload)
-            and workload_.container_ready
-        ):
-            self._database_provides.reconcile_users(
-                event=event,
-                router_read_write_endpoint=self._read_write_endpoint,
-                router_read_only_endpoint=self._read_only_endpoint,
-                shell=workload_.shell,
-            )
+        if self.unit.is_leader() and not self.unit_lifecycle.tearing_down:
+            if self._database_requires.is_relation_breaking(event):
+                self._database_provides.delete_all_databags()
+            elif (
+                isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready
+            ):
+                self._database_provides.reconcile_users(
+                    event=event,
+                    router_read_write_endpoint=self._read_write_endpoint,
+                    router_read_only_endpoint=self._read_only_endpoint,
+                    shell=workload_.shell,
+                )
         if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
             workload_.enable(tls=self._tls_certificate_saved, unit_name=self.unit.name)
         elif workload_.container_ready:

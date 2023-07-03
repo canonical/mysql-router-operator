@@ -20,7 +20,10 @@ logger = logging.getLogger(__name__)
 
 
 class _RelationBreaking(Exception):
-    """Relation will be broken after the current event is handled"""
+    """Relation will be broken for this unit after the current event is handled
+
+    If this unit is tearing down, the relation could still exist for other units.
+    """
 
 
 class _UnsupportedExtraUserRole(status_exception.StatusException):

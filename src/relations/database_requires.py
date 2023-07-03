@@ -19,16 +19,21 @@ logger = logging.getLogger(__name__)
 
 
 class _MissingRelation(status_exception.StatusException):
-    """Relation to MySQL charm does (or will) not exist"""
+    """Relation to MySQL charm does (or will) not exist for this unit
+
+    If this unit is tearing down, the relation could still exist for other units.
+    """
 
     def __init__(self, *, endpoint_name: str) -> None:
         super().__init__(ops.BlockedStatus(f"Missing relation: {endpoint_name}"))
 
 
 class _RelationBreaking(_MissingRelation):
-    """Relation to MySQL charm will be broken after the current event is handled
+    """Relation to MySQL charm will be broken for this unit after the current event is handled
 
     Relation currently exists
+
+    If this unit is tearing down, the relation could still exist for other units.
     """
 
 
