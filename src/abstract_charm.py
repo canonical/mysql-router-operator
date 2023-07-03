@@ -140,7 +140,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         logger.debug(
             "State of reconcile "
             f"{self.unit.is_leader()=}, "
-            f"{self.unit_lifecycle.tearing_down=}"
+            f"{self.unit_lifecycle.tearing_down=}, "
             f"{isinstance(workload_, workload.AuthenticatedWorkload)=}, "
             f"{workload_.container_ready=}, "
             f"{self._database_requires.is_relation_breaking(event)=}"
