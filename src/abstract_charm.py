@@ -25,11 +25,13 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
+        # Instantiate before registering other event observers
+        self._unit_lifecycle = lifecycle.Unit(self)
+
         self._workload_type = workload.Workload
         self._authenticated_workload_type = workload.AuthenticatedWorkload
         self._database_requires = relations.database_requires.RelationEndpoint(self)
         self._database_provides = relations.database_provides.RelationEndpoint(self)
-        self.unit_lifecycle = lifecycle.Unit(self)
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
 
@@ -101,7 +103,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     def set_status(self, *, event) -> None:
         """Set charm status."""
-        if self.unit.is_leader() and not self.unit_lifecycle.tearing_down:
+        if self._unit_lifecycle.authorized_leader:
             self.app.status = self._determine_app_status(event=event)
             logger.debug(f"Set app status to {self.app.status}")
         self.unit.status = self._determine_unit_status(event=event)
@@ -140,12 +142,12 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         logger.debug(
             "State of reconcile "
             f"{self.unit.is_leader()=}, "
-            f"{self.unit_lifecycle.tearing_down=}, "
+            f"{self._unit_lifecycle.authorized_leader=}, "
             f"{isinstance(workload_, workload.AuthenticatedWorkload)=}, "
             f"{workload_.container_ready=}, "
             f"{self._database_requires.is_relation_breaking(event)=}"
         )
-        if self.unit.is_leader() and not self.unit_lifecycle.tearing_down:
+        if self._unit_lifecycle.authorized_leader:
             if self._database_requires.is_relation_breaking(event):
                 self._database_provides.delete_all_databags()
             elif (
