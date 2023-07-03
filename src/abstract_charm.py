@@ -141,7 +141,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         workload_ = self.get_workload(event=event)
         logger.debug(
             "State of reconcile "
-            f"{self.unit.is_leader()=}, "
             f"{self._unit_lifecycle.authorized_leader=}, "
             f"{isinstance(workload_, workload.AuthenticatedWorkload)=}, "
             f"{workload_.container_ready=}, "
