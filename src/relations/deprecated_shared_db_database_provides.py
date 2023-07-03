@@ -96,7 +96,7 @@ class _UnitThatNeedsUser(_Relation):
         self._local_unit_databag["allowed_units"] = self._remote_unit_name
         self._local_unit_databag["db_host"] = "127.0.0.1"
         self._local_unit_databag["db_port"] = "3306"
-        self._local_unit_databag["wait_timeout"] = "3600"
+        self._local_unit_databag["wait_timeout"] = "28800"
         self._local_unit_databag["password"] = password
         logger.debug(f"Set unit databag {self._id=} {self._remote_unit_name=}")
 
