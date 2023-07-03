@@ -25,7 +25,7 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, mysql_router_charm_ser
     logger.info("Deploy and relate all applications")
     async with ops_test.fast_forward():
         # deploy mysql first
-        await ops_test.model.deploy(MYSQL_APP_NAME, channel="latest/edge", num_units=3)
+        await ops_test.model.deploy(MYSQL_APP_NAME, channel="8.0/edge", num_units=3)
         tls_config = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
 
         # ROUTER

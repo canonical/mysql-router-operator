@@ -13,12 +13,12 @@ summary: |
   Enables effective access to a MySQL cluster with Group Replication.
 subordinate: true
 provides:
-# TODO: re-implement legacy relation
-#  shared-db:
-#    interface: mysql-shared
-#    scope: container
   database:
     interface: mysql_client
+    scope: container
+  # DEPRECATED shared-db: Legacy "mysql-shared" interface
+  shared-db:
+    interface: mysql-shared
     scope: container
 requires:
   backend-database:
@@ -29,7 +29,10 @@ requires:
   juju-info:
     interface: juju-info
     scope: container
+peers:
 # TODO TLS VM: re-enable peer relation
-#peers:
 #  mysql-router-peers:
 #    interface: mysql_router_peers
+  # DEPRECATED shared-db: Workaround for legacy "mysql-shared" interface using unit databags instead of app databag
+  deprecated-shared-db-credentials:
+    interface: _deprecated_shared_db_peers
