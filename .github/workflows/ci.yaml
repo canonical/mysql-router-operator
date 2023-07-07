@@ -63,6 +63,8 @@ jobs:
   build:
     name: Build charms
     uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v2
+    permissions:
+      actions: write  # Needed to manage GitHub cache
 
   integration-test:
     strategy:
