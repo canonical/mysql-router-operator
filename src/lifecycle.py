@@ -38,8 +38,12 @@ class Unit(ops.Object):
         charm: ops.CharmBase,
         subordinated_relation_endpoint_names: typing.Optional[typing.Iterable[str]],
     ):
-        """
+        """Unit lifecycle
+
+        NOTE: Instantiate this object before registering event observers.
+
         Args:
+            charm: Charm
             subordinated_relation_endpoint_names: Endpoint names for relations between subordinate
                 and principal charms where charm is subordinate
 
@@ -94,7 +98,8 @@ class Unit(ops.Object):
         # Workaround for subordinate charms: https://bugs.launchpad.net/juju/+bug/2025676
         # A subordinate unit will get a *-relation-departed event where
         # `event.departing_unit == self._charm.unit` is `True` in any of these situations:
-        # 1. `juju remove-relation` with principal charm or `juju remove-application` for subordinate charm
+        # 1. `juju remove-relation` with principal charm or `juju remove-application` for
+        #         subordinate charm
         # 2. `juju remove-application` for principal charm
         # 3. App has 1 unit, then `juju remove-unit` for principal charm
         # 4. App has 2+ units, then `juju remove-unit` for principal charm
