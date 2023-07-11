@@ -7,6 +7,7 @@
 """MySQL Router machine charm"""
 
 import logging
+import typing
 
 import ops
 
@@ -31,6 +32,13 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self._authenticated_workload_type = socket_workload.AuthenticatedSocketWorkload
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.remove, self._on_remove)
+
+    @property
+    def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
+        return (
+            "database",
+            "shared-db",  # DEPRECATED shared-db
+        )
 
     @property
     def _container(self) -> snap.Snap:

@@ -26,7 +26,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def __init__(self, *args) -> None:
         super().__init__(*args)
         # Instantiate before registering other event observers
-        self._unit_lifecycle = lifecycle.Unit(self)
+        self._unit_lifecycle = lifecycle.Unit(
+            self, subordinated_relation_endpoint_names=self._subordinate_relation_endpoint_names
+        )
 
         self._workload_type = workload.Workload
         self._authenticated_workload_type = workload.AuthenticatedWorkload
@@ -34,6 +36,14 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self._database_provides = relations.database_provides.RelationEndpoint(self)
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
+
+    @property
+    @abc.abstractmethod
+    def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
+        """Subordinate relation endpoint names
+
+        Does NOT include relations where charm is principal
+        """
 
     @property
     def _tls_certificate_saved(self) -> bool:
