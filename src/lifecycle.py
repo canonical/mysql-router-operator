@@ -83,6 +83,9 @@ class Unit(ops.Object):
     def _on_subordinate_relation_departed(self, _) -> None:
         if self._unit_tearing_down_and_app_active:
             return
+        # We cannot use the output of `goal-state` until we get the *-relation-broken event.
+        # During *-relation-departed, it is not guaranteed that all units that are tearing down
+        # report "dying" status. It is guaranteed during the *-relation-broken event.
         self._unit_tearing_down_and_app_active = _UnitTearingDownAndAppActive.UNKNOWN
 
     def _on_subordinate_relation_broken(self, event: ops.RelationBrokenEvent) -> None:
