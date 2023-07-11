@@ -73,8 +73,8 @@ class Unit(ops.Object):
             return _UnitTearingDownAndAppActive.FALSE
 
     @_unit_tearing_down_and_app_active.setter
-    def _unit_tearing_down_and_app_active(self, status: _UnitTearingDownAndAppActive) -> None:
-        self._stored.unit_tearing_down_and_app_active = status.value
+    def _unit_tearing_down_and_app_active(self, enum_member: _UnitTearingDownAndAppActive) -> None:
+        self._stored.unit_tearing_down_and_app_active = enum_member.value
 
     def _on_relation_departed(self, event: ops.RelationDepartedEvent) -> None:
         if event.departing_unit == self._charm.unit:
