@@ -125,6 +125,8 @@ class Unit(ops.Object):
 
         Returns `False` if unit is tearing down and will be replaced by another leader
 
+        For subordinate charms, this should not be accessed during *-relation-departed.
+
         Teardown event sequence:
         *-relation-departed -> *-relation-broken
         stop
@@ -135,4 +137,8 @@ class Unit(ops.Object):
         """
         if not self._charm.unit.is_leader():
             return False
+        if self._unit_tearing_down_and_app_active is _UnitTearingDownAndAppActive.UNKNOWN:
+            logger.warning(
+                f"{type(self)}.authorized_leader should not be accessed during *-relation-departed for subordinate relations"
+            )
         return self._unit_tearing_down_and_app_active is _UnitTearingDownAndAppActive.FALSE
