@@ -2,9 +2,8 @@
 # See LICENSE file for licensing details.
 import pathlib
 
-import pytest
-
 import snap
+
 
 def test_path_joining():
     assert snap._Path("/foo") == snap._Path("/foo")
@@ -14,7 +13,10 @@ def test_path_joining():
     assert snap._Path("/etc", "foo", "bar", "baz") == snap._Path("/etc/foo/bar/baz")
     assert snap._Path("foo") == snap._Path("foo")
     assert "etc" / snap._Path("foo") / "bar" / "baz" == snap._Path("etc/foo/bar/baz")
-    assert "/etc" / snap._Path("mysqlrouter") / "foo.conf" == snap._Path("/etc/mysqlrouter/foo.conf")
+    assert "/etc" / snap._Path("mysqlrouter") / "foo.conf" == snap._Path(
+        "/etc/mysqlrouter/foo.conf"
+    )
+
 
 def test_outside_container():
     assert snap._Path("/foo") == pathlib.Path("/foo")
@@ -24,18 +26,39 @@ def test_outside_container():
     assert "/etc" / snap._Path("bar") == pathlib.Path("/etc/bar")
     assert ("/etc" / snap._Path("bar")).relative_to_container == pathlib.PurePath("/etc/bar")
 
-def test_inside_container():
-    assert snap._Path("/etc/mysqlrouter") == pathlib.Path("/var/snap/charmed-mysql/current/etc/mysqlrouter")
-    assert snap._Path("/etc/mysqlrouter").relative_to_container == pathlib.PurePath("/etc/mysqlrouter")
-    assert snap._Path("/etc") / "mysqlrouter" == pathlib.Path("/var/snap/charmed-mysql/current/etc/mysqlrouter")
-    assert (snap._Path("/etc") / "mysqlrouter").relative_to_container == pathlib.PurePath("/etc/mysqlrouter")
-    assert snap._Path("/etc/mysqlrouter/foo.conf") == pathlib.Path("/var/snap/charmed-mysql/current/etc/mysqlrouter/foo.conf")
-    assert snap._Path("/etc/mysqlrouter/foo.conf").relative_to_container == pathlib.PurePath("/etc/mysqlrouter/foo.conf")
-    assert "/etc" / snap._Path("mysqlrouter") / "foo.conf" == pathlib.Path("/var/snap/charmed-mysql/current/etc/mysqlrouter/foo.conf")
-    assert ("/etc" / snap._Path("mysqlrouter") / "foo.conf").relative_to_container == pathlib.PurePath("/etc/mysqlrouter/foo.conf")
 
-    assert snap._Path("/var/lib/mysqlrouter") == pathlib.Path("/var/snap/charmed-mysql/current/var/lib/mysqlrouter")
-    assert snap._Path("/var/lib/mysqlrouter").relative_to_container == pathlib.PurePath("/var/lib/mysqlrouter")
+def test_inside_container():
+    assert snap._Path("/etc/mysqlrouter") == pathlib.Path(
+        "/var/snap/charmed-mysql/current/etc/mysqlrouter"
+    )
+    assert snap._Path("/etc/mysqlrouter").relative_to_container == pathlib.PurePath(
+        "/etc/mysqlrouter"
+    )
+    assert snap._Path("/etc") / "mysqlrouter" == pathlib.Path(
+        "/var/snap/charmed-mysql/current/etc/mysqlrouter"
+    )
+    assert (snap._Path("/etc") / "mysqlrouter").relative_to_container == pathlib.PurePath(
+        "/etc/mysqlrouter"
+    )
+    assert snap._Path("/etc/mysqlrouter/foo.conf") == pathlib.Path(
+        "/var/snap/charmed-mysql/current/etc/mysqlrouter/foo.conf"
+    )
+    assert snap._Path("/etc/mysqlrouter/foo.conf").relative_to_container == pathlib.PurePath(
+        "/etc/mysqlrouter/foo.conf"
+    )
+    assert "/etc" / snap._Path("mysqlrouter") / "foo.conf" == pathlib.Path(
+        "/var/snap/charmed-mysql/current/etc/mysqlrouter/foo.conf"
+    )
+    assert (
+        "/etc" / snap._Path("mysqlrouter") / "foo.conf"
+    ).relative_to_container == pathlib.PurePath("/etc/mysqlrouter/foo.conf")
+
+    assert snap._Path("/var/lib/mysqlrouter") == pathlib.Path(
+        "/var/snap/charmed-mysql/current/var/lib/mysqlrouter"
+    )
+    assert snap._Path("/var/lib/mysqlrouter").relative_to_container == pathlib.PurePath(
+        "/var/lib/mysqlrouter"
+    )
 
     assert snap._Path("/run") == pathlib.Path("/var/snap/charmed-mysql/common/run")
     assert snap._Path("/run").relative_to_container == pathlib.PurePath("/run")
