@@ -7,7 +7,7 @@ import ops
 import pytest
 import scenario
 
-import kubernetes_charm
+import machine_charm
 
 from ..wrapper import Relation
 from . import combinations
@@ -20,11 +20,9 @@ def output_state(
         if isinstance(relation, Relation):
             relations[index] = relation.freeze()
     relations: list[scenario.Relation]
-    context = scenario.Context(kubernetes_charm.KubernetesRouterCharm)
-    container = scenario.Container("mysql-router", can_connect=True)
+    context = scenario.Context(machine_charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
         relations=relations,
-        containers=[container],
         leader=True,
     )
     return context.run(event, input_state)
@@ -35,8 +33,8 @@ def test_breaking_requires_and_complete_provides(complete_requires, complete_pro
     for provides in complete_provides_s:
         provides.local_app_data = {
             "database": "foobar",
-            "endpoints": "mysql-router-k8s.my-model.svc.cluster.local:6446",
-            "read-only-endpoints": "mysql-router-k8s.my-model.svc.cluster.local:6447",
+            "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
+            "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
             "username": "foouser",
             "password": "foobar",
         }
@@ -55,8 +53,8 @@ def test_complete_requires_and_breaking_provides(complete_requires, complete_pro
     for provides in complete_provides_s:
         provides.local_app_data = {
             "database": "foobar",
-            "endpoints": "mysql-router-k8s.my-model.svc.cluster.local:6446",
-            "read-only-endpoints": "mysql-router-k8s.my-model.svc.cluster.local:6447",
+            "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
+            "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
             "username": "foouser",
             "password": "foobar",
         }
@@ -76,8 +74,8 @@ def test_complete_requires_and_breaking_provides(complete_requires, complete_pro
     for index, provides in enumerate(complete_provides_s, 1):
         assert state.relations[index].local_app_data == {
             "database": "foobar",
-            "endpoints": "mysql-router-k8s.my-model.svc.cluster.local:6446",
-            "read-only-endpoints": "mysql-router-k8s.my-model.svc.cluster.local:6447",
+            "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
+            "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
             "username": "foouser",
             "password": "foobar",
         }

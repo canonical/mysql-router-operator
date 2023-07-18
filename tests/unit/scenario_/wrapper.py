@@ -22,3 +22,15 @@ class Relation:
     def freeze(self) -> scenario.Relation:
         """Convert to read-only `scenario.Relation` dataclass"""
         return scenario.Relation(**dataclasses.asdict(self))
+
+
+@dataclasses.dataclass
+class SubordinateRelation(Relation):
+    """Wrapper for `scenario.SubordinateRelation`
+
+    Read-write dataclass (frozen=False)
+    """
+
+    def freeze(self) -> scenario.SubordinateRelation:
+        """Convert to read-only `scenario.Relation` dataclass"""
+        return scenario.SubordinateRelation(**dataclasses.asdict(self))

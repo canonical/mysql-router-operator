@@ -3,6 +3,8 @@
 
 import pytest
 
+import snap
+
 
 @pytest.fixture(autouse=True)
 def disable_tenacity_retry(monkeypatch):
@@ -36,13 +38,33 @@ def patch(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def kubernetes_patch(monkeypatch):
-    monkeypatch.setattr("kubernetes_charm.KubernetesRouterCharm.model_service_domain", "")
+def machine_patch(monkeypatch):
+    monkeypatch.setattr("lifecycle.Unit._on_subordinate_relation_broken", lambda *args: None)
+
+    class Snap:
+        present = False
+
+        def __init__(self):
+            self.services = {"mysqlrouter-service": {"active": False}}
+
+        def ensure(self, *_, **__):
+            return
+
+        def start(self, services: list[str] = None, *_, **__):
+            assert services == ["mysqlrouter-service"]
+            self.services["mysqlrouter-service"]["active"] = True
+
+        def stop(self, services: list[str] = None, *_, **__):
+            assert services == ["mysqlrouter-service"]
+            self.services["mysqlrouter-service"]["active"] = False
+
+    monkeypatch.setattr(snap, "_snap", Snap())
+
     monkeypatch.setattr(
-        "rock.Rock._run_command", lambda *args, **kwargs: "null"  # Use "null" for `json.loads()`
+        "snap.Snap._run_command", lambda *args, **kwargs: "null"  # Use "null" for `json.loads()`
     )
-    monkeypatch.setattr("rock._Path.read_text", lambda *args, **kwargs: "")
-    monkeypatch.setattr("rock._Path.write_text", lambda *args, **kwargs: None)
-    monkeypatch.setattr("rock._Path.unlink", lambda *args, **kwargs: None)
-    monkeypatch.setattr("rock._Path.mkdir", lambda *args, **kwargs: None)
-    monkeypatch.setattr("rock._Path.rmtree", lambda *args, **kwargs: None)
+    monkeypatch.setattr("snap._Path.read_text", lambda *args, **kwargs: "")
+    monkeypatch.setattr("snap._Path.write_text", lambda *args, **kwargs: None)
+    monkeypatch.setattr("snap._Path.unlink", lambda *args, **kwargs: None)
+    monkeypatch.setattr("snap._Path.mkdir", lambda *args, **kwargs: None)
+    monkeypatch.setattr("snap._Path.rmtree", lambda *args, **kwargs: None)

@@ -9,18 +9,10 @@ import ops
 import pytest
 import scenario
 
-import kubernetes_charm
+import machine_charm
 
 from ..wrapper import Relation
 from . import combinations
-
-
-@pytest.fixture(params=["my-model.svc.cluster.local", "foo.svc.cluster.local"])
-def model_service_domain(monkeypatch, request):
-    monkeypatch.setattr(
-        "kubernetes_charm.KubernetesRouterCharm.model_service_domain", request.param
-    )
-    return request.param
 
 
 def output_states(
@@ -36,14 +28,12 @@ def output_states(
         if isinstance(relation, Relation):
             relations[index] = relation.freeze()
     relations: list[scenario.Relation]
-    context = scenario.Context(kubernetes_charm.KubernetesRouterCharm)
-    container = scenario.Container("mysql-router", can_connect=True)
+    context = scenario.Context(machine_charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
         relations=relations,
-        containers=[container],
         leader=True,
     )
-    events = [container.pebble_ready_event]
+    events = []
     for relation in relations:
         events.extend(
             (
@@ -113,7 +103,6 @@ def test_complete_requires_and_provides_unsupported_extra_user_role(
     complete_requires,
     complete_provides_s,
     unsupported_extra_user_role_provides_s,
-    model_service_domain,
 ):
     # Needed to access `.relation_id`
     complete_provides_s = [relation.freeze() for relation in complete_provides_s]
@@ -133,8 +122,8 @@ def test_complete_requires_and_provides_unsupported_extra_user_role(
             assert len(local_app_data.pop("password")) > 0
             assert local_app_data == {
                 "database": provides.remote_app_data["database"],
-                "endpoints": f"mysql-router-k8s.{model_service_domain}:6446",
-                "read-only-endpoints": f"mysql-router-k8s.{model_service_domain}:6447",
+                "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
+                "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
                 "username": f'{complete_requires.remote_app_data["username"]}-{provides.relation_id}',
             }
         for index, provides in enumerate(
@@ -154,7 +143,7 @@ def test_incomplete_provides(complete_requires, incomplete_provides_s):
 
 
 @pytest.mark.parametrize("complete_provides_s", combinations.complete_provides(1, 2, 4))
-def test_complete_provides(complete_requires, complete_provides_s, model_service_domain):
+def test_complete_provides(complete_requires, complete_provides_s):
     # Needed to access `.relation_id`
     complete_provides_s = [relation.freeze() for relation in complete_provides_s]
 
@@ -165,8 +154,8 @@ def test_complete_provides(complete_requires, complete_provides_s, model_service
             assert len(local_app_data.pop("password")) > 0
             assert local_app_data == {
                 "database": provides.remote_app_data["database"],
-                "endpoints": f"mysql-router-k8s.{model_service_domain}:6446",
-                "read-only-endpoints": f"mysql-router-k8s.{model_service_domain}:6447",
+                "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
+                "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
                 "username": f'{complete_requires.remote_app_data["username"]}-{provides.relation_id}',
             }
 
@@ -174,7 +163,7 @@ def test_complete_provides(complete_requires, complete_provides_s, model_service
 @pytest.mark.parametrize("incomplete_provides_s", combinations.incomplete_provides(1, 3))
 @pytest.mark.parametrize("complete_provides_s", combinations.complete_provides(1, 3))
 def test_complete_provides_and_incomplete_provides(
-    complete_requires, complete_provides_s, incomplete_provides_s, model_service_domain
+    complete_requires, complete_provides_s, incomplete_provides_s
 ):
     # Needed to access `.relation_id`
     complete_provides_s = [relation.freeze() for relation in complete_provides_s]
@@ -190,8 +179,8 @@ def test_complete_provides_and_incomplete_provides(
             assert len(local_app_data.pop("password")) > 0
             assert local_app_data == {
                 "database": provides.remote_app_data["database"],
-                "endpoints": f"mysql-router-k8s.{model_service_domain}:6446",
-                "read-only-endpoints": f"mysql-router-k8s.{model_service_domain}:6447",
+                "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
+                "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
                 "username": f'{complete_requires.remote_app_data["username"]}-{provides.relation_id}',
             }
         for index, provides in enumerate(incomplete_provides_s, 1 + len(complete_provides_s)):
