@@ -2,8 +2,7 @@
 # See LICENSE file for licensing details.
 
 import pytest
-
-from ..wrapper import Relation
+import scenario
 
 
 @pytest.fixture(params=["remote", "mysql-k8s"])
@@ -28,15 +27,15 @@ def app_name(request):
         },
     ]
 )
-def incomplete_requires(app_name, request) -> Relation:
-    return Relation(
+def incomplete_requires(app_name, request) -> scenario.Relation:
+    return scenario.Relation(
         endpoint="backend-database", remote_app_name=app_name, remote_app_data=request.param
     )
 
 
 @pytest.fixture
-def complete_requires() -> Relation:
-    return Relation(
+def complete_requires() -> scenario.Relation:
+    return scenario.Relation(
         endpoint="backend-database",
         remote_app_data={
             "endpoints": "mysql-k8s-primary:5432",
