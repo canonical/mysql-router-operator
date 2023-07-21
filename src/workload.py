@@ -182,15 +182,19 @@ class AuthenticatedWorkload(Workload):
             f"Bootstrapped router {tls=}, {self._connection_info.host=}, {self._connection_info.port=}"
         )
 
+    @staticmethod
+    def _parse_username_from_config(config_file_text: str) -> str:
+        config = configparser.ConfigParser()
+        config.read_string(config_file_text)
+        return config["metadata_cache:bootstrap"]["user"]
+
     @property
     def _router_username(self) -> str:
         """Read MySQL Router username from config file.
 
         During bootstrap, MySQL Router creates a config file which includes a generated username.
         """
-        config = configparser.ConfigParser()
-        config.read_string(self._container.router_config_file.read_text())
-        return config["metadata_cache:bootstrap"]["user"]
+        return self._parse_username_from_config(self._container.router_config_file.read_text())
 
     def enable(self, *, tls: bool, unit_name: str) -> None:
         """Start and enable MySQL Router service."""

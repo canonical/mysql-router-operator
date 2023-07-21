@@ -127,7 +127,7 @@ class _RelationWithCreatedUser(_Relation):
     ) -> None:
         super().__init__(relation=relation)
         self._local_databag = relation.data[interface.local_app]
-        for key in ("database", "username", "password", "endpoints"):
+        for key in ("database", "username", "password", "endpoints", "read-only-endpoints"):
             if key not in self._local_databag:
                 raise _UserNotCreated
 

@@ -62,21 +62,27 @@ class _Path(pathlib.PosixPath, container.Path):
 
     def __new__(cls, *args, **kwargs):
         path = super().__new__(cls, *args, **kwargs)
-        if str(path).startswith("/etc/mysqlrouter") or str(path).startswith(
-            "/var/lib/mysqlrouter"
-        ):
-            parent = f"/var/snap/{_SNAP_NAME}/current"
-        elif str(path).startswith("/run"):
-            parent = f"/var/snap/{_SNAP_NAME}/common"
-        elif str(path).startswith("/tmp"):
-            parent = f"/tmp/snap-private-tmp/snap.{_SNAP_NAME}"
+        if args and isinstance(args[0], cls) and (parent_ := args[0]._container_parent):
+            path._container_parent = parent_
         else:
-            parent = None
-        if parent:
-            assert str(path).startswith("/")
-            path = super().__new__(cls, parent, path.relative_to("/"), **kwargs)
-        path._container_parent = parent
+            if str(path).startswith("/etc/mysqlrouter") or str(path).startswith(
+                "/var/lib/mysqlrouter"
+            ):
+                parent = f"/var/snap/{_SNAP_NAME}/current"
+            elif str(path).startswith("/run"):
+                parent = f"/var/snap/{_SNAP_NAME}/common"
+            elif str(path).startswith("/tmp"):
+                parent = f"/tmp/snap-private-tmp/snap.{_SNAP_NAME}"
+            else:
+                parent = None
+            if parent:
+                assert str(path).startswith("/")
+                path = super().__new__(cls, parent, path.relative_to("/"), **kwargs)
+            path._container_parent = parent
         return path
+
+    def __truediv__(self, other):
+        return type(self)(self, other)
 
     def __rtruediv__(self, other):
         return type(self)(other, self)

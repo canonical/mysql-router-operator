@@ -1,2 +1,2 @@
-ops >= 1.5.0
-tenacity
+ops>=2.4.0
+tenacity==8.2.2
