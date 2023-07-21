@@ -19,7 +19,7 @@ def _relation_combinations(
             combination: tuple[scenario.SubordinateRelation]
             combinations.append(
                 [
-                    relation.replace(relation_id=scenario.SubordinateRelation.next_relation_id())
+                    relation.replace(relation_id=scenario.state.next_relation_id())
                     for relation in combination
                 ]
             )
