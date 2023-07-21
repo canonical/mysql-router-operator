@@ -6,22 +6,27 @@
 import itertools
 import typing
 
-from ..wrapper import SubordinateRelation
+import scenario
 
 
 def _relation_combinations(
-    *, relation_amounts: typing.Iterable[int], relations: list[SubordinateRelation]
-) -> list[typing.Iterable[SubordinateRelation]]:
+    *, relation_amounts: typing.Iterable[int], relations: list[scenario.SubordinateRelation]
+) -> list[list[scenario.SubordinateRelation]]:
     """Get all combinations of `relations` for each length in `relation_amounts`."""
     combinations = []
     for number_of_relations in relation_amounts:
         for combination in itertools.combinations_with_replacement(relations, number_of_relations):
-            combination: tuple[SubordinateRelation]
-            combinations.append(combination)
+            combination: tuple[scenario.SubordinateRelation]
+            combinations.append(
+                [
+                    relation.replace(relation_id=scenario.SubordinateRelation.next_relation_id())
+                    for relation in combination
+                ]
+            )
     return combinations
 
 
-def incomplete_provides(*relation_amounts: int) -> list[typing.Iterable[SubordinateRelation]]:
+def incomplete_provides(*relation_amounts: int) -> list[list[scenario.SubordinateRelation]]:
     databags = [{}]
     relations = []
     for remote_app_name in ["remote", "mysql-test-app"]:
@@ -29,7 +34,7 @@ def incomplete_provides(*relation_amounts: int) -> list[typing.Iterable[Subordin
             _relation_combinations(
                 relation_amounts=relation_amounts,
                 relations=[
-                    SubordinateRelation(
+                    scenario.SubordinateRelation(
                         endpoint="database",
                         remote_app_name=remote_app_name,
                         remote_app_data=databag,
@@ -43,7 +48,7 @@ def incomplete_provides(*relation_amounts: int) -> list[typing.Iterable[Subordin
 
 def unsupported_extra_user_role_provides(
     *relation_amounts: int,
-) -> list[typing.Iterable[SubordinateRelation]]:
+) -> list[list[scenario.SubordinateRelation]]:
     databags = [
         {"database": "myappA", "extra-user-roles": "admin"},
         {"database": "myappB", "extra-user-roles": "mysqlrouter"},
@@ -51,18 +56,18 @@ def unsupported_extra_user_role_provides(
     return _relation_combinations(
         relation_amounts=relation_amounts,
         relations=[
-            SubordinateRelation(endpoint="database", remote_app_data=databag)
+            scenario.SubordinateRelation(endpoint="database", remote_app_data=databag)
             for databag in databags
         ],
     )
 
 
-def complete_provides(*relation_amounts: int) -> list[typing.Iterable[SubordinateRelation]]:
+def complete_provides(*relation_amounts: int) -> list[list[scenario.SubordinateRelation]]:
     databags = [{"database": "myappA"}, {"database": "foo"}]
     return _relation_combinations(
         relation_amounts=relation_amounts,
         relations=[
-            SubordinateRelation(endpoint="database", remote_app_data=databag)
+            scenario.SubordinateRelation(endpoint="database", remote_app_data=databag)
             for databag in databags
         ],
     )

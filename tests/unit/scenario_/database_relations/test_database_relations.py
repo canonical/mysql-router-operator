@@ -11,23 +11,16 @@ import scenario
 
 import machine_charm
 
-from ..wrapper import Relation
 from . import combinations
 
 
-def output_states(
-    *, relations: list[Relation | scenario.Relation]
-) -> typing.Iterable[scenario.State]:
+def output_states(*, relations: list[scenario.Relation]) -> typing.Iterable[scenario.State]:
     """Run scenario test for each `abstract_charm.reconcile_database_relations` event.
 
     Excludes *-relation-breaking events
 
     The output state of each test should be identical for all events.
     """
-    for index, relation in enumerate(relations):
-        if isinstance(relation, Relation):
-            relations[index] = relation.freeze()
-    relations: list[scenario.Relation]
     context = scenario.Context(machine_charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
         relations=relations,
@@ -104,9 +97,6 @@ def test_complete_requires_and_provides_unsupported_extra_user_role(
     complete_provides_s,
     unsupported_extra_user_role_provides_s,
 ):
-    # Needed to access `.relation_id`
-    complete_provides_s = [relation.freeze() for relation in complete_provides_s]
-
     for state in output_states(
         relations=[
             complete_requires,
@@ -144,9 +134,6 @@ def test_incomplete_provides(complete_requires, incomplete_provides_s):
 
 @pytest.mark.parametrize("complete_provides_s", combinations.complete_provides(1, 2, 4))
 def test_complete_provides(complete_requires, complete_provides_s):
-    # Needed to access `.relation_id`
-    complete_provides_s = [relation.freeze() for relation in complete_provides_s]
-
     for state in output_states(relations=[complete_requires, *complete_provides_s]):
         assert state.app_status == ops.ActiveStatus()
         for index, provides in enumerate(complete_provides_s, 1):
@@ -165,9 +152,6 @@ def test_complete_provides(complete_requires, complete_provides_s):
 def test_complete_provides_and_incomplete_provides(
     complete_requires, complete_provides_s, incomplete_provides_s
 ):
-    # Needed to access `.relation_id`
-    complete_provides_s = [relation.freeze() for relation in complete_provides_s]
-
     for state in output_states(
         relations=[complete_requires, *complete_provides_s, *incomplete_provides_s]
     ):
