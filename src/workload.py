@@ -217,7 +217,6 @@ class AuthenticatedWorkload(Workload):
         """Restart MySQL Router to enable or disable TLS."""
         logger.debug("Restarting MySQL Router")
         assert self._container.mysql_router_service_enabled is True
-        self._bootstrap_router(tls=tls)
         self._container.update_mysql_router_service(enabled=True, tls=tls)
         logger.debug("Restarted MySQL Router")
         self._charm.wait_until_mysql_router_ready()
