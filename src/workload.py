@@ -122,10 +122,20 @@ class AuthenticatedWorkload(Workload):
     def _router_id(self) -> str:
         """MySQL Router ID in InnoDB Cluster metadata
 
-        Used to remove MySQL Router metadata from InnoDB cluster
+        Used to remove MySQL Router metadata from InnoDB Cluster
         """
         # MySQL Router is bootstrapped without `--directory`—there is one system-wide instance.
         return f"{socket.getfqdn()}::system"
+
+    @property
+    def router_in_cluster_set(self) -> bool:
+        """Whether MySQL Router is part of InnoDB ClusterSet
+
+        Router should not be removed from ClusterSet after bootstrap (except by MySQL charm when
+        MySQL Router unit departs relation).
+        If Router is not part of ClusterSet after bootstrap, it most likely was manually removed.
+        """
+        return self.shell.is_router_in_cluster_set(self._router_id)
 
     def _cleanup_after_potential_container_restart(self) -> None:
         """Remove MySQL Router cluster metadata & user after (potential) container restart.

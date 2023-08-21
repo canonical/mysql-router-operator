@@ -35,6 +35,9 @@ def patch(monkeypatch):
     monkeypatch.setattr(
         "workload.AuthenticatedWorkload._router_username", lambda *args, **kwargs: ""
     )
+    monkeypatch.setattr(
+        "workload.AuthenticatedWorkload.router_in_cluster_set", lambda *args, **kwargs: True
+    )
 
 
 @pytest.fixture(autouse=True)

@@ -169,3 +169,16 @@ class Shell:
         logger.debug(f"Deleting {username=}")
         self._run_sql([f"DROP USER `{username}`"])
         logger.debug(f"Deleted {username=}")
+
+    def is_router_in_cluster_set(self, router_id: str) -> bool:
+        """Check if MySQL Router is part of InnoDB ClusterSet."""
+        logger.debug(f"Checking if {router_id=} in cluster set")
+        output = json.loads(
+            self._run_commands(
+                ["cluster_set = dba.get_cluster_set()", "print(cluster_set.list_routers())"]
+            )
+        )
+        cluster_set_router_ids = output["routers"].keys()
+        logger.debug(f"{cluster_set_router_ids=}")
+        logger.debug(f"Checked if {router_id in cluster_set_router_ids=}")
+        return router_id in cluster_set_router_ids

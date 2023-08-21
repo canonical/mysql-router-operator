@@ -34,6 +34,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self._authenticated_workload_type = workload.AuthenticatedWorkload
         self._database_requires = relations.database_requires.RelationEndpoint(self)
         self._database_provides = relations.database_provides.RelationEndpoint(self)
+        self.framework.observe(self.on.update_status, self._on_update_status)
         self.framework.observe(self.on.start, self._on_start)
         self.framework.observe(self.on.leader_elected, self._on_leader_elected)
 
@@ -107,7 +108,18 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def _determine_unit_status(self, *, event) -> ops.StatusBase:
         """Report unit status."""
         statuses = []
-        if not self.get_workload(event=event).container_ready:
+        workload_ = self.get_workload(event=event)
+        if workload_.container_ready:
+            if (
+                isinstance(workload_, workload.AuthenticatedWorkload)
+                and not workload_.router_in_cluster_set
+            ):
+                statuses.append(
+                    ops.BlockedStatus(
+                        "Router was manually removed from MySQL ClusterSet. Remove & re-deploy unit"
+                    )
+                )
+        else:
             statuses.append(ops.MaintenanceStatus("Waiting for container"))
         return self._prioritize_statuses(statuses)
 
@@ -173,6 +185,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         elif workload_.container_ready:
             workload_.disable()
         self.set_status(event=event)
+
+    def _on_update_status(self, _) -> None:
+        self.set_status(event=None)
 
     def _on_start(self, _) -> None:
         # Set status on first start if no relations active
