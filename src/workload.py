@@ -10,6 +10,8 @@ import socket
 import string
 import typing
 
+import ops
+
 import container
 import mysql_shell
 
@@ -92,6 +94,11 @@ class Workload:
             file.unlink(missing_ok=True)
         logger.debug("Disabled TLS")
 
+    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+        """Report non-active status."""
+        if not self.container_ready:
+            return ops.MaintenanceStatus("Waiting for container")
+
 
 class AuthenticatedWorkload(Workload):
     """Workload with connection to MySQL cluster"""
@@ -126,16 +133,6 @@ class AuthenticatedWorkload(Workload):
         """
         # MySQL Router is bootstrapped without `--directory`—there is one system-wide instance.
         return f"{socket.getfqdn()}::system"
-
-    @property
-    def router_in_cluster_set(self) -> bool:
-        """Whether MySQL Router is part of InnoDB ClusterSet
-
-        Router should not be removed from ClusterSet after bootstrap (except by MySQL charm when
-        MySQL Router unit departs relation).
-        If Router is not part of ClusterSet after bootstrap, it most likely was manually removed.
-        """
-        return self.shell.is_router_in_cluster_set(self._router_id)
 
     def _cleanup_after_potential_container_restart(self) -> None:
         """Remove MySQL Router cluster metadata & user after (potential) container restart.
@@ -245,3 +242,16 @@ class AuthenticatedWorkload(Workload):
         super().disable_tls()
         if self._container.mysql_router_service_enabled:
             self._restart(tls=False)
+
+    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+        """Report non-active status."""
+        if status := super().get_status(event):
+            return status
+        if not self.shell.is_router_in_cluster_set(self._router_id):
+            # Router should not be removed from ClusterSet after bootstrap (except by MySQL charm
+            # when MySQL Router unit departs relation).
+            # If Router is not part of ClusterSet after bootstrap, it most likely was manually
+            # removed.
+            return ops.BlockedStatus(
+                "Router was manually removed from MySQL ClusterSet. Remove & re-deploy unit"
+            )
