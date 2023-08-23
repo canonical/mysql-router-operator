@@ -19,7 +19,9 @@ TIMEOUT = 15 * 60
 
 
 @pytest.mark.group(1)
-@pytest.mark.skip("TODO: re-enable when bug resolved: https://bugs.launchpad.net/charm-keystone/+bug/1990243")
+@pytest.mark.skip(
+    "TODO: re-enable when bug resolved: https://bugs.launchpad.net/charm-keystone/+bug/1990243"
+)
 @pytest.mark.abort_on_fail
 async def test_shared_db(ops_test: OpsTest, mysql_router_charm_series: str):
     """Test the shared-db legacy relation."""
