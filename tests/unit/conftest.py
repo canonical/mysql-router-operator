@@ -35,6 +35,7 @@ def patch(monkeypatch):
     monkeypatch.setattr(
         "workload.AuthenticatedWorkload._router_username", lambda *args, **kwargs: ""
     )
+    monkeypatch.setattr("mysql_shell.Shell.is_router_in_cluster_set", lambda *args, **kwargs: True)
 
 
 @pytest.fixture(autouse=True)
