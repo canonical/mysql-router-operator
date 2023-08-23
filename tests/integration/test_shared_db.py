@@ -2,23 +2,23 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-import asyncio
-import logging
-
-import pytest
-from pytest_operator.plugin import OpsTest
-
-from .helpers import execute_queries_on_unit, get_server_config_credentials
-
-logger = logging.getLogger(__name__)
-
-MYSQL_APP_NAME = "mysql"
-KEYSTONE_APP_NAME = "keystone"
-MYSQLROUTER_APP_NAME = "mysqlrouter"
-TIMEOUT = 15 * 60
-
-
 # TODO: re-enable when bug resolved: https://bugs.launchpad.net/charm-keystone/+bug/1990243
+# import asyncio
+# import logging
+#
+# import pytest
+# from pytest_operator.plugin import OpsTest
+#
+# from .helpers import execute_queries_on_unit, get_server_config_credentials
+#
+# logger = logging.getLogger(__name__)
+#
+# MYSQL_APP_NAME = "mysql"
+# KEYSTONE_APP_NAME = "keystone"
+# MYSQLROUTER_APP_NAME = "mysqlrouter"
+# TIMEOUT = 15 * 60
+#
+#
 # @pytest.mark.group(1)
 # @pytest.mark.abort_on_fail
 # async def test_shared_db(ops_test: OpsTest, mysql_router_charm_series: str):
