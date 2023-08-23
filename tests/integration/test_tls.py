@@ -60,7 +60,7 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, mysql_router_charm_ser
         logger.info("Waiting for applications to become active")
         # We can safely wait only for test application to be ready, given that it will
         # only become active once all the other applications are ready.
-        ops_test.model.wait_for_idle(TEST_APP_NAME, status="active", timeout=15 * 60)
+        await ops_test.model.wait_for_idle(TEST_APP_NAME, status="active", timeout=15 * 60)
 
 
 @pytest.mark.group(1)
