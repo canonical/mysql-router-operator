@@ -45,12 +45,13 @@ async def test_database_relation(ops_test: OpsTest, mysql_router_charm_series: s
             mysqlrouter_charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=None,
-            series=mysql_router_charm_series,
         ),
         ops_test.model.deploy(
             APPLICATION_APP_NAME,
             application_name=APPLICATION_APP_NAME,
             num_units=1,
+            # MySQL Router is subordinate—it will use the series of the principal charm
+            series=mysql_router_charm_series,
             channel="latest/edge",
         ),
     )
