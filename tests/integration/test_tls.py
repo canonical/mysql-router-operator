@@ -1,7 +1,8 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# TODO: enable
+# flake8: noqa
+# TODO: enable & remove noqa
 # import asyncio
 # import logging
 #
