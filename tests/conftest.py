@@ -1,6 +1,7 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
-from argparse import ArgumentError
+
+import argparse
 
 
 def pytest_addoption(parser):
@@ -18,7 +19,7 @@ def pytest_configure(config):
     if (config.option.mysql_router_charm_series is None) ^ (
         config.option.mysql_router_charm_bases_index is None
     ):
-        raise ArgumentError(
+        raise argparse.ArgumentError(
             None,
             "--mysql-router-charm-series and --mysql-router-charm-bases-index must be given together",
         )
