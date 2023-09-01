@@ -1,6 +1,6 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
-name: mysql-router
+name: test-foo-78162872490613847017
 display-name: MySQL Router
 maintainers:
   - Carl Csaposs <carl.csaposs@canonical.com>
