@@ -42,9 +42,7 @@ codespell = "^2.2.5"
 pytest = "^7.4.0"
 pytest-xdist = "^3.3.1"
 pytest-cov = "^4.1.0"
-# Workaround for https://github.com/canonical/ops-scenario/issues/48
-ops = "<2.5"
-ops-scenario = "^4.0.4.1"
+ops-scenario = "^5.0"
 
 [tool.poetry.group.integration.dependencies]
 pytest = "^7.4.0"
