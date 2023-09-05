@@ -35,18 +35,16 @@ def install(*, unit: ops.Unit):
         unit.status = ops.MaintenanceStatus(message)
         logger.debug(message)
 
-    try:
-        for attempt in tenacity.Retrying(
-            stop=tenacity.stop_after_delay(60 * 5),
-            wait=tenacity.wait_exponential(multiplier=10),
-            retry=tenacity.retry_if_exception_type(snap_lib.SnapError),
-            after=_set_retry_status,
-            reraise=True,
-        ):
-            with attempt:
-                _snap.ensure(state=snap_lib.SnapState.Present, revision=_REVISION)
-    except snap_lib.SnapError:
-        raise
+    for attempt in tenacity.Retrying(
+        stop=tenacity.stop_after_delay(60 * 5),
+        wait=tenacity.wait_exponential(multiplier=10),
+        retry=tenacity.retry_if_exception_type(snap_lib.SnapError),
+        after=_set_retry_status,
+        reraise=True,
+    ):
+        with attempt:
+            _snap.ensure(state=snap_lib.SnapState.Present, revision=_REVISION)
+    _snap.hold()
     logger.debug(f"Installed {_SNAP_NAME=}, {_REVISION=}")
 
 
