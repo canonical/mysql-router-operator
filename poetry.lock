@@ -963,13 +963,13 @@ signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
 
 [[package]]
 name = "ops"
-version = "2.4.1"
+version = "2.6.0"
 description = "The Python library behind great charms"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "ops-2.4.1-py3-none-any.whl", hash = "sha256:9cd1a25c6ae30dc9f9afcbe87250f5349ff9a05d5b06632ad8111700c5f0db04"},
-    {file = "ops-2.4.1.tar.gz", hash = "sha256:b5762bea03049ec150c6266833925d0bb36237b26b006ca878e74e24d162f981"},
+    {file = "ops-2.6.0-py3-none-any.whl", hash = "sha256:b8ce352df4d17de483173dd2f8caf397e89585212d73b4d466b541b1ad3b8966"},
+    {file = "ops-2.6.0.tar.gz", hash = "sha256:387d5f5bd004b865f575ea4e25ca298bdca05b2b2beb2c51f203d5856c460cf6"},
 ]
 
 [package.dependencies]
@@ -1967,4 +1967,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1"
-content-hash = "36da8074ac7ddb3f98e289c3bec3894edbe91dec0e5281cb18cc88b56900800b"
+content-hash = "6b72cdf05d5d06ce966f2afcbf7409584d3a644894e8baeaa32471a70df94dd0"
