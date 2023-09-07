@@ -18,7 +18,7 @@ import container
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
-_REVISION = "64"
+_REVISION = "69"  # v8.0.34
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 
 
