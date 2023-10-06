@@ -123,6 +123,9 @@ class Unit(ops.Object):
         if "dying" in principal_unit_statuses and principal_unit_statuses != {"dying"}:
             # Situation #4
             self._unit_tearing_down_and_app_active = _UnitTearingDownAndAppActive.TRUE
+        else:
+            # Situation #1, #2, or #3
+            self._unit_tearing_down_and_app_active = _UnitTearingDownAndAppActive.FALSE
 
     @property
     def authorized_leader(self) -> bool:
