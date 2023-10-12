@@ -29,4 +29,4 @@ parts:
       fi
     charm-entrypoint: src/machine_charm.py
     charm-binary-python-packages:
-      - mysql-connector-python==8.0.32
+      - mysql-connector-python==8.0.33

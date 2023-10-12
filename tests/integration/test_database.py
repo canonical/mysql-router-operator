@@ -36,7 +36,7 @@ async def test_database_relation(ops_test: OpsTest, mysql_router_charm_series: s
     applications = await asyncio.gather(
         ops_test.model.deploy(
             "mysql",
-            channel="8.0/edge",
+            channel="8.0/stable",
             application_name=MYSQL_APP_NAME,
             config={"profile": "testing"},
             num_units=1,
@@ -52,7 +52,7 @@ async def test_database_relation(ops_test: OpsTest, mysql_router_charm_series: s
             num_units=1,
             # MySQL Router is subordinate—it will use the series of the principal charm
             series=mysql_router_charm_series,
-            channel="latest/edge",
+            channel="latest/stable",
         ),
     )
 
