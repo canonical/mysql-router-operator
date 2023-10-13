@@ -54,6 +54,7 @@ juju = "^2.9.44.0"
 mysql-connector-python = "~8.0.33"
 tenacity = "^8.2.2"
 
+
 [tool.coverage.run]
 branch = true
 

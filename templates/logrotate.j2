@@ -21,7 +21,7 @@ nomail
 nosharedscripts
 nocopytruncate
 
-{{ snap_common_directory }}/var/log/mysqlrouter/mysqlrouter.log {
+{{ log_file_path }} {
     olddir archive_mysqlrouter
     postrotate
         kill -HUP $(pidof mysqlrouter)

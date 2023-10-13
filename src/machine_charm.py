@@ -46,8 +46,8 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         return snap.Snap()
 
     @property
-    def _logrotate(self) -> machine_logrotate.MachineLogRotate:
-        return machine_logrotate.MachineLogRotate()
+    def _logrotate(self) -> machine_logrotate.LogRotate:
+        return machine_logrotate.LogRotate()
 
     @property
     def _read_write_endpoint(self) -> str:

@@ -118,7 +118,7 @@ async def delete_file_or_directory_in_unit(ops_test: OpsTest, unit_name: str, pa
 
         return return_code == 0
     except Exception:
-        return False
+        assert False, f"Unable to delete file or directory {path} in unit {unit_name}"
 
 
 async def write_content_to_file_in_unit(
@@ -142,7 +142,7 @@ async def write_content_to_file_in_unit(
     assert return_code == 0
 
     return_code, _, _ = await ops_test.juju(
-        "ssh", unit.name, "sudo", "chown", "snap_daemon:root", path
+        "ssh", unit.name, "sudo", "chown", "snap_daemon:snap_daemon", path
     )
     assert return_code == 0
 

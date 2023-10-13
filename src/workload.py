@@ -60,11 +60,11 @@ class Workload:
             return
         logger.debug("Disabling MySQL Router service")
         self._container.update_mysql_router_service(enabled=False)
+        self._logrotate.disable()
         self._container.router_config_directory.rmtree()
         self._container.router_config_directory.mkdir()
         self._router_data_directory.rmtree()
         self._router_data_directory.mkdir()
-        self._logrotate.disable_logrotate()
         logger.debug("Disabled MySQL Router service")
 
     @property
@@ -223,8 +223,7 @@ class AuthenticatedWorkload(Workload):
             username=self._router_username, router_id=self._router_id, unit_name=unit_name
         )
         self._container.update_mysql_router_service(enabled=True, tls=tls)
-        self._logrotate.setup_logrotate()
-        self._logrotate.enable_logrotate()
+        self._logrotate.set_up_and_enable()
         logger.debug("Enabled MySQL Router service")
         self._charm.wait_until_mysql_router_ready()
 

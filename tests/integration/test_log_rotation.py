@@ -32,6 +32,8 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
     # Build and deploy applications
     mysqlrouter_charm = await ops_test.build_charm(".")
 
+    logger.info("Deploying all the applications")
+
     # deploy mysqlrouter with num_units=None since it's a subordinate charm
     # and will be installed with the related consumer application
     applications = await asyncio.gather(
@@ -57,15 +59,13 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
         ),
     )
 
-    mysql_app, mysql_router_app, application_app = (
-        applications[0],
-        applications[1],
-        applications[2],
-    )
+    mysql_app, mysql_router_app, application_app = applications
     unit = application_app.units[0]
 
+    logger.info("Relating mysqlrouter with mysql-test-app")
+
     await ops_test.model.relate(
-        f"{MYSQL_ROUTER_APP_NAME}:backend-database", f"{MYSQL_APP_NAME}:database"
+        f"{MYSQL_ROUTER_APP_NAME}:database", f"{APPLICATION_APP_NAME}:database"
     )
 
     # the mysqlrouter application will be in unknown state since it is a subordinate charm
@@ -73,12 +73,17 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
         await asyncio.gather(
             ops_test.model.block_until(lambda: mysql_app.status == "active", timeout=SLOW_TIMEOUT),
             ops_test.model.block_until(
+                lambda: mysql_router_app.status == "blocked", timeout=SLOW_TIMEOUT
+            ),
+            ops_test.model.block_until(
                 lambda: application_app.status == "waiting", timeout=SLOW_TIMEOUT
             ),
         )
 
+        logger.info("Relating mysqlrouter with mysql")
+
         await ops_test.model.relate(
-            f"{MYSQL_ROUTER_APP_NAME}:database", f"{APPLICATION_APP_NAME}:database"
+            f"{MYSQL_ROUTER_APP_NAME}:backend-database", f"{MYSQL_APP_NAME}:database"
         )
 
         await asyncio.gather(

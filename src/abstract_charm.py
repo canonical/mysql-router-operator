@@ -13,6 +13,7 @@ import tenacity
 
 import container
 import lifecycle
+import logrotate
 import relations.database_provides
 import relations.database_requires
 import workload
@@ -58,6 +59,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     @abc.abstractmethod
     def _container(self) -> container.Container:
         """Workload container (snap or ROCK)"""
+
+    @property
+    @abc.abstractmethod
+    def _logrotate(self) -> logrotate.LogRotate:
+        """Logrotate abstraction."""
 
     @property
     @abc.abstractmethod

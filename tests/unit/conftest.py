@@ -1,8 +1,6 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-from unittest.mock import mock_open
-
 import pytest
 
 import snap
@@ -71,4 +69,3 @@ def machine_patch(monkeypatch):
     monkeypatch.setattr("snap._Path.unlink", lambda *args, **kwargs: None)
     monkeypatch.setattr("snap._Path.mkdir", lambda *args, **kwargs: None)
     monkeypatch.setattr("snap._Path.rmtree", lambda *args, **kwargs: None)
-    monkeypatch.setattr("builtins.open", mock_open())

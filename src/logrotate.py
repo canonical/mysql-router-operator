@@ -10,13 +10,9 @@ class LogRotate(abc.ABC):
     """Abstraction for logrotate in MySQLRouter."""
 
     @abc.abstractmethod
-    def setup_logrotate(self) -> None:
+    def set_up_and_enable(self) -> None:
         """Set up logrotate."""
 
     @abc.abstractmethod
-    def enable_logrotate(self) -> None:
-        """Enable logrotate."""
-
-    @abc.abstractmethod
-    def disable_logrotate(self) -> None:
+    def disable(self) -> None:
         """Disable logrotate."""
