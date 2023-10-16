@@ -7,6 +7,7 @@ import logging
 
 import jinja2
 
+import container
 import logrotate
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,10 @@ ROOT_USER = "root"
 class LogRotate(logrotate.LogRotate):
     """logrotate cron configuration"""
 
-    CRON_FILE_PATH = "/etc/cron.d/flush_mysqlrouter_logs"
+    def __init__(self, *, container_: container.Container):
+        super().__init__(container_=container_)
+        self._logrotate_config = self._container.path("/etc/logrotate.d/flush_mysqlrouter_logs")
+        self._cron_file = self._container.path("/etc/cron.d/flush_mysqlrouter_logs")
 
     def enable(self) -> None:
         logger.debug("Creating logrotate config file")
@@ -31,14 +35,12 @@ class LogRotate(logrotate.LogRotate):
             log_file_path=str(log_file_path),
             system_user=SYSTEM_USER,
         )
-        logrotate_config = self._container.path("/etc/logrotate.d/flush_mysqlrouter_logs")
-        logrotate_config.write_text(rendered, user=ROOT_USER, group=ROOT_USER)
+        self._logrotate_config.write_text(rendered, user=ROOT_USER, group=ROOT_USER)
 
         logger.debug("Created logrotate config file")
         logger.debug("Adding cron job for logrotate")
 
-        cron_file = self._container.path(self.CRON_FILE_PATH)
-        cron_file.write_text(
+        self._cron_file.write_text(
             "* * * * * root logrotate -f /etc/logrotate.d/flush_mysqlrouter_logs\n\n",
             user=ROOT_USER,
             group=ROOT_USER,
@@ -48,5 +50,6 @@ class LogRotate(logrotate.LogRotate):
 
     def disable(self) -> None:
         logger.debug("Removing cron job for log rotation of mysqlrouter")
-        self._container.path(self.CRON_FILE_PATH).unlink()
+        self._logrotate_config.unlink()
+        self._cron_file.unlink()
         logger.debug("Removed cron job for log rotation of mysqlrouter")
