@@ -60,8 +60,12 @@ def test_inside_container():
         "/var/lib/mysqlrouter"
     )
 
-    assert snap._Path("/run/mysqlrouter") == pathlib.Path("/var/snap/charmed-mysql/common/run/mysqlrouter")
-    assert snap._Path("/run/mysqlrouter").relative_to_container == pathlib.PurePath("/run/mysqlrouter")
+    assert snap._Path("/run/mysqlrouter") == pathlib.Path(
+        "/var/snap/charmed-mysql/common/run/mysqlrouter"
+    )
+    assert snap._Path("/run/mysqlrouter").relative_to_container == pathlib.PurePath(
+        "/run/mysqlrouter"
+    )
 
     assert snap._Path("/tmp") == pathlib.Path("/tmp/snap-private-tmp/snap.charmed-mysql/tmp")
     assert snap._Path("/tmp").relative_to_container == pathlib.PurePath("/tmp")

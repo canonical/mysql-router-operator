@@ -68,7 +68,6 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
         f"{MYSQL_ROUTER_APP_NAME}:database", f"{APPLICATION_APP_NAME}:database"
     )
 
-    # the mysqlrouter application will be in unknown state since it is a subordinate charm
     async with ops_test.fast_forward():
         await asyncio.gather(
             ops_test.model.block_until(lambda: mysql_app.status == "active", timeout=SLOW_TIMEOUT),
