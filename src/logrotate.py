@@ -1,7 +1,10 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Logrotate abstractions"""
+"""logrotate
+
+https://manpages.ubuntu.com/manpages/jammy/man8/logrotate.8.html
+"""
 
 import abc
 
@@ -9,14 +12,14 @@ import container
 
 
 class LogRotate(abc.ABC):
-    """Abstraction for logrotate in MySQLRouter."""
+    """logrotate"""
 
     def __init__(self, *, container_: container.Container):
         self._container = container_
 
     @abc.abstractmethod
-    def set_up_and_enable(self) -> None:
-        """Set up logrotate."""
+    def enable(self) -> None:
+        """Enable logrotate."""
 
     @abc.abstractmethod
     def disable(self) -> None:

@@ -223,7 +223,7 @@ class AuthenticatedWorkload(Workload):
             username=self._router_username, router_id=self._router_id, unit_name=unit_name
         )
         self._container.update_mysql_router_service(enabled=True, tls=tls)
-        self._logrotate.set_up_and_enable()
+        self._logrotate.enable()
         logger.debug("Enabled MySQL Router service")
         self._charm.wait_until_mysql_router_ready()
 

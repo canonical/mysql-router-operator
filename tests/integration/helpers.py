@@ -223,4 +223,4 @@ async def stop_running_flush_mysqlrouter_cronjobs(ops_test: OpsTest, unit_name: 
     for attempt in Retrying(reraise=True, stop=stop_after_attempt(45), wait=wait_fixed(2)):
         with attempt:
             if await get_process_pid(ops_test, unit_name, "logrotate"):
-                raise Exception
+                raise Exception("Failed to stop the flush_mysql_logs logrotate process")

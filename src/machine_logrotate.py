@@ -1,7 +1,7 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Logrotate implementation for machine charm"""
+"""logrotate cron configuration"""
 
 import logging
 
@@ -17,13 +17,14 @@ ROOT_USER = "root"
 
 
 class LogRotate(logrotate.LogRotate):
-    """Log rotation in machine charm."""
+    """logrotate cron configuration"""
 
-    def set_up_and_enable(self) -> None:
+    CRON_FILE_PATH = "/etc/cron.d/flush_mysqlrouter_logs"
+
+    def enable(self) -> None:
         logger.debug("Creating logrotate config file")
 
-        template_file = self._container.path("templates/logrotate.j2")
-        template = jinja2.Template(template_file.read_text())
+        template = jinja2.Template(self._container.path("templates/logrotate.j2").read_text())
 
         log_file_path = self._container.path("/var/log/mysqlrouter/mysqlrouter.log")
         rendered = template.render(
@@ -34,15 +35,18 @@ class LogRotate(logrotate.LogRotate):
         logrotate_config.write_text(rendered, user=ROOT_USER, group=ROOT_USER)
 
         logger.debug("Created logrotate config file")
-        logger.debug("Adding cron job for log rotation of mysqlrouter")
+        logger.debug("Adding cron job for logrotate")
 
-        cron = "* * * * * root logrotate -f /etc/logrotate.d/flush_mysqlrouter_logs\n\n"
-        cron_file = self._container.path("/etc/cron.d/flush_mysqlrouter_logs")
-        cron_file.write_text(cron, user=ROOT_USER, group=ROOT_USER)
+        cron_file = self._container.path(self.CRON_FILE_PATH)
+        cron_file.write_text(
+            "* * * * * root logrotate -f /etc/logrotate.d/flush_mysqlrouter_logs\n\n",
+            user=ROOT_USER,
+            group=ROOT_USER,
+        )
 
-        logger.debug("Added cron job for log rotation of mysqlrouter")
+        logger.debug("Added cron job for logrotate")
 
     def disable(self) -> None:
         logger.debug("Removing cron job for log rotation of mysqlrouter")
-        self._container.path("/etc/cron.d/flush_mysqlrouter_logs").unlink()
+        self._container.path(self.CRON_FILE_PATH).unlink()
         logger.debug("Removed cron job for log rotation of mysqlrouter")
