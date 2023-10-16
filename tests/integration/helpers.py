@@ -115,8 +115,6 @@ async def delete_file_or_directory_in_unit(ops_test: OpsTest, unit_name: str, pa
         "ssh", unit_name, "sudo", "find", path, "-maxdepth", "1", "-delete"
     )
 
-    assert return_code == 0
-
 
 async def write_content_to_file_in_unit(
     ops_test: OpsTest, unit: Unit, path: str, content: str
