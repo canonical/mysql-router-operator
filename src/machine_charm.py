@@ -47,7 +47,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
     @property
     def _logrotate(self) -> machine_logrotate.LogRotate:
-        return machine_logrotate.LogRotate()
+        return machine_logrotate.LogRotate(container_=self._container)
 
     @property
     def _read_write_endpoint(self) -> str:
