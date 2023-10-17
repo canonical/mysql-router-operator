@@ -1,16 +1,22 @@
-# Copyright 2022 Canonical Ltd.
+# Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 name: mysql-router
 display-name: MySQL Router
-maintainers:
-  - Carl Csaposs <carl.csaposs@canonical.com>
-  - Paulo Machado <paulo.machado@canonical.com>
-  - Shayan Patel <shayan.patel@canonical.com>
+summary: Charmed MySQL Router VM operator
 description: |
-  Machine charmed operator for mysql-router.
-summary: |
-  Machine charmed operator for mysql-router.
   Enables effective access to a MySQL cluster with Group Replication.
+
+  This charm supports MySQL Router 8.0 in in bare-metal/virtual-machines.
+docs: https://discourse.charmhub.io/t/charmed-mysql-router-documentation/12131
+source: https://github.com/canonical/mysql-router-operator
+issues: https://github.com/canonical/mysql-router-operator/issues
+website:
+  - https://ubuntu.com/data/mysql
+  - https://charmhub.io/mysql-router
+  - https://github.com/canonical/mysql-router-operator
+  - https://chat.charmhub.io/charmhub/channels/data-platform
+maintainers:
+  - Canonical Data Platform <data-platform@lists.launchpad.net>
 subordinate: true
 provides:
   database:
