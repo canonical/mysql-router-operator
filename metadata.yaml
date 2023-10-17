@@ -36,6 +36,11 @@ requires:
     interface: juju-info
     scope: container
 peers:
+  upgrade-version-a:
+    # Relation versioning scheme:
+    # DA056 - Upgrading in-place upgrade protocol
+    # https://docs.google.com/document/d/1H7qy5SAwLiCOKO9xMQJbbQP5_-jGV6Lhi-mJOk4gZ08/edit
+    interface: upgrade
 # TODO TLS VM: re-enable peer relation
 #  mysql-router-peers:
 #    interface: mysql_router_peers

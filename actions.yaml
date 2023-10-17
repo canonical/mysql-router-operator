@@ -1,0 +1,10 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+resume-upgrade:
+  description: Upgrade remaining units (after you manually verified that upgraded units are healthy).
+  params:
+    force:
+      type: boolean
+      description: Force upgrade of next unit if an upgraded unit has non-active status.
+  required: []
