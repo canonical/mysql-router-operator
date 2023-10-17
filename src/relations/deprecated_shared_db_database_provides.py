@@ -194,14 +194,8 @@ class RelationEndpoint(ops.Object):
             logger.warning(
                 "'mysql-shared' relation interface is DEPRECATED and will be removed in a future release. Use 'mysql_client' interface instead."
             )
-        charm_.framework.observe(
-            charm_.on[self._NAME].relation_changed,
-            charm_.reconcile_database_relations,
-        )
-        charm_.framework.observe(
-            charm_.on[self._NAME].relation_broken,
-            charm_.reconcile_database_relations,
-        )
+        charm_.framework.observe(charm_.on[self._NAME].relation_changed, charm_.reconcile)
+        charm_.framework.observe(charm_.on[self._NAME].relation_broken, charm_.reconcile)
         self._charm = charm_
         self.framework.observe(
             self._charm.on[self._CREDENTIALS_PEER_RELATION_ENDPOINT_NAME].relation_changed,
