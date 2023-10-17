@@ -99,7 +99,8 @@ class Workload:
             file.unlink(missing_ok=True)
         logger.debug("Disabled TLS")
 
-    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+    @property
+    def status(self) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""
         if not self.container_ready:
             return ops.MaintenanceStatus("Waiting for container")
@@ -250,9 +251,10 @@ class AuthenticatedWorkload(Workload):
         if self._container.mysql_router_service_enabled:
             self._restart(tls=False)
 
-    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+    @property
+    def status(self) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""
-        if status := super().get_status(event):
+        if status := super().status:
             return status
         if not self.shell.is_router_in_cluster_set(self._router_id):
             # Router should not be removed from ClusterSet after bootstrap (except by MySQL charm

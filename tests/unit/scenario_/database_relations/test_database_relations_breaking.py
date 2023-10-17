@@ -15,10 +15,12 @@ from . import combinations
 def output_state(*, relations: list[scenario.Relation], event: scenario.Event) -> scenario.State:
     context = scenario.Context(machine_charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
-        relations=relations,
+        relations=[*relations, scenario.PeerRelation(endpoint="upgrade-version-a")],
         leader=True,
     )
-    return context.run(event, input_state)
+    output = context.run(event, input_state)
+    output.relations.pop()  # Remove PeerRelation
+    return output
 
 
 @pytest.mark.parametrize("complete_provides_s", combinations.complete_provides(1, 3))

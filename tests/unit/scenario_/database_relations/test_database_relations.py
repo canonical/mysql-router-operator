@@ -23,7 +23,7 @@ def output_states(*, relations: list[scenario.Relation]) -> typing.Iterable[scen
     """
     context = scenario.Context(machine_charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
-        relations=relations,
+        relations=[*relations, scenario.PeerRelation(endpoint="upgrade-version-a")],
         leader=True,
     )
     events = []
@@ -36,7 +36,9 @@ def output_states(*, relations: list[scenario.Relation]) -> typing.Iterable[scen
             )
         )
     for event in events:
-        yield context.run(event, input_state)
+        output = context.run(event, input_state)
+        output.relations.pop()  # Remove PeerRelation
+        yield output
 
 
 # Tests are ordered by status priority.
