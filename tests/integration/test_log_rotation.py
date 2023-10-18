@@ -126,7 +126,7 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
     ], f"❌ file other than logs files exist: {ls_la_output}"
 
     logger.info("Executing logrotate")
-    return_code, _, _ = await ops_test.juju(
+    return_code, stdout, _ = await ops_test.juju(
         "ssh",
         unit.name,
         "sudo",
