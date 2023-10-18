@@ -39,7 +39,7 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
     applications = await asyncio.gather(
         ops_test.model.deploy(
             "mysql",
-            channel="8.0/stable",
+            channel="8.0/edge",
             application_name=MYSQL_APP_NAME,
             config={"profile": "testing"},
             num_units=1,
@@ -55,7 +55,7 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
             num_units=1,
             # MySQL Router is subordinate—it will use the series of the principal charm
             series=mysql_router_charm_series,
-            channel="latest/stable",
+            channel="latest/edge",
         ),
     )
 
