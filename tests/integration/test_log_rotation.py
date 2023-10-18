@@ -126,9 +126,19 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
     ], f"❌ file other than logs files exist: {ls_la_output}"
 
     logger.info("Executing logrotate")
-    return_code, stdout, _ = await ops_test.juju(
-        "ssh", unit.name, "sudo", "logrotate", "-f", "/etc/logrotate.d/flush_mysqlrouter_logs"
+    return_code, _, _ = await ops_test.juju(
+        "ssh",
+        unit.name,
+        "sudo",
+        "-u",
+        "snap_daemon",
+        "logrotate",
+        "-f",
+        "-s",
+        "/tmp/logrotate.status",
+        "/etc/logrotate.d/flush_mysqlrouter_logs",
     )
+
     assert return_code == 0, f"❌ logrotate exited with code {return_code} and stdout {stdout}"
 
     logger.info("Ensuring log files and archive directories exist")
