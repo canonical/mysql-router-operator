@@ -99,9 +99,9 @@ class _Path(pathlib.PosixPath, container.Path):
         self,
         data: str,
         encoding="utf-8",
+        *args,
         user=_UNIX_USERNAME,
         group=_UNIX_USERNAME,
-        *args,
         **kwargs,
     ):
         return_value = super().write_text(data, encoding, *args, **kwargs)
