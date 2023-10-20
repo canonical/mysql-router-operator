@@ -13,6 +13,7 @@ import tenacity
 
 import container
 import lifecycle
+import logrotate
 import relations.database_provides
 import relations.database_requires
 import workload
@@ -61,6 +62,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @property
     @abc.abstractmethod
+    def _logrotate(self) -> logrotate.LogRotate:
+        """logrotate"""
+
+    @property
+    @abc.abstractmethod
     def _read_write_endpoint(self) -> str:
         """MySQL Router read-write endpoint"""
 
@@ -74,10 +80,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         if connection_info := self._database_requires.get_connection_info(event=event):
             return self._authenticated_workload_type(
                 container_=self._container,
+                logrotate_=self._logrotate,
                 connection_info=connection_info,
                 charm_=self,
             )
-        return self._workload_type(container_=self._container)
+        return self._workload_type(container_=self._container, logrotate_=self._logrotate)
 
     @staticmethod
     # TODO python3.10 min version: Use `list` instead of `typing.List`

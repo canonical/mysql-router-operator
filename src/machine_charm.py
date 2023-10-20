@@ -12,6 +12,7 @@ import typing
 import ops
 
 import abstract_charm
+import machine_logrotate
 import relations.database_providers_wrapper
 import snap
 import socket_workload
@@ -43,6 +44,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def _container(self) -> snap.Snap:
         return snap.Snap()
+
+    @property
+    def _logrotate(self) -> machine_logrotate.LogRotate:
+        return machine_logrotate.LogRotate(container_=self._container)
 
     @property
     def _read_write_endpoint(self) -> str:

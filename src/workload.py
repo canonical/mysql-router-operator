@@ -13,6 +13,7 @@ import typing
 import ops
 
 import container
+import logrotate
 import mysql_shell
 
 if typing.TYPE_CHECKING:
@@ -25,8 +26,11 @@ logger = logging.getLogger(__name__)
 class Workload:
     """MySQL Router workload"""
 
-    def __init__(self, *, container_: container.Container) -> None:
+    def __init__(
+        self, *, container_: container.Container, logrotate_: logrotate.LogRotate
+    ) -> None:
         self._container = container_
+        self._logrotate = logrotate_
         self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
         self._tls_key_file = self._container.router_config_directory / "custom-key.pem"
         self._tls_certificate_file = (
@@ -56,6 +60,7 @@ class Workload:
             return
         logger.debug("Disabling MySQL Router service")
         self._container.update_mysql_router_service(enabled=False)
+        self._logrotate.disable()
         self._container.router_config_directory.rmtree()
         self._container.router_config_directory.mkdir()
         self._router_data_directory.rmtree()
@@ -107,10 +112,11 @@ class AuthenticatedWorkload(Workload):
         self,
         *,
         container_: container.Container,
+        logrotate_: logrotate.LogRotate,
         connection_info: "relations.database_requires.ConnectionInformation",
         charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
-        super().__init__(container_=container_)
+        super().__init__(container_=container_, logrotate_=logrotate_)
         self._connection_info = connection_info
         self._charm = charm_
 
@@ -217,6 +223,7 @@ class AuthenticatedWorkload(Workload):
             username=self._router_username, router_id=self._router_id, unit_name=unit_name
         )
         self._container.update_mysql_router_service(enabled=True, tls=tls)
+        self._logrotate.enable()
         logger.debug("Enabled MySQL Router service")
         self._charm.wait_until_mysql_router_ready()
 

@@ -1,0 +1,29 @@
+# Use system user
+su {{ system_user }} {{ system_user }}
+
+# Create dedicated subdirectory for rotated files
+createolddir 770 {{ system_user }} {{ system_user }}
+
+# Frequency of logs rotation
+hourly
+maxage 7
+rotate 10800
+
+# Naming of rotated files should be in the format:
+dateext
+dateformat -%V_%H%M
+
+# Settings to prevent misconfigurations and unwanted behaviours
+ifempty
+missingok
+nocompress
+nomail
+nosharedscripts
+nocopytruncate
+
+{{ log_file_path }} {
+    olddir archive_mysqlrouter
+    postrotate
+        kill -HUP $(pidof mysqlrouter)
+    endscript
+}
