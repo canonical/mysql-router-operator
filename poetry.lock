@@ -978,19 +978,23 @@ websocket-client = "==1.*"
 
 [[package]]
 name = "ops-scenario"
-version = "5.1.2"
+version = "5.5"
 description = "Python library providing a state-transition testing API for Operator Framework charms."
 optional = false
 python-versions = ">=3.8"
-files = [
-    {file = "ops-scenario-5.1.2.tar.gz", hash = "sha256:48d3caa6cae3e91b7ce65437c79413e3facd198ac941c7d12a322b27a786e743"},
-    {file = "ops_scenario-5.1.2-py3-none-any.whl", hash = "sha256:6a08a9586e9dac173703433e19f2437a8c7f34afa5dd4b1b27415b7089e0a270"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 ops = ">=2.6"
 PyYAML = ">=6.0.1"
 typer = "0.7.0"
+
+[package.source]
+type = "git"
+url = "https://github.com/canonical/ops-scenario"
+reference = "error-type"
+resolved_reference = "0b57a02074d626dee041fff55bf98d2b1de92f94"
 
 [[package]]
 name = "packaging"
@@ -1967,4 +1971,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1"
-content-hash = "8b28fa9ac25a886f6c1f0f1b346635e418f409b74801921a5872cd771f04c62f"
+content-hash = "50b9466bb08316010d7b08d92d2a9742951db61aa1d0c9714e2c031d25be2cfe"
