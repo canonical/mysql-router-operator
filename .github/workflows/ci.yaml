@@ -144,3 +144,10 @@ jobs:
           fi
       - name: Run integration tests
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }}
+
+  sync-docs:
+    uses: ./.github/workflows/sync_docs.yaml
+    secrets: inherit
+    permissions:
+      contents: write  # Needed to update tags
+      pull-requests: write # Need to create PR
