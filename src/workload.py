@@ -67,6 +67,15 @@ class Workload:
         self._router_data_directory.mkdir()
         logger.debug("Disabled MySQL Router service")
 
+    def upgrade(self, *, unit: ops.Unit, tls: bool) -> None:
+        """Upgrade MySQL Router.
+
+        Only applies to machine charm
+        """
+        logger.debug("Upgrading MySQL Router")
+        self._container.upgrade(unit=unit)
+        logger.debug("Upgraded MySQL Router")
+
     @property
     def _tls_config_file_data(self) -> str:
         """Render config file template to string.
@@ -104,6 +113,8 @@ class Workload:
         """Report non-active status."""
         if not self.container_ready:
             return ops.MaintenanceStatus("Waiting for container")
+        if not self._container.mysql_router_service_enabled:
+            return ops.WaitingStatus()
 
 
 class AuthenticatedWorkload(Workload):
@@ -141,19 +152,17 @@ class AuthenticatedWorkload(Workload):
         # MySQL Router is bootstrapped without `--directory`—there is one system-wide instance.
         return f"{socket.getfqdn()}::system"
 
-    def _cleanup_after_potential_container_restart(self) -> None:
-        """Remove MySQL Router cluster metadata & user after (potential) container restart.
+    def _cleanup_after_upgrade_or_potential_container_restart(self) -> None:
+        """Remove Router cluster metadata & user after upgrade or (potential) container restart.
 
-        Only applies to Kubernetes charm
-
-        (Storage is not persisted on container restart—MySQL Router's config file is deleted.
-        Therefore, MySQL Router needs to be bootstrapped again.)
+        (On Kubernetes, storage is not persisted on container restart—MySQL Router's config file is
+        deleted. Therefore, MySQL Router needs to be bootstrapped again.)
         """
         if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
-            logger.debug("Cleaning up after container restart")
+            logger.debug("Cleaning up after upgrade or container restart")
             self.shell.remove_router_from_cluster_metadata(user_info.router_id)
             self.shell.delete_user(user_info.username)
-            logger.debug("Cleaned up after container restart")
+            logger.debug("Cleaned up after upgrade or container restart")
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(self, password: str) -> typing.List[str]:
@@ -218,7 +227,7 @@ class AuthenticatedWorkload(Workload):
             # Therefore, if the host or port changes, we do not need to restart MySQL Router.
             return
         logger.debug("Enabling MySQL Router service")
-        self._cleanup_after_potential_container_restart()
+        self._cleanup_after_upgrade_or_potential_container_restart()
         self._bootstrap_router(tls=tls)
         self.shell.add_attributes_to_mysql_router_user(
             username=self._router_username, router_id=self._router_id, unit_name=unit_name
@@ -264,3 +273,13 @@ class AuthenticatedWorkload(Workload):
             return ops.BlockedStatus(
                 "Router was manually removed from MySQL ClusterSet. Remove & re-deploy unit"
             )
+
+    def upgrade(self, *, unit: ops.Unit, tls: bool) -> None:
+        enabled = self._container.mysql_router_service_enabled
+        if enabled:
+            logger.debug("Disabling MySQL Router service before upgrade")
+            self.disable()
+        super().upgrade(unit=unit, tls=tls)
+        if enabled:
+            logger.debug("Re-enabling MySQL Router service after upgrade")
+            self.enable(tls=tls, unit_name=unit.name)

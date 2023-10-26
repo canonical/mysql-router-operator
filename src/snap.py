@@ -3,6 +3,7 @@
 
 """Workload snap container & installer"""
 
+import enum
 import logging
 import pathlib
 import shutil
@@ -18,21 +19,22 @@ import container
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
-_REVISION = "69"  # v8.0.34
+REVISION = "69"  # Keep in sync with `workload_version` file
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
 
 
-def install(*, unit: ops.Unit):
-    """Install snap."""
-    if _snap.present:
-        logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
-        raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
-    logger.debug(f"Installing {_SNAP_NAME=}, {_REVISION=}")
-    unit.status = ops.MaintenanceStatus("Installing snap")
+class _RefreshVerb(str, enum.Enum):
+    INSTALL = "install"
+    UPGRADE = "upgrade"
+
+
+def _refresh(*, unit: ops.Unit, verb: _RefreshVerb) -> None:
+    logger.debug(f'{verb.capitalize().removesuffix("e")}ing {_SNAP_NAME=}, {REVISION=}')
+    unit.status = ops.MaintenanceStatus(f'{verb.capitalize().removesuffix("e")}ing snap')
 
     def _set_retry_status(_) -> None:
-        message = "Snap install failed. Retrying..."
+        message = f"Snap {verb} failed. Retrying..."
         unit.status = ops.MaintenanceStatus(message)
         logger.debug(message)
 
@@ -44,9 +46,17 @@ def install(*, unit: ops.Unit):
         reraise=True,
     ):
         with attempt:
-            _snap.ensure(state=snap_lib.SnapState.Present, revision=_REVISION)
+            _snap.ensure(state=snap_lib.SnapState.Present, revision=REVISION)
     _snap.hold()
-    logger.debug(f"Installed {_SNAP_NAME=}, {_REVISION=}")
+    logger.debug(f'{verb.capitalize().removesuffix("e")}ed {_SNAP_NAME=}, {REVISION=}')
+
+
+def install(*, unit: ops.Unit):
+    """Install snap."""
+    if _snap.present:
+        logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
+        raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
+    _refresh(unit=unit, verb=_RefreshVerb.INSTALL)
 
 
 def uninstall():
@@ -143,6 +153,10 @@ class Snap(container.Container):
             _snap.start([self._SERVICE_NAME], enable=True)
         else:
             _snap.stop([self._SERVICE_NAME], disable=True)
+
+    def upgrade(self, unit: ops.Unit) -> None:
+        """Upgrade snap."""
+        _refresh(unit=unit, verb=_RefreshVerb.UPGRADE)
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _run_command(self, command: typing.List[str], *, timeout: typing.Optional[int]) -> str:

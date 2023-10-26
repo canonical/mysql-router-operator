@@ -14,6 +14,7 @@ import tenacity
 import container
 import lifecycle
 import logrotate
+import machine_upgrade
 import relations.database_provides
 import relations.database_requires
 import upgrade
@@ -51,6 +52,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self.framework.observe(self.on.start, self.reconcile)
         # Update app status
         self.framework.observe(self.on.leader_elected, self.reconcile)
+        # Set versions in upgrade peer relation app databag
+        self.framework.observe(
+            self.on[upgrade.PEER_RELATION_ENDPOINT_NAME].relation_created,
+            self._upgrade_relation_created,
+        )
 
     @property
     @abc.abstractmethod
@@ -138,10 +144,10 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def _determine_unit_status(self, *, event) -> ops.StatusBase:
         """Report unit status."""
         statuses = []
-        workload_ = self.get_workload(event=event)
-        statuses.append(workload_.status)
+        workload_status = self.get_workload(event=event).status
         if self._upgrade:
-            statuses.append(self._upgrade.unit_juju_status)
+            statuses.append(self._upgrade.get_unit_juju_status(workload_status=workload_status))
+        statuses.append(workload_status)
         return self._prioritize_statuses(statuses)
 
     def set_status(self, *, event, app=True, unit=True) -> None:
@@ -180,19 +186,41 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     #  Handlers
     # =======================
 
+    def _upgrade_relation_created(self, _) -> None:
+        if self._unit_lifecycle.authorized_leader:
+            # `self._upgrade.is_compatible` should return `True` during first charm
+            # installation/setup
+            self._upgrade.set_versions_in_app_databag()
+
     def reconcile(self, event=None) -> None:  # noqa: C901
         """Handle most events."""
         if not self._upgrade:
             logger.debug("Peer relation not available")
             return
-        if self._upgrade.unit_state == "restarting":
+        if not self._upgrade.versions_set:
+            logger.debug("Peer relation not ready")
+            return
+        workload_ = self.get_workload(event=event)
+        if self._upgrade.unit_state == "restarting":  # Kubernetes only
             if not self._upgrade.is_compatible:
                 self.unit.status = ops.BlockedStatus(
                     "Upgrade incompatible. Rollback to previous revision with `juju refresh`"
                 )
                 self.set_status(event=event, unit=False)
                 return
-        workload_ = self.get_workload(event=event)
+        elif isinstance(self._upgrade, machine_upgrade.Upgrade):  # Machines only
+            if not self._upgrade.is_compatible:
+                self.set_status(event=event)
+                return
+            if self._upgrade.unit_state == "outdated":
+                if self._upgrade.authorized:
+                    self._upgrade.upgrade_unit(
+                        workload_=workload_, tls=self._tls_certificate_saved
+                    )
+                else:
+                    self.set_status(event=event)
+                    logger.debug("Waiting to upgrade")
+                    return
         logger.debug(
             "State of reconcile "
             f"{self._unit_lifecycle.authorized_leader=}, "
@@ -223,7 +251,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             workload_.enable(tls=self._tls_certificate_saved, unit_name=self.unit.name)
         elif workload_.container_ready:
             workload_.disable()
-        if not workload_.status:
+        # Empty waiting status means we're waiting for database requires relation before starting
+        # workload
+        if not workload_.status or workload_.status == ops.WaitingStatus():
             self._upgrade.unit_state = "healthy"
         if self._unit_lifecycle.authorized_leader:
             self._upgrade.reconcile_partition()
