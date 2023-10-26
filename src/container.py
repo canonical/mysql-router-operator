@@ -8,6 +8,8 @@ import pathlib
 import subprocess
 import typing
 
+import ops
+
 
 class Path(pathlib.PurePosixPath, abc.ABC):
     """Workload container (snap or ROCK) filesystem path"""
@@ -99,6 +101,13 @@ class Container(abc.ABC):
         """
         if enabled:
             assert tls is not None, "`tls` argument required when enabled=True"
+
+    @abc.abstractmethod
+    def upgrade(self, unit: ops.Unit) -> None:
+        """Upgrade container version
+
+        Only applies to machine charm
+        """
 
     @abc.abstractmethod
     # TODO python3.10 min version: Use `list` instead of `typing.List`
