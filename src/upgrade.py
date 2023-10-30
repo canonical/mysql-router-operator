@@ -136,18 +136,18 @@ class Upgrade(abc.ABC):
 
     @property
     def app_status(self) -> typing.Optional[ops.StatusBase]:
-        if self.in_progress:
-            if self.upgrade_resumed:
-                return ops.MaintenanceStatus(
-                    "Upgrading. To rollback, `juju refresh` to the previous revision"
-                )
-            else:
-                # User confirmation needed to resume upgrade (i.e. upgrade second unit)
-                # Statuses over 120 characters are truncated in `juju status` as of juju 3.1.6 and
-                # 2.9.45
-                return ops.BlockedStatus(
-                    f"Upgrading. Verify highest unit is healthy & run `{RESUME_ACTION_NAME}` action. To rollback, `juju refresh` to last revision"
-                )
+        if not self.in_progress:
+            return
+        if not self.upgrade_resumed:
+            # User confirmation needed to resume upgrade (i.e. upgrade second unit)
+            # Statuses over 120 characters are truncated in `juju status` as of juju 3.1.6 and
+            # 2.9.45
+            return ops.BlockedStatus(
+                f"Upgrading. Verify highest unit is healthy & run `{RESUME_ACTION_NAME}` action. To rollback, `juju refresh` to last revision"
+            )
+        return ops.MaintenanceStatus(
+            "Upgrading. To rollback, `juju refresh` to the previous revision"
+        )
 
     @property
     def versions_set(self) -> bool:
