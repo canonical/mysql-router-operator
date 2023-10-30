@@ -18,4 +18,4 @@ def test_start_sets_status_if_no_relations(leader):
     output_state = context.run("start", input_state)
     if leader:
         assert output_state.app_status == ops.BlockedStatus("Missing relation: backend-database")
-    assert output_state.unit_status == ops.ActiveStatus()
+    assert output_state.unit_status == ops.WaitingStatus()
