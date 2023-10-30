@@ -165,7 +165,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         Retry every 5 seconds for up to 30 seconds.
         """
         logger.debug("Waiting until MySQL Router is ready")
-        self.unit.status = ops.WaitingStatus("MySQL Router starting")
+        self.unit.status = ops.MaintenanceStatus("MySQL Router starting")
         try:
             for attempt in tenacity.Retrying(
                 reraise=True,
