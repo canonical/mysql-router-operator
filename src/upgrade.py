@@ -24,7 +24,8 @@ PEER_RELATION_ENDPOINT_NAME = "upgrade-version-a"
 RESUME_ACTION_NAME = "resume-upgrade"
 
 
-def _unit_number(unit_: ops.Unit) -> int:
+def unit_number(unit_: ops.Unit) -> int:
+    """Get unit number"""
     return int(unit_.name.split("/")[-1])
 
 
@@ -119,7 +120,7 @@ class Upgrade(abc.ABC):
     @property
     def _sorted_units(self) -> list[ops.Unit]:
         """Units sorted from highest to lowest unit number"""
-        return sorted((self._unit, *self._peer_relation.units), key=_unit_number, reverse=True)
+        return sorted((self._unit, *self._peer_relation.units), key=unit_number, reverse=True)
 
     @abc.abstractmethod
     def _get_unit_healthy_status(
