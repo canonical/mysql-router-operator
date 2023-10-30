@@ -25,7 +25,6 @@ RESUME_ACTION_NAME = "resume-upgrade"
 
 
 def _unit_number(unit_: ops.Unit) -> int:
-    """Get unit number"""
     return int(unit_.name.split("/")[-1])
 
 
