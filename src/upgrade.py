@@ -118,7 +118,7 @@ class Upgrade(abc.ABC):
         )
 
     @property
-    def _sorted_units(self) -> list[ops.Unit]:
+    def _sorted_units(self) -> typing.List[ops.Unit]:
         """Units sorted from highest to lowest unit number"""
         return sorted((self._unit, *self._peer_relation.units), key=unit_number, reverse=True)
 
