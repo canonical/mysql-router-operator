@@ -142,6 +142,7 @@ jobs:
             echo Skipping unstable tests
             echo "mark_expression=not unstable" >> "$GITHUB_OUTPUT"
           fi
+      - run: juju add-model test
       - name: Run integration tests
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }} --model test
       - name: Select model
