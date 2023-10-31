@@ -67,11 +67,13 @@ class Upgrade(abc.ABC):
         """Whether upgrade is supported from previous versions"""
         assert self.versions_set
         try:
-            previous_version_strs: dict[str, str] = json.loads(self._app_databag["versions"])
+            previous_version_strs: typing.Dict[str, str] = json.loads(
+                self._app_databag["versions"]
+            )
         except KeyError as exception:
             logger.debug("`versions` missing from peer relation", exc_info=exception)
             return False
-        previous_versions: dict[str, poetry_version.Version] = {
+        previous_versions: typing.Dict[str, poetry_version.Version] = {
             key: poetry_version.Version.parse(value)
             for key, value in previous_version_strs.items()
         }
@@ -177,7 +179,7 @@ class Upgrade(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def _unit_workload_versions(self) -> dict[str, str]:
+    def _unit_workload_versions(self) -> typing.Dict[str, str]:
         """{Unit name: unique identifier for unit's workload version}
 
         If and only if this version changes, the workload will restart (during upgrade or
