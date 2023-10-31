@@ -30,8 +30,9 @@ class _RefreshVerb(str, enum.Enum):
 
 
 def _refresh(*, unit: ops.Unit, verb: _RefreshVerb) -> None:
-    logger.debug(f'{verb.capitalize().removesuffix("e")}ing {_SNAP_NAME=}, {REVISION=}')
-    unit.status = ops.MaintenanceStatus(f'{verb.capitalize().removesuffix("e")}ing snap')
+    # TODO python3.10 min version: use `removesuffix` instead of `rstrip`
+    logger.debug(f'{verb.capitalize().rstrip("e")}ing {_SNAP_NAME=}, {REVISION=}')
+    unit.status = ops.MaintenanceStatus(f'{verb.capitalize().rstrip("e")}ing snap')
 
     def _set_retry_status(_) -> None:
         message = f"Snap {verb} failed. Retrying..."
@@ -48,7 +49,7 @@ def _refresh(*, unit: ops.Unit, verb: _RefreshVerb) -> None:
         with attempt:
             _snap.ensure(state=snap_lib.SnapState.Present, revision=REVISION)
     _snap.hold()
-    logger.debug(f'{verb.capitalize().removesuffix("e")}ed {_SNAP_NAME=}, {REVISION=}')
+    logger.debug(f'{verb.capitalize().rstrip("e")}ed {_SNAP_NAME=}, {REVISION=}')
 
 
 def install(*, unit: ops.Unit, model_uuid: str):
