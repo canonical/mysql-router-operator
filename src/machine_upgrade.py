@@ -67,7 +67,7 @@ class Upgrade(upgrade.Upgrade):
         return super().app_status
 
     @property
-    def _unit_workload_versions(self) -> dict[str, str]:
+    def _unit_workload_versions(self) -> typing.Dict[str, str]:
         """{Unit name: installed snap revision}"""
         versions = {}
         for unit in self._sorted_units:
