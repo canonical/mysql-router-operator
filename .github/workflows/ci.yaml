@@ -108,7 +108,15 @@ jobs:
             bases-index: 0
           - series: jammy
             bases-index: 1
-    name: (GH hosted) ${{ matrix.groups.job_name }} | ${{ matrix.ubuntu-versions.series }}
+        juju-snap-channel:  ["2.9/stable", "3.1/stable"]
+        include:
+          - juju-snap-channel: "3.1/stable"
+            agent-version: "3.1.6"
+            libjuju-version:  "3.2.2"
+          - juju-snap-channel: "2.9/stable"
+            agent-version: "2.9.45"
+            libjuju-version:  "2.9.44.1"
+    name: ${{ matrix.juju-snap-channel }} - (GH hosted) ${{ matrix.groups.job_name }} | ${{ matrix.ubuntu-versions.series }}
     needs:
       - lint
       - unit-test
@@ -127,6 +135,11 @@ jobs:
         uses: charmed-kubernetes/actions-operator@main
         with:
           provider: lxd
+          bootstrap-options: "--agent-version ${{ matrix.agent-version }}"
+          juju-channel: ${{ matrix.juju-snap-channel }}
+      - name: Update python-libjuju version
+        if: ${{ matrix.libjuju-version == '2.9.44.1' }}
+        run: poetry add --lock --group integration juju@'${{ matrix.libjuju-version }}'
       - name: Download packed charm(s)
         uses: actions/download-artifact@v3
         with:
@@ -144,3 +157,5 @@ jobs:
           fi
       - name: Run integration tests
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }}
+        env:
+          LIBJUJU_VERSION_SPECIFIER: ${{ matrix.libjuju-version }}

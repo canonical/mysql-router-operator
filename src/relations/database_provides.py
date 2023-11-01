@@ -126,7 +126,8 @@ class _RelationWithCreatedUser(_Relation):
         self, *, relation: ops.Relation, interface: data_interfaces.DatabaseProvides
     ) -> None:
         super().__init__(relation=relation)
-        self._local_databag = relation.data[interface.local_app]
+        self._interface = interface
+        self._local_databag = self._interface.fetch_my_relation_data([relation.id])[relation.id]
         for key in ("database", "username", "password", "endpoints", "read-only-endpoints"):
             if key not in self._local_databag:
                 raise _UserNotCreated
@@ -134,7 +135,7 @@ class _RelationWithCreatedUser(_Relation):
     def delete_databag(self) -> None:
         """Remove connection information from databag."""
         logger.debug(f"Deleting databag {self._id=}")
-        self._local_databag.clear()
+        self._interface.delete_relation_data(self._id, list(self._local_databag))
         logger.debug(f"Deleted databag {self._id=}")
 
     def delete_user(self, *, shell: mysql_shell.Shell) -> None:
