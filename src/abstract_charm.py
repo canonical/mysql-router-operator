@@ -203,6 +203,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         workload_ = self.get_workload(event=event)
         if self._upgrade.unit_state == "restarting":  # Kubernetes only
             if not self._upgrade.is_compatible:
+                logger.info(
+                    "Upgrade incompatible. If you accept potential *data loss* and *downtime*, you can continue with `resume-upgrade force=true`"
+                )
                 self.unit.status = ops.BlockedStatus(
                     "Upgrade incompatible. Rollback to previous revision with `juju refresh`"
                 )
