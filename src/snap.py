@@ -33,7 +33,9 @@ def install(*, unit: ops.Unit, model_uuid: str):
     # installed by this charm.
     # Otherwise, the snap could be in use by another charm (e.g. MySQL Server charm, a different
     # MySQL Router charm).
-    if _snap.present and not installed_by_unit.read_text() == unique_unit_name:
+    if _snap.present and not (
+        installed_by_unit.exists() and installed_by_unit.read_text() == unique_unit_name
+    ):
         logger.debug(f"{installed_by_unit.read_text()=} {unique_unit_name=}")
         logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
         raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
