@@ -8,6 +8,7 @@ import logging
 import socket
 import typing
 
+import charms.data_platform_libs.v0.secrets as secrets
 import ops
 import tenacity
 
@@ -21,8 +22,14 @@ import workload
 logger = logging.getLogger(__name__)
 
 
+class MySQLRouterSecretsError(Exception):
+    """MySQLRouter secrets related error."""
+
+
 class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     """MySQL Router charm"""
+
+    _PEER_RELATION_NAME = "mysql-router-peers"
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -30,6 +37,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self._unit_lifecycle = lifecycle.Unit(
             self, subordinated_relation_endpoint_names=self._subordinate_relation_endpoint_names
         )
+        self._secrets = secrets.SecretCache(self)
 
         self._workload_type = workload.Workload
         self._authenticated_workload_type = workload.AuthenticatedWorkload
@@ -75,6 +83,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def _read_only_endpoint(self) -> str:
         """MySQL Router read-only endpoint"""
 
+    @property
+    def peers(self) -> typing.Optional[ops.model.Relation]:
+        """Retrieve the peer relation."""
+        return self.model.get_relation(self._PEER_RELATION_NAME)
+
     def get_workload(self, *, event):
         """MySQL Router workload"""
         if connection_info := self._database_requires.get_connection_info(event=event):
@@ -82,6 +95,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 container_=self._container,
                 logrotate_=self._logrotate,
                 connection_info=connection_info,
+                exporter_user_info=self._cos.exporter_user_info,
                 charm_=self,
             )
         return self._workload_type(container_=self._container, logrotate_=self._logrotate)
@@ -152,6 +166,115 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         else:
             logger.debug("MySQL Router is ready")
 
+    def _scope_obj(self, scope: secrets.Scopes) -> dict:
+        """Return corresponding data unit for app/unit."""
+        if scope == secrets.APP_SCOPE:
+            return self.app
+        if scope == secrets.UNIT_SCOPE:
+            return self.unit
+
+    def _peer_data(self, scope: secrets.Scopes) -> dict:
+        """Return corresponding databag for app/unit."""
+        if self.peers is None:
+            return {}
+        return self.peers.data[self._scope_obj(scope)]
+
+    def _get_secret_from_juju(self, scope: secrets.Scopes, key: str) -> typing.Optional[str]:
+        """Retrieve and return the secret from the juju secret storage."""
+        label = secrets.generate_secret_label(self, scope)
+        secret = self._secrets.get(label)
+
+        if not secret:
+            logger.debug("Getting a secret when secret is not added in juju")
+            return
+
+        value = secret.get_content().get(key)
+        logger.debug(f"Retrieved secret {key} for unit from juju")
+        return value
+
+    def _get_secret_from_databag(self, scope: secrets.Scopes, key: str) -> typing.Optional[str]:
+        """Retrieve and return the secret from the peer relation databag."""
+        return self._peer_data(scope).get(key)
+
+    def get_secret(self, scope: secrets.Scopes, key: str) -> typing.Optional[str]:
+        """Get secret from the secret storage.
+
+        Retrieve secret from juju secrets backend if secret exists there.
+        Else retrieve from peer databag. This is to account for cases where
+        secrets are stored in peer databag but the charm is then refreshed to
+        a newer revision.
+        """
+        if scope not in [secrets.APP_SCOPE, secrets.UNIT_SCOPE]:
+            raise MySQLRouterSecretsError(f"Invalid secret scope: {scope}")
+
+        if ops.jujuversion.JujuVersion.from_environ().has_secrets:
+            secret = self._get_secret_from_juju(scope, key)
+            if secret:
+                return secret
+
+        return self._get_secret_from_databag(scope, key)
+
+    def _set_secret_in_juju(
+        self, scope: secrets.Scopes, key: str, value: typing.Optional[str]
+    ) -> None:
+        """Set the secret in the juju secret storage."""
+        # Charm could have been upgraded since last run
+        # We make an attempt to remove potential traces from the databag
+        self._peer_data(scope).pop(key, None)
+
+        label = secrets.generate_secret_label(self, scope)
+        secret = self._secrets.get(label)
+        if not secret and value:
+            self._secrets.add(label, {key: value}, scope)
+            return
+
+        content = secret.get_content() if secret else None
+
+        if not value:
+            if content and key in content:
+                content.pop(key, None)
+            else:
+                logger.error(f"Non-existing secret {scope}:{key} was attempted to be removed.")
+                return
+        else:
+            content.update({key: value})
+
+        secret.set_content(content)
+
+    def _set_secret_in_databag(
+        self, scope: secrets.Scopes, key: str, value: typing.Optional[str]
+    ) -> None:
+        """Set secret in the peer relation databag."""
+        if not value:
+            try:
+                self._peer_data(scope).pop(key)
+                return
+            except KeyError:
+                logger.error(f"Non-existing secret {scope}:{key} was attempted to be removed.")
+                return
+
+        self._peer_data(scope)[key] = value
+
+    def set_secret(self, scope: secrets.Scopes, key: str, value: typing.Optional[str]) -> None:
+        """Set a secret in the secret storage."""
+        if scope not in [secrets.APP_SCOPE, secrets.UNIT_SCOPE]:
+            raise MySQLRouterSecretsError(f"Invalid secret scope: {scope}")
+
+        if scope == secrets.APP_SCOPE and not self.unit.is_leader():
+            raise MySQLRouterSecretsError("Can only set app secrets on the leader unit")
+
+        if ops.jujuversion.JujuVersion.from_environ().has_secrets:
+            self._set_secret_in_juju(scope, key, value)
+
+            # for refresh from juju <= 3.1.4 to >= 3.1.5, we need to clear out
+            # secrets from the databag as well
+            if self._get_secret_from_databag(scope, key):
+                self._set_secret_in_databag(scope, key, None)
+
+            return
+
+        self._set_secret_in_databag(scope, key, value)
+
     # =======================
     #  Handlers
     # =======================
@@ -164,7 +287,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             f"{self._unit_lifecycle.authorized_leader=}, "
             f"{isinstance(workload_, workload.AuthenticatedWorkload)=}, "
             f"{workload_.container_ready=}, "
-            f"{self._database_requires.is_relation_breaking(event)=}"
+            f"{self._database_requires.is_relation_breaking(event)=}, "
+            f"{self._cos.is_relation_breaking(event)=}"
         )
         if self._unit_lifecycle.authorized_leader:
             if self._database_requires.is_relation_breaking(event):
@@ -178,8 +302,16 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     router_read_only_endpoint=self._read_only_endpoint,
                     shell=workload_.shell,
                 )
+        if self._cos.is_relation_breaking(event):
+            self._cos.cleanup_monitoring_user()
+            workload_.disable_exporter()
         if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
             workload_.enable(tls=self._tls_certificate_saved, unit_name=self.unit.name)
+            if self._cos.relation_exists:
+                self._cos.setup_monitoring_user()
+                workload_.enable_exporter(exporter_config=self._cos.exporter_user_info)
         elif workload_.container_ready:
             workload_.disable()
+            self._cos.cleanup_monitoring_user()
+            workload_.disable_exporter()
         self.set_status(event=event)

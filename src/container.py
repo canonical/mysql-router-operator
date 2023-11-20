@@ -72,9 +72,19 @@ class Container(abc.ABC):
         """Extra MySQL Router configuration file to enable TLS"""
         return self.router_config_directory / "tls.conf"
 
-    def __init__(self, *, mysql_router_command: str, mysql_shell_command: str) -> None:
+    def __init__(
+        self,
+        *,
+        mysql_router_command: str,
+        mysql_shell_command: str,
+    ) -> None:
         self._mysql_router_command = mysql_router_command
         self._mysql_shell_command = mysql_shell_command
+
+    @property
+    @abc.abstractmethod
+    def mysql_router_password_command(self) -> str:
+        """The mysqlrouter-passwd command."""
 
     @property
     @abc.abstractmethod
@@ -89,6 +99,11 @@ class Container(abc.ABC):
     def mysql_router_service_enabled(self) -> bool:
         """MySQL Router service status"""
 
+    @property
+    @abc.abstractmethod
+    def mysql_router_exporter_service_enabled(self) -> bool:
+        """MySQL Router exporter service status"""
+
     @abc.abstractmethod
     def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
         """Update and restart MySQL Router service.
@@ -101,6 +116,14 @@ class Container(abc.ABC):
             assert tls is not None, "`tls` argument required when enabled=True"
 
     @abc.abstractmethod
+    def update_mysql_router_exporter_service_enabled(self, *, enabled: bool) -> None:
+        """Update and restart the MySQL Router exporter service.
+
+        Args:
+            enabled: Whether MySQL Router service is enabled
+        """
+
+    @abc.abstractmethod
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _run_command(self, command: typing.List[str], *, timeout: typing.Optional[int]) -> str:
         """Run command in container.
@@ -110,7 +133,9 @@ class Container(abc.ABC):
         """
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def run_mysql_router(self, args: typing.List[str], *, timeout: int = None) -> str:
+    def run_mysql_router(
+        self, args: typing.List[str], *, timeout: int = None, input: typing.Optional[str] = None
+    ) -> str:
         """Run MySQL Router command.
 
         Raises:

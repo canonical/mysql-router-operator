@@ -13,6 +13,7 @@ import ops
 
 import abstract_charm
 import machine_logrotate
+import relations.cos
 import relations.database_providers_wrapper
 import snap
 import socket_workload
@@ -29,6 +30,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         # DEPRECATED shared-db: Enable legacy "mysql-shared" interface
         del self._database_provides
         self._database_provides = relations.database_providers_wrapper.RelationEndpoint(self)
+        self._cos = relations.cos.COSRelation(self)
 
         self._authenticated_workload_type = socket_workload.AuthenticatedSocketWorkload
         self.framework.observe(self.on.install, self._on_install)

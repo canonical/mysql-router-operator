@@ -5,9 +5,7 @@
 
 import configparser
 import logging
-import pathlib
 import socket
-import string
 import typing
 
 import ops
@@ -32,10 +30,6 @@ class Workload:
         self._container = container_
         self._logrotate = logrotate_
         self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
-        self._tls_key_file = self._container.router_config_directory / "custom-key.pem"
-        self._tls_certificate_file = (
-            self._container.router_config_directory / "custom-certificate.pem"
-        )
 
     @property
     def container_ready(self) -> bool:
@@ -67,37 +61,13 @@ class Workload:
         self._router_data_directory.mkdir()
         logger.debug("Disabled MySQL Router service")
 
-    @property
-    def _tls_config_file_data(self) -> str:
-        """Render config file template to string.
-
-        Config file enables TLS on MySQL Router.
-        """
-        template = string.Template(pathlib.Path("templates/tls.cnf").read_text(encoding="utf-8"))
-        config_string = template.substitute(
-            tls_ssl_key_file=self._tls_key_file,
-            tls_ssl_cert_file=self._tls_certificate_file,
-        )
-        return config_string
-
-    def enable_tls(self, *, key: str, certificate: str):
-        """Enable TLS."""
-        logger.debug("Enabling TLS")
-        self._container.tls_config_file.write_text(self._tls_config_file_data)
-        self._tls_key_file.write_text(key)
-        self._tls_certificate_file.write_text(certificate)
-        logger.debug("Enabled TLS")
-
-    def disable_tls(self) -> None:
-        """Disable TLS."""
-        logger.debug("Disabling TLS")
-        for file in (
-            self._container.tls_config_file,
-            self._tls_key_file,
-            self._tls_certificate_file,
-        ):
-            file.unlink(missing_ok=True)
-        logger.debug("Disabled TLS")
+    def disable_exporter(self) -> None:
+        """Stop and disable MySQL Router exporter service."""
+        if not self._container.mysql_router_exporter_service_enabled:
+            return
+        logger.debug("Disabling MySQL Router exporter service")
+        self._container.update_mysql_router_exporter_service_enabled(enabled=False)
+        logger.debug("Disabled MySQL Router exporter service")
 
     def get_status(self, event) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""
@@ -114,10 +84,12 @@ class AuthenticatedWorkload(Workload):
         container_: container.Container,
         logrotate_: logrotate.LogRotate,
         connection_info: "relations.database_requires.ConnectionInformation",
+        exporter_user_info: "relations.cos.ExporterUserInformation",
         charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
         super().__init__(container_=container_, logrotate_=logrotate_)
         self._connection_info = connection_info
+        self._exporter_user_info = exporter_user_info
         self._charm = charm_
 
     @property
@@ -227,6 +199,19 @@ class AuthenticatedWorkload(Workload):
         logger.debug("Enabled MySQL Router service")
         self._charm.wait_until_mysql_router_ready()
 
+    def enable_exporter(self, *, exporter_config: dict = {}) -> None:
+        """Start and enable the MySQL Router exporter service."""
+        if (
+            self._container.mysql_router_exporter_service_enabled
+            or not self._container.mysql_router_service_enabled
+        ):
+            return
+        logger.debug("Enabling MySQL Router exporter service")
+        self._container.update_mysql_router_exporter_service_enabled(
+            enabled=True, exporter_config=exporter_config
+        )
+        logger.debug("Enabled MySQL Router exporter service")
+
     def _restart(self, *, tls: bool) -> None:
         """Restart MySQL Router to enable or disable TLS."""
         logger.debug("Restarting MySQL Router")
@@ -237,18 +222,6 @@ class AuthenticatedWorkload(Workload):
         # wait_until_mysql_router_ready will set WaitingStatus—override it with current charm
         # status
         self._charm.set_status(event=None)
-
-    def enable_tls(self, *, key: str, certificate: str):
-        """Enable TLS and restart MySQL Router."""
-        super().enable_tls(key=key, certificate=certificate)
-        if self._container.mysql_router_service_enabled:
-            self._restart(tls=True)
-
-    def disable_tls(self) -> None:
-        """Disable TLS and restart MySQL Router."""
-        super().disable_tls()
-        if self._container.mysql_router_service_enabled:
-            self._restart(tls=False)
 
     def get_status(self, event) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""

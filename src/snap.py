@@ -18,7 +18,7 @@ import container
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
-_REVISION = "69"  # v8.0.34
+_REVISION = "89"  # v8.0.35 test
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
 
@@ -120,6 +120,7 @@ class Snap(container.Container):
     """Workload snap container"""
 
     _SERVICE_NAME = "mysqlrouter-service"
+    _EXPORTER_SERVICE_NAME = "mysqlrouter-exporter"
 
     def __init__(self) -> None:
         super().__init__(
@@ -128,12 +129,20 @@ class Snap(container.Container):
         )
 
     @property
+    def mysql_router_password_command(self) -> str:
+        return f"{_SNAP_NAME}.mysqlrouter-passwd"
+
+    @property
     def ready(self) -> bool:
         return True
 
     @property
     def mysql_router_service_enabled(self) -> bool:
         return _snap.services[self._SERVICE_NAME]["active"]
+
+    @property
+    def mysql_router_exporter_service_enabled(self) -> bool:
+        return _snap.services[self._EXPORTER_SERVICE_NAME]["active"]
 
     def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
         super().update_mysql_router_service(enabled=enabled, tls=tls)
@@ -144,11 +153,36 @@ class Snap(container.Container):
         else:
             _snap.stop([self._SERVICE_NAME], disable=True)
 
+    def update_mysql_router_exporter_service_enabled(
+        self, *, enabled: bool, exporter_config: dict = {}
+    ) -> bool:
+        if enabled:
+            _snap.set(
+                {
+                    "mysqlrouter-exporter.user": exporter_config["username"],
+                    "mysqlrouter-exporter.password": exporter_config["password"],
+                    "mysqlrouter-exporter.url": exporter_config["url"],
+                }
+            )
+            _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
+        else:
+            _snap.unset("mysqlrouter-exporter.user")
+            _snap.unset("mysqlrouter-exporter.password")
+            _snap.unset("mysqlrouter-exporter.url")
+            _snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)
+
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _run_command(self, command: typing.List[str], *, timeout: typing.Optional[int]) -> str:
+    def _run_command(
+        self,
+        command: typing.List[str],
+        *,
+        timeout: typing.Optional[int],
+        input: typing.Optional[str] = None,
+    ) -> str:
         try:
             output = subprocess.run(
                 command,
+                input=input,
                 capture_output=True,
                 timeout=timeout,
                 check=True,

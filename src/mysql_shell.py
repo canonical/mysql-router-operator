@@ -9,15 +9,12 @@ https://dev.mysql.com/doc/mysql-shell/8.0/en/
 import dataclasses
 import json
 import logging
-import secrets
-import string
 import typing
 
 import container
+import utils
 
 logger = logging.getLogger(__name__)
-
-_PASSWORD_LENGTH = 24
 
 
 # TODO python3.10 min version: Add `(kw_only=True)`
@@ -80,11 +77,6 @@ class Shell:
             commands.append('session.run_sql("' + statement + '")')
         self._run_commands(commands)
 
-    @staticmethod
-    def _generate_password() -> str:
-        choices = string.ascii_letters + string.digits
-        return "".join(secrets.choice(choices) for _ in range(_PASSWORD_LENGTH))
-
     def _get_attributes(self, additional_attributes: dict = None) -> str:
         """Attributes for (MySQL) users created by this charm
 
@@ -100,7 +92,7 @@ class Shell:
         """Create database and user for related database_provides application."""
         attributes = self._get_attributes()
         logger.debug(f"Creating {database=} and {username=} with {attributes=}")
-        password = self._generate_password()
+        password = utils.generate_password()
         self._run_sql(
             [
                 f"CREATE DATABASE IF NOT EXISTS `{database}`",
