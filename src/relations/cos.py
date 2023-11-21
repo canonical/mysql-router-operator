@@ -10,6 +10,7 @@ import charms.data_platform_libs.v0.secrets as secrets
 import ops
 from charms.grafana_agent.v0.cos_agent import COSAgentProvider
 
+import snap
 import utils
 from snap import _SNAP_NAME
 
@@ -89,7 +90,7 @@ class COSRelation:
         """Set up a router REST API use for mysqlrouter exporter."""
         logger.debug("Setting up router REST API user for mysqlrouter exporter")
         password = self._get_monitoring_password()
-        credentials_file = self.charm_._container.path("/etc/mysqlrouter/rest_api_credentials")
+        credentials_file = self.charm_._container.path(snap.REST_API_CREDENTIALS_FILE)
 
         self.charm_._container._run_command(
             [
@@ -105,7 +106,7 @@ class COSRelation:
 
     def cleanup_monitoring_user(self) -> None:
         """Clean up router REST API user for mysqlrouter exporter."""
-        credentials_file = self.charm_._container.path("/etc/mysqlrouter/rest_api_credentials")
+        credentials_file = self.charm_._container.path(snap.REST_API_CREDENTIALS_FILE)
         if not credentials_file.exists():
             return
 

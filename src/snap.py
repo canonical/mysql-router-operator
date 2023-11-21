@@ -18,9 +18,10 @@ import container
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
-_REVISION = "89"  # v8.0.35 test
+_REVISION = "90"  # v8.0.35
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
+REST_API_CREDENTIALS_FILE = "/etc/mysqlrouter/rest_api_credentials"
 
 
 def install(*, unit: ops.Unit):
@@ -144,10 +145,20 @@ class Snap(container.Container):
     def mysql_router_exporter_service_enabled(self) -> bool:
         return _snap.services[self._EXPORTER_SERVICE_NAME]["active"]
 
-    def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
+    def update_mysql_router_service(
+        self, *, enabled: bool, tls: bool = None, exporter: bool = None
+    ) -> None:
         super().update_mysql_router_service(enabled=enabled, tls=tls)
         if tls:
             raise NotImplementedError  # TODO VM TLS
+        if exporter:
+            _snap.set(
+                {
+                    "mysqlrouter.extra-options": f"--extra-config {self.path(REST_API_CREDENTIALS_FILE)}",
+                }
+            )
+        else:
+            _snap.unset("mysqlrouter.extra-options")
         if enabled:
             _snap.start([self._SERVICE_NAME], enable=True)
         else:

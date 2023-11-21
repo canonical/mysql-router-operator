@@ -4,6 +4,7 @@
 """MySQL Router workload"""
 
 import configparser
+import io
 import logging
 import socket
 import typing
@@ -13,6 +14,7 @@ import ops
 import container
 import logrotate
 import mysql_shell
+import snap
 
 if typing.TYPE_CHECKING:
     import abstract_charm
@@ -30,6 +32,9 @@ class Workload:
         self._container = container_
         self._logrotate = logrotate_
         self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
+        self._http_backend_auth_config = self._container.path(
+            "/etc/mysqlrouter/router_rest_api.conf"
+        )
 
     @property
     def container_ready(self) -> bool:
@@ -181,7 +186,7 @@ class AuthenticatedWorkload(Workload):
         """
         return self._parse_username_from_config(self._container.router_config_file.read_text())
 
-    def enable(self, *, tls: bool, unit_name: str) -> None:
+    def enable(self, *, tls: bool, unit_name: str, exporter: bool = None) -> None:
         """Start and enable MySQL Router service."""
         if self._container.mysql_router_service_enabled:
             # If the host or port changes, MySQL Router will receive topology change
@@ -194,7 +199,9 @@ class AuthenticatedWorkload(Workload):
         self.shell.add_attributes_to_mysql_router_user(
             username=self._router_username, router_id=self._router_id, unit_name=unit_name
         )
-        self._container.update_mysql_router_service(enabled=True, tls=tls)
+        if exporter:
+            self._render_http_backend_auth_config()
+        self._container.update_mysql_router_service(enabled=True, tls=tls, exporter=exporter)
         self._logrotate.enable()
         logger.debug("Enabled MySQL Router service")
         self._charm.wait_until_mysql_router_ready()
@@ -235,3 +242,15 @@ class AuthenticatedWorkload(Workload):
             return ops.BlockedStatus(
                 "Router was manually removed from MySQL ClusterSet. Remove & re-deploy unit"
             )
+
+    def _render_http_backend_auth_config(self) -> None:
+        """Render the router config for the http backend auth."""
+        config = configparser.ConfigParser(interpolation=None)
+        config["http_auth_backend:default_auth_backend"] = {
+            "backend": "file",
+            "filename": str(self._container.path(snap.REST_API_CREDENTIALS_FILE)),
+        }
+
+        with io.StringIO() as string_io:
+            config.write(string_io)
+            self._http_backend_auth_config.write_text(string_io.getvalue())

@@ -306,9 +306,21 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             self._cos.cleanup_monitoring_user()
             workload_.disable_exporter()
         if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
-            workload_.enable(tls=self._tls_certificate_saved, unit_name=self.unit.name)
-            if self._cos.relation_exists:
+            cos_relation_exists = self._cos.relation_exists and not self._cos.is_relation_breaking(
+                event
+            )
+            exporter_running = workload_._container.mysql_router_exporter_service_enabled
+            if cos_relation_exists and not exporter_running:
+                workload_.disable()
                 self._cos.setup_monitoring_user()
+            if exporter_running and self._cos.is_relation_breaking(event):
+                workload_.disable()
+            workload_.enable(
+                tls=self._tls_certificate_saved,
+                unit_name=self.unit.name,
+                exporter=cos_relation_exists,
+            )
+            if cos_relation_exists and not exporter_running:
                 workload_.enable_exporter(exporter_config=self._cos.exporter_user_info)
         elif workload_.container_ready:
             workload_.disable()
