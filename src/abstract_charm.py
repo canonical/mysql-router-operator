@@ -8,7 +8,7 @@ import logging
 import socket
 import typing
 
-import charms.data_platform_libs.v0.secrets as secrets
+import charms.data_platform_libs.v0.data_secrets as secrets
 import ops
 import tenacity
 
