@@ -313,7 +313,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             if cos_relation_exists and not exporter_running:
                 workload_.disable()
                 self._cos.setup_monitoring_user()
-            if exporter_running and self._cos.is_relation_breaking(event):
+            elif exporter_running and self._cos.is_relation_breaking(event):
                 workload_.disable()
             workload_.enable(
                 tls=self._tls_certificate_saved,
