@@ -24,9 +24,22 @@ _UNIX_USERNAME = "snap_daemon"
 REST_API_CREDENTIALS_FILE = "/etc/mysqlrouter/rest_api_credentials"
 
 
-def install(*, unit: ops.Unit):
+def install(*, unit: ops.Unit, model_uuid: str):
     """Install snap."""
-    if _snap.present:
+    installed_by_unit = pathlib.Path(
+        "/var/snap", _SNAP_NAME, "common", "installed_by_mysql_router_charm_unit"
+    )
+    unique_unit_name = f"{model_uuid}_{unit.name}"
+    # This charm can override/use an existing snap installation only if the snap was previously
+    # installed by this charm.
+    # Otherwise, the snap could be in use by another charm (e.g. MySQL Server charm, a different
+    # MySQL Router charm).
+    if _snap.present and not (
+        installed_by_unit.exists() and installed_by_unit.read_text() == unique_unit_name
+    ):
+        logger.debug(
+            f"{installed_by_unit.exists() and installed_by_unit.read_text()=} {unique_unit_name=}"
+        )
         logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
         raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
     logger.debug(f"Installing {_SNAP_NAME=}, {_REVISION=}")
@@ -46,6 +59,8 @@ def install(*, unit: ops.Unit):
     ):
         with attempt:
             _snap.ensure(state=snap_lib.SnapState.Present, revision=_REVISION)
+    installed_by_unit.write_text(unique_unit_name)
+    logger.debug(f"Wrote {unique_unit_name=} to {installed_by_unit.name=}")
     _snap.hold()
     logger.debug(f"Installed {_SNAP_NAME=}, {_REVISION=}")
 
