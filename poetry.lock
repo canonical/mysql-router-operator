@@ -727,12 +727,12 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "juju"
-version = "2.9.44.0"
+version = "3.2.0.1"
 description = "Python library for Juju"
 optional = false
 python-versions = "*"
 files = [
-    {file = "juju-2.9.44.0.tar.gz", hash = "sha256:bc71fe0c8fd59ee00f0c3b03066682cd2273f299c36135451abb1a81289e68f9"},
+    {file = "juju-3.2.0.1.tar.gz", hash = "sha256:7b167e6750002cf0a3888acbb9081f6eaf492c5d34500717784ec2aef5214545"},
 ]
 
 [package.dependencies]
@@ -978,13 +978,13 @@ websocket-client = "==1.*"
 
 [[package]]
 name = "ops-scenario"
-version = "5.1.2"
+version = "5.4.1"
 description = "Python library providing a state-transition testing API for Operator Framework charms."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "ops-scenario-5.1.2.tar.gz", hash = "sha256:48d3caa6cae3e91b7ce65437c79413e3facd198ac941c7d12a322b27a786e743"},
-    {file = "ops_scenario-5.1.2-py3-none-any.whl", hash = "sha256:6a08a9586e9dac173703433e19f2437a8c7f34afa5dd4b1b27415b7089e0a270"},
+    {file = "ops-scenario-5.4.1.tar.gz", hash = "sha256:7d9e303038d62deac5497e29c3addb074e8a7c49c567e531924f39e4848ec9df"},
+    {file = "ops_scenario-5.4.1-py3-none-any.whl", hash = "sha256:2de8d1e831939aac295e170fc5c338d09aaf3b454ef6b2a83c7793babcffa139"},
 ]
 
 [package.dependencies]
@@ -1418,6 +1418,23 @@ pytest = ">=4.6"
 
 [package.extras]
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
+
+[[package]]
+name = "pytest-mock"
+version = "3.11.1"
+description = "Thin-wrapper around the mock package for easier use with pytest"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pytest-mock-3.11.1.tar.gz", hash = "sha256:7f6b125602ac6d743e523ae0bfa71e1a697a2f5534064528c6ff84c2f7c2fc7f"},
+    {file = "pytest_mock-3.11.1-py3-none-any.whl", hash = "sha256:21c279fff83d70763b05f8874cc9cfb3fcacd6d354247a976f9529d19f9acf39"},
+]
+
+[package.dependencies]
+pytest = ">=5.0"
+
+[package.extras]
+dev = ["pre-commit", "pytest-asyncio", "tox"]
 
 [[package]]
 name = "pytest-operator"
@@ -1978,4 +1995,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1"
-content-hash = "39a6518d54ff3b1d0fceeeb4b878f9f294973d7e0cb43bd2c4b9a1d057ee9920"
+content-hash = "42e6735c9add82a8adfb20216cc7f773caa93c1f901a34346f72559d49526c9a"
