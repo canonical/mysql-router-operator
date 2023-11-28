@@ -32,9 +32,7 @@ class Workload:
         self._container = container_
         self._logrotate = logrotate_
         self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
-        self._http_backend_auth_config = self._container.path(
-            "/etc/mysqlrouter/router_rest_api.conf"
-        )
+        self._http_backend_auth_config = self._container.path(snap.REST_API_CONF)
 
     @property
     def container_ready(self) -> bool:

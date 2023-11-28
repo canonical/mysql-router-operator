@@ -22,6 +22,7 @@ _REVISION = "90"  # v8.0.35
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
 REST_API_CREDENTIALS_FILE = "/etc/mysqlrouter/rest_api_credentials"
+REST_API_CONF = "/etc/mysqlrouter/router_rest_api.conf"
 
 
 def install(*, unit: ops.Unit, model_uuid: str):
@@ -169,7 +170,7 @@ class Snap(container.Container):
         if exporter:
             _snap.set(
                 {
-                    "mysqlrouter.extra-options": f"--extra-config {self.path(REST_API_CREDENTIALS_FILE)}",
+                    "mysqlrouter.extra-options": f"--extra-config {self.path(REST_API_CONF)}",
                 }
             )
         else:
