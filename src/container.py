@@ -176,11 +176,11 @@ class Container(abc.ABC):
         if not user:
             return
 
-        command = "set" if password else "delete"
+        action = "set" if password else "delete"
         self._run_command(
             [
                 self._mysql_router_password_command,
-                command,
+                action,
                 str(credentials_file),
                 user,
             ],
