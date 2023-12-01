@@ -7,7 +7,7 @@ import secrets
 import string
 
 
-def generate_password(password_length: int = 24) -> str:
-    """Generate a random password of the provided password length."""
+def generate_password() -> str:
+    """Generate a random password."""
     choices = string.ascii_letters + string.digits
-    return "".join(secrets.choice(choices) for _ in range(password_length))
+    return "".join(secrets.choice(choices) for _ in range(24))

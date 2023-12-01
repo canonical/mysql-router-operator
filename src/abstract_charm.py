@@ -95,10 +95,12 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 container_=self._container,
                 logrotate_=self._logrotate,
                 connection_info=connection_info,
-                exporter_user_info=self._cos.exporter_user_info,
+                cos_=self._cos,
                 charm_=self,
             )
-        return self._workload_type(container_=self._container, logrotate_=self._logrotate)
+        return self._workload_type(
+            container_=self._container, logrotate_=self._logrotate, cos_=self._cos
+        )
 
     @staticmethod
     # TODO python3.10 min version: Use `list` instead of `typing.List`
@@ -302,28 +304,16 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     router_read_only_endpoint=self._read_only_endpoint,
                     shell=workload_.shell,
                 )
-        if self._cos.is_relation_breaking(event):
-            self._cos.cleanup_monitoring_user()
-            workload_.disable_exporter()
         if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
             cos_relation_exists = self._cos.relation_exists and not self._cos.is_relation_breaking(
                 event
             )
-            exporter_running = workload_._container.mysql_router_exporter_service_enabled
-            if cos_relation_exists and not exporter_running:
-                workload_.disable()
-                self._cos.setup_monitoring_user()
-            elif exporter_running and self._cos.is_relation_breaking(event):
-                workload_.disable()
             workload_.enable(
                 tls=self._tls_certificate_saved,
                 unit_name=self.unit.name,
-                exporter=cos_relation_exists,
+                exporter_config=self._cos.exporter_user_info if cos_relation_exists else {},
             )
-            if cos_relation_exists and not exporter_running:
-                workload_.enable_exporter(exporter_config=self._cos.exporter_user_info)
         elif workload_.container_ready:
-            workload_.disable()
-            self._cos.cleanup_monitoring_user()
             workload_.disable_exporter()
+            workload_.disable()
         self.set_status(event=event)

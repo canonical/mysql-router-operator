@@ -68,6 +68,15 @@ class Container(abc.ABC):
         return self.router_config_directory / "mysqlrouter.conf"
 
     @property
+    def rest_api_credentials_file(self) -> Path:
+        """Credentials file for MySQL Router's REST API"""
+        return self.router_config_directory / "rest_api_credentials"
+
+    @property
+    def rest_api_conf(self) -> Path:
+        return self.router_config_directory / "router_rest_api.conf"
+
+    @property
     def tls_config_file(self) -> Path:
         """Extra MySQL Router configuration file to enable TLS"""
         return self.router_config_directory / "tls.conf"
@@ -77,14 +86,11 @@ class Container(abc.ABC):
         *,
         mysql_router_command: str,
         mysql_shell_command: str,
+        mysql_router_password_command: str,
     ) -> None:
         self._mysql_router_command = mysql_router_command
         self._mysql_shell_command = mysql_shell_command
-
-    @property
-    @abc.abstractmethod
-    def mysql_router_password_command(self) -> str:
-        """The mysqlrouter-passwd command."""
+        self._mysql_router_password_command = mysql_router_password_command
 
     @property
     @abc.abstractmethod
@@ -116,11 +122,11 @@ class Container(abc.ABC):
             assert tls is not None, "`tls` argument required when enabled=True"
 
     @abc.abstractmethod
-    def update_mysql_router_exporter_service_enabled(self, *, enabled: bool) -> None:
+    def update_mysql_router_exporter_service(self, *, enabled: bool) -> None:
         """Update and restart the MySQL Router exporter service.
 
         Args:
-            enabled: Whether MySQL Router service is enabled
+            enabled: Whether MySQL Router exporter service is enabled
         """
 
     @abc.abstractmethod
@@ -157,3 +163,27 @@ class Container(abc.ABC):
     @abc.abstractmethod
     def path(self, *args) -> Path:
         """Container filesystem path"""
+
+    def set_mysql_router_rest_api_password(
+        self, *, user: str = None, password: str = None
+    ) -> None:
+        """Set REST API credentials using the mysqlrouter_password command."""
+        credentials_file = self.rest_api_credentials_file
+        if not credentials_file.exists():
+            # create empty credentials file
+            credentials_file.write_text("")
+
+        if not user:
+            return
+
+        command = "set" if password else "delete"
+        self._run_command(
+            [
+                self._mysql_router_password_command,
+                command,
+                str(credentials_file),
+                user,
+            ],
+            input=password,
+            timeout=30,
+        )

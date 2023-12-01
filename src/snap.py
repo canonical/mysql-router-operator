@@ -21,8 +21,6 @@ _SNAP_NAME = "charmed-mysql"
 _REVISION = "90"  # v8.0.35
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
-REST_API_CREDENTIALS_FILE = "/etc/mysqlrouter/rest_api_credentials"
-REST_API_CONF = "/etc/mysqlrouter/router_rest_api.conf"
 
 
 def install(*, unit: ops.Unit, model_uuid: str):
@@ -143,11 +141,8 @@ class Snap(container.Container):
         super().__init__(
             mysql_router_command=f"{_SNAP_NAME}.mysqlrouter",
             mysql_shell_command=f"{_SNAP_NAME}.mysqlsh",
+            mysql_router_password_command=f"{_SNAP_NAME}.mysqlrouter-passwd",
         )
-
-    @property
-    def mysql_router_password_command(self) -> str:
-        return f"{_SNAP_NAME}.mysqlrouter-passwd"
 
     @property
     def ready(self) -> bool:
@@ -161,34 +156,25 @@ class Snap(container.Container):
     def mysql_router_exporter_service_enabled(self) -> bool:
         return _snap.services[self._EXPORTER_SERVICE_NAME]["active"]
 
-    def update_mysql_router_service(
-        self, *, enabled: bool, tls: bool = None, exporter: bool = None
-    ) -> None:
+    def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
         super().update_mysql_router_service(enabled=enabled, tls=tls)
         if tls:
             raise NotImplementedError  # TODO VM TLS
-        if exporter:
-            _snap.set(
-                {
-                    "mysqlrouter.extra-options": f"--extra-config {self.path(REST_API_CONF)}",
-                }
-            )
-        else:
-            _snap.unset("mysqlrouter.extra-options")
+
         if enabled:
+            _snap.set({"mysqlrouter.extra-options": f"--extra-config {self.rest_api_conf}"})
             _snap.start([self._SERVICE_NAME], enable=True)
         else:
+            _snap.unset("mysqlrouter.extra-options")
             _snap.stop([self._SERVICE_NAME], disable=True)
 
-    def update_mysql_router_exporter_service_enabled(
-        self, *, enabled: bool, exporter_config: dict = {}
-    ) -> bool:
+    def update_mysql_router_exporter_service(self, *, enabled: bool, config: dict = {}) -> None:
         if enabled:
             _snap.set(
                 {
-                    "mysqlrouter-exporter.user": exporter_config["username"],
-                    "mysqlrouter-exporter.password": exporter_config["password"],
-                    "mysqlrouter-exporter.url": exporter_config["url"],
+                    "mysqlrouter-exporter.user": config["username"],
+                    "mysqlrouter-exporter.password": config["password"],
+                    "mysqlrouter-exporter.url": config["url"],
                 }
             )
             _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
@@ -203,8 +189,8 @@ class Snap(container.Container):
         self,
         command: typing.List[str],
         *,
-        timeout: typing.Optional[int],
-        input: typing.Optional[str] = None,
+        timeout: int,
+        input: str = None,
     ) -> str:
         try:
             output = subprocess.run(

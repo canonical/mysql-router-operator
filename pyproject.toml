@@ -17,9 +17,8 @@ jinja2 = "^3.1.2"
 [tool.poetry.group.charm-libs.dependencies]
 # data_platform_libs/v0/data_interfaces.py
 ops = ">=2.0.0"
-# grafana_agent/v0/cos_agent.py requires pydantic <2
-pydantic = "<2"
 # grafana_agent/v0/cos_agent.py
+pydantic = "<2"
 cosl = "*"
 
 [tool.poetry.group.format]
