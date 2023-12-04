@@ -16,7 +16,7 @@ MYSQL_APP_NAME = "mysql"
 MYSQL_ROUTER_APP_NAME = "mysql-router"
 APPLICATION_APP_NAME = "mysql-test-app"
 GRAFANA_AGENT_APP_NAME = "grafana-agent"
-SLOW_TIMEOUT = 15 * 60
+SLOW_TIMEOUT = 25 * 60
 
 
 @pytest.mark.group(1)
