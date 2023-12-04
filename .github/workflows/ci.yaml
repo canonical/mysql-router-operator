@@ -156,7 +156,7 @@ jobs:
             echo "mark_expression=not unstable" >> "$GITHUB_OUTPUT"
           fi
       - name: Run integration tests
-        if: matrix.groups.path_to_test_file != "tests/integration/test_exporter.py" || matrix.ubuntu-versions.series != "focal"
+        if: matrix.groups.path_to_test_file != 'tests/integration/test_exporter.py' || matrix.ubuntu-versions.series != 'focal'
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }}
         env:
           LIBJUJU_VERSION_SPECIFIER: ${{ matrix.libjuju-version }}
