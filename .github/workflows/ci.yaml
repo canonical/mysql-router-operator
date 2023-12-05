@@ -117,6 +117,7 @@ jobs:
             agent-version: "2.9.45"
             libjuju-version:  "2.9.44.1"
         exclude:
+          # Skip exporter tests on focal since grafana_agent does not support focal yet
           - {groups: {path_to_test_file: tests/integration/test_exporter.py}, ubuntu-versions: {series: focal}}
     name: ${{ matrix.juju-snap-channel }} - (GH hosted) ${{ matrix.groups.job_name }} | ${{ matrix.ubuntu-versions.series }}
     needs:
