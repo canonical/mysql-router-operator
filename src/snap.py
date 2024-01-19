@@ -118,6 +118,9 @@ class _Path(pathlib.PosixPath, container.Path):
             return pathlib.PurePosixPath("/", self.relative_to(parent))
         return self
 
+    def open(self, mode="r", buffering=-1, encoding="utf-8", *args, **kwargs):
+        return super().open(mode, buffering, encoding, *args, **kwargs)
+
     def read_text(self, encoding="utf-8", *args, **kwargs) -> str:
         return super().read_text(encoding, *args, **kwargs)
 

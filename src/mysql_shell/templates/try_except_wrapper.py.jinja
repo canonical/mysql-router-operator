@@ -1,0 +1,17 @@
+import json
+import mysqlsh
+import traceback
+
+try:
+    shell.connect("{{ username }}:{{ password }}@{{ host }}:{{ port }}")
+    {{ code|indent(width=4) }}
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("{{ error_filepath }}", "w") as file:
+    json.dump(error, file)

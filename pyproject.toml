@@ -93,8 +93,9 @@ select = ["E", "W", "F", "C", "N", "R", "D", "H"]
 # Ignore D403 First word of the first line should be properly capitalized (false positive on "MySQL")
 # Ignore N818 Exception should be named with an Error suffix
 # Ignore D102 Missing docstring in public method (pydocstyle doesn't look for docstrings in super class
+# Ignore W505 So that strings in comments aren't split across lines
 # https://github.com/PyCQA/pydocstyle/issues/309) TODO: add pylint check? https://github.com/PyCQA/pydocstyle/issues/309#issuecomment-1284142716
-ignore = ["W503", "E501", "D107", "D105", "D415", "D403", "N818", "D102"]
+ignore = ["W503", "E501", "D107", "D105", "D415", "D403", "N818", "D102", "W505"]
 # D100, D101, D102, D103: Ignore missing docstrings in tests
 per-file-ignores = ["tests/*:D100,D101,D102,D103,D104"]
 docstring-convention = "google"

@@ -37,6 +37,10 @@ def patch(monkeypatch):
         lambda *args, **kwargs: None,
     )
     monkeypatch.setattr("workload.AuthenticatedWorkload._router_username", "")
+    monkeypatch.setattr("mysql_shell.Shell._run_code", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "mysql_shell.Shell.get_mysql_router_user_for_unit", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr("mysql_shell.Shell.is_router_in_cluster_set", lambda *args, **kwargs: True)
     monkeypatch.setattr("upgrade.Upgrade.in_progress", False)
     monkeypatch.setattr("upgrade.Upgrade.versions_set", True)

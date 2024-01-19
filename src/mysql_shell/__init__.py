@@ -9,11 +9,18 @@ https://dev.mysql.com/doc/mysql-shell/8.0/en/
 import dataclasses
 import json
 import logging
+import pathlib
 import secrets
 import string
 import typing
 
+import jinja2
+
 import container
+import server_exceptions
+
+if typing.TYPE_CHECKING:
+    import relations.database_requires
 
 logger = logging.getLogger(__name__)
 
@@ -29,33 +36,57 @@ class RouterUserInformation:
     router_id: str
 
 
+class ShellDBError(Exception):
+    """`mysqlsh.DBError` raised while executing MySQL Shell script
+
+    MySQL Shell runs Python code in a separate process from the charm Python code.
+    The `mysqlsh.DBError` was caught by the shell code, serialized to JSON, and de-serialized to
+    this exception.
+    """
+
+    def __init__(self, *, message: str, code: int, traceback_message: str):
+        super().__init__(message)
+        self.code = code
+        self.traceback_message = traceback_message
+
+
 # TODO python3.10 min version: Add `(kw_only=True)`
 @dataclasses.dataclass
 class Shell:
     """MySQL Shell connected to MySQL cluster"""
 
     _container: container.Container
-    username: str
-    _password: str
-    _host: str
-    _port: str
+    _connection_info: "relations.database_requires.CompleteConnectionInformation"
+
+    @property
+    def username(self):
+        return self._connection_info.username
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _run_commands(self, commands: typing.List[str]) -> str:
-        """Connect to MySQL cluster and run commands."""
-        # Redact password from log
-        logged_commands = commands.copy()
-        logged_commands.insert(
-            0, f"shell.connect('{self.username}:***@{self._host}:{self._port}')"
-        )
+    def _run_code(self, code: str) -> None:
+        """Connect to MySQL cluster and run Python code."""
+        template = _jinja_env.get_template("try_except_wrapper.py.jinja")
+        error_file = self._container.path("/tmp/mysqlsh_error.json")
 
-        commands.insert(
-            0, f"shell.connect('{self.username}:{self._password}@{self._host}:{self._port}')"
-        )
-        temporary_script_file = self._container.path("/tmp/script.py")
-        temporary_script_file.write_text("\n".join(commands))
+        def render(connection_info: "relations.database_requires.ConnectionInformation"):
+            return template.render(
+                username=connection_info.username,
+                password=connection_info.password,
+                host=connection_info.host,
+                port=connection_info.port,
+                code=code,
+                error_filepath=error_file.relative_to_container,
+            )
+
+        # Redact password from log
+        logged_script = render(self._connection_info.redacted)
+
+        script = render(self._connection_info)
+        temporary_script_file = self._container.path("/tmp/mysqlsh_script.py")
+        error_file = self._container.path("/tmp/mysqlsh_error.json")
+        temporary_script_file.write_text(script)
         try:
-            output = self._container.run_mysql_shell(
+            self._container.run_mysql_shell(
                 [
                     "--no-wizard",
                     "--python",
@@ -64,21 +95,34 @@ class Shell:
                 ]
             )
         except container.CalledProcessError as e:
-            logger.exception(f"Failed to run {logged_commands=}\nstderr:\n{e.stderr}\n")
+            logger.exception(
+                f"Failed to run MySQL Shell script:\n{logged_script}\n\nstderr:\n{e.stderr}\n"
+            )
             raise
         finally:
             temporary_script_file.unlink()
-        return output
+        with error_file.open("r") as file:
+            exception = json.load(file)
+        error_file.unlink()
+        try:
+            if exception:
+                raise ShellDBError(**exception)
+        except ShellDBError as e:
+            if e.code == 2003:
+                logger.exception(server_exceptions.ConnectionError.MESSAGE)
+                raise server_exceptions.ConnectionError
+            else:
+                logger.exception(
+                    f"Failed to run MySQL Shell script:\n{logged_script}\n\nMySQL client error {e.code}\nMySQL Shell traceback:\n{e.traceback_message}\n"
+                )
+                raise
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _run_sql(self, sql_statements: typing.List[str]) -> None:
         """Connect to MySQL cluster and execute SQL."""
-        commands = []
-        for statement in sql_statements:
-            # Escape double quote (") characters in statement
-            statement = statement.replace('"', r"\"")
-            commands.append('session.run_sql("' + statement + '")')
-        self._run_commands(commands)
+        self._run_code(
+            _jinja_env.get_template("run_sql.py.jinja").render(statements=sql_statements)
+        )
 
     @staticmethod
     def _generate_password() -> str:
@@ -135,14 +179,17 @@ class Shell:
         again.
         """
         logger.debug(f"Getting MySQL Router user for {unit_name=}")
-        rows = json.loads(
-            self._run_commands(
-                [
-                    f"result = session.run_sql(\"SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='{self.username}' AND ATTRIBUTE->'$.created_by_juju_unit'='{unit_name}'\")",
-                    "print(result.fetch_all())",
-                ]
+        output_file = self._container.path("/tmp/mysqlsh_output.json")
+        self._run_code(
+            _jinja_env.get_template("get_mysql_router_user_for_unit.py.jinja").render(
+                username=self.username,
+                unit_name=unit_name,
+                output_filepath=output_file.relative_to_container,
             )
         )
+        with output_file.open("r") as file:
+            rows = json.load(file)
+        output_file.unlink()
         if not rows:
             logger.debug(f"No MySQL Router user found for {unit_name=}")
             return
@@ -159,8 +206,10 @@ class Shell:
         metadata already exists for the router ID.
         """
         logger.debug(f"Removing {router_id=} from cluster metadata")
-        self._run_commands(
-            ["cluster = dba.get_cluster()", f'cluster.remove_router_metadata("{router_id}")']
+        self._run_code(
+            _jinja_env.get_template("remove_router_from_cluster_metadata.py.jinja").render(
+                router_id=router_id
+            )
         )
         logger.debug(f"Removed {router_id=} from cluster metadata")
 
@@ -177,12 +226,24 @@ class Shell:
     def is_router_in_cluster_set(self, router_id: str) -> bool:
         """Check if MySQL Router is part of InnoDB ClusterSet."""
         logger.debug(f"Checking if {router_id=} in cluster set")
-        output = json.loads(
-            self._run_commands(
-                ["cluster_set = dba.get_cluster_set()", "print(cluster_set.list_routers())"]
+        output_file = self._container.path("/tmp/mysqlsh_output.json")
+        self._run_code(
+            _jinja_env.get_template("get_routers_in_cluster_set.py.jinja").render(
+                output_filepath=output_file.relative_to_container
             )
         )
+        with output_file.open("r") as file:
+            output = json.load(file)
+        output_file.unlink()
         cluster_set_router_ids = output["routers"].keys()
         logger.debug(f"{cluster_set_router_ids=}")
         logger.debug(f"Checked if {router_id in cluster_set_router_ids=}")
         return router_id in cluster_set_router_ids
+
+
+_jinja_env = jinja2.Environment(
+    autoescape=False,
+    trim_blocks=True,
+    loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent / "templates"),
+    undefined=jinja2.StrictUndefined,
+)

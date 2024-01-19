@@ -17,6 +17,7 @@ import logrotate
 import machine_upgrade
 import relations.database_provides
 import relations.database_requires
+import server_exceptions
 import upgrade
 import workload
 
@@ -232,37 +233,43 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             f"{self._database_requires.is_relation_breaking(event)=}, "
             f"{self._upgrade.in_progress=}"
         )
-        if self._unit_lifecycle.authorized_leader:
-            if self._database_requires.is_relation_breaking(event):
-                if self._upgrade.in_progress:
-                    logger.warning(
-                        "Modifying relations during an upgrade is not supported. The charm may be in a broken, unrecoverable state. Re-deploy the charm"
+        try:
+            if self._unit_lifecycle.authorized_leader:
+                if self._database_requires.is_relation_breaking(event):
+                    if self._upgrade.in_progress:
+                        logger.warning(
+                            "Modifying relations during an upgrade is not supported. The charm may be in a broken, unrecoverable state. Re-deploy the charm"
+                        )
+                    self._database_provides.delete_all_databags()
+                elif (
+                    not self._upgrade.in_progress
+                    and isinstance(workload_, workload.AuthenticatedWorkload)
+                    and workload_.container_ready
+                ):
+                    self._database_provides.reconcile_users(
+                        event=event,
+                        router_read_write_endpoint=self._read_write_endpoint,
+                        router_read_only_endpoint=self._read_only_endpoint,
+                        shell=workload_.shell,
                     )
-                self._database_provides.delete_all_databags()
-            elif (
-                not self._upgrade.in_progress
-                and isinstance(workload_, workload.AuthenticatedWorkload)
-                and workload_.container_ready
-            ):
-                self._database_provides.reconcile_users(
-                    event=event,
-                    router_read_write_endpoint=self._read_write_endpoint,
-                    router_read_only_endpoint=self._read_only_endpoint,
-                    shell=workload_.shell,
-                )
-        if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
-            workload_.enable(tls=self._tls_certificate_saved, unit_name=self.unit.name)
-        elif workload_.container_ready:
-            workload_.disable()
-        # Empty waiting status means we're waiting for database requires relation before starting
-        # workload
-        if not workload_.status or workload_.status == ops.WaitingStatus():
-            self._upgrade.unit_state = "healthy"
-        if self._unit_lifecycle.authorized_leader:
-            self._upgrade.reconcile_partition()
-            if not self._upgrade.in_progress:
-                self._upgrade.set_versions_in_app_databag()
-        self.set_status(event=event)
+            if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
+                workload_.enable(tls=self._tls_certificate_saved, unit_name=self.unit.name)
+            elif workload_.container_ready:
+                workload_.disable()
+            # Empty waiting status means we're waiting for database requires relation before
+            # starting workload
+            if not workload_.status or workload_.status == ops.WaitingStatus():
+                self._upgrade.unit_state = "healthy"
+            if self._unit_lifecycle.authorized_leader:
+                self._upgrade.reconcile_partition()
+                if not self._upgrade.in_progress:
+                    self._upgrade.set_versions_in_app_databag()
+            self.set_status(event=event)
+        except server_exceptions.Error as e:
+            # If not for `unit=False`, another `server_exceptions.Error` could be thrown here
+            self.set_status(event=event, unit=False)
+            self.unit.status = e.status
+            logger.debug(f"Set unit status to {self.unit.status}")
 
     def _on_resume_upgrade_action(self, event: ops.ActionEvent) -> None:
         if not self._unit_lifecycle.authorized_leader:

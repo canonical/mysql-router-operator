@@ -6,6 +6,7 @@
 import configparser
 import logging
 import pathlib
+import re
 import socket
 import string
 import typing
@@ -15,12 +16,22 @@ import ops
 import container
 import logrotate
 import mysql_shell
+import server_exceptions
 
 if typing.TYPE_CHECKING:
     import abstract_charm
     import relations.database_requires
 
 logger = logging.getLogger(__name__)
+
+
+class _NoQuorum(server_exceptions.Error):
+    """MySQL Server does not have quorum"""
+
+    MESSAGE = "MySQL Server does not have quorum. Will retry next Juju event"
+
+    def __init__(self):
+        super().__init__(ops.WaitingStatus(self.MESSAGE))
 
 
 class Workload:
@@ -125,7 +136,7 @@ class AuthenticatedWorkload(Workload):
         *,
         container_: container.Container,
         logrotate_: logrotate.LogRotate,
-        connection_info: "relations.database_requires.ConnectionInformation",
+        connection_info: "relations.database_requires.CompleteConnectionInformation",
         charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
         super().__init__(container_=container_, logrotate_=logrotate_)
@@ -136,11 +147,7 @@ class AuthenticatedWorkload(Workload):
     def shell(self) -> mysql_shell.Shell:
         """MySQL Shell"""
         return mysql_shell.Shell(
-            _container=self._container,
-            username=self._connection_info.username,
-            _password=self._connection_info.password,
-            _host=self._connection_info.host,
-            _port=self._connection_info.port,
+            _container=self._container, _connection_info=self._connection_info
         )
 
     @property
@@ -164,16 +171,18 @@ class AuthenticatedWorkload(Workload):
             logger.debug("Cleaned up after upgrade or container restart")
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _get_bootstrap_command(self, password: str) -> typing.List[str]:
+    def _get_bootstrap_command(
+        self, connection_info: "relations.database_requires.ConnectionInformation"
+    ) -> typing.List[str]:
         return [
             "--bootstrap",
-            self._connection_info.username
+            connection_info.username
             + ":"
-            + password
+            + connection_info.password
             + "@"
-            + self._connection_info.host
+            + connection_info.host
             + ":"
-            + self._connection_info.port,
+            + connection_info.port,
             "--strict",
             "--force",
             "--conf-set-option",
@@ -187,19 +196,39 @@ class AuthenticatedWorkload(Workload):
             f"Bootstrapping router {tls=}, {self._connection_info.host=}, {self._connection_info.port=}"
         )
         # Redact password from log
-        logged_command = self._get_bootstrap_command("***")
+        logged_command = self._get_bootstrap_command(self._connection_info.redacted)
 
-        command = self._get_bootstrap_command(self._connection_info.password)
+        command = self._get_bootstrap_command(self._connection_info)
         try:
             self._container.run_mysql_router(command, timeout=30)
         except container.CalledProcessError as e:
-            # Use `logger.error` instead of `logger.exception` so password isn't logged
-            logger.error(f"Failed to bootstrap router\n{logged_command=}\nstderr:\n{e.stderr}\n")
             # Original exception contains password
             # Re-raising would log the password to Juju's debug log
             # Raise new exception
             # `from None` disables exception chaining so that the original exception is not
             # included in the traceback
+
+            # Use `logger.error` instead of `logger.exception` so password isn't logged
+            logger.error(f"Failed to bootstrap router\n{logged_command=}\nstderr:\n{e.stderr}\n")
+            stderr = e.stderr.strip()
+            if (
+                stderr
+                == "Error: The provided server is currently not in a InnoDB cluster group with quorum and thus may contain inaccurate or outdated data."
+            ):
+                logger.error(_NoQuorum.MESSAGE)
+                raise _NoQuorum from None
+            # Example errors:
+            # - "Error: Unable to connect to the metadata server: Error connecting to MySQL server at mysql-k8s-primary.foo1.svc.cluster.local:3306: Can't connect to MySQL server on 'mysql-k8s-primary.foo1.svc.cluster.local:3306' (111) (2003)"
+            # - "Error: Unable to connect to the metadata server: Error connecting to MySQL server at mysql-k8s-primary.foo3.svc.cluster.local:3306: Unknown MySQL server host 'mysql-k8s-primary.foo3.svc.cluster.local' (-2) (2005)"
+            # Codes 2000-2999 are client errors
+            # (https://dev.mysql.com/doc/refman/8.0/en/error-message-elements.html#error-code-ranges)
+            elif match := re.fullmatch(r"Error:.*\((?P<code>2[0-9]{3})\)", stderr):
+                code = int(match.group("code"))
+                if code == 2003:
+                    logger.error(server_exceptions.ConnectionError.MESSAGE)
+                    raise server_exceptions.ConnectionError from None
+                else:
+                    logger.error(f"Bootstrap failed with MySQL client error {code}")
             raise Exception("Failed to bootstrap router") from None
         logger.debug(
             f"Bootstrapped router {tls=}, {self._connection_info.host=}, {self._connection_info.port=}"
