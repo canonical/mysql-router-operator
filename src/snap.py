@@ -19,7 +19,7 @@ import container
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
-REVISION = "69"  # Keep in sync with `workload_version` file
+REVISION = "92"  # Keep in sync with `workload_version` file
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
 
