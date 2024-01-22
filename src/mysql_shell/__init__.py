@@ -62,7 +62,6 @@ class Shell:
     def username(self):
         return self._connection_info.username
 
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _run_code(self, code: str) -> None:
         """Connect to MySQL cluster and run Python code."""
         template = _jinja_env.get_template("try_except_wrapper.py.jinja")
