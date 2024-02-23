@@ -1,4 +1,7 @@
 # mysql-router-operator
+[![Charmhub](https://charmhub.io/mysql-router-operator/badge.svg)](https://charmhub.io/mysql-router-operator)
+[![Release](https://github.com/canonical/mysql-router-operator/actions/workflows/release.yaml/badge.svg)](https://github.com/canonical/mysql-router-operator/actions/workflows/release.yaml)
+[![Tests](https://github.com/canonical/mysql-router-operator/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/canonical/mysql-router-operator/actions/workflows/ci.yaml)
 
 ## Description
 
