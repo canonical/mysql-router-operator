@@ -1,12 +1,15 @@
-# Contacts
+# Contact
 
-Contact Canonical Data Platform team in [Mattermost](https://chat.charmhub.io/charmhub/channels/data-platform) (preferred).
+Charmed MySQL Router is an open source project that warmly welcomes community contributions, suggestions, fixes, and constructive feedback.
+* Raise software issues or feature requests on [**GitHub**](https://github.com/canonical/mysql-router-operator/issues/new/choose)
+* Report security issues through [**Launchpad**](https://wiki.ubuntu.com/DebuggingSecurity#How%20to%20File)
+* Contact the Canonical Data Platform team through our [Matrix](https://matrix.to/#/#charmhub-data-platform:ubuntu.com) channel.
+[note]
+Our legacy [Mattermost](https://chat.charmhub.io/charmhub/channels/data-platform) channel is read-only until January 31, 2025.
+[/note]
 
-Report your ideas/issues on [GitHub](https://github.com/canonical/mysql-router-operator/issues/new/choose).</br>
-Security issues should be reported through [LaunchPad](https://wiki.ubuntu.com/DebuggingSecurity#How%20to%20File).</br>Please do NOT file GitHub issues on security topics. 
-
-Useful links:
-* [Canonical Data Fabric](https://ubuntu.com/data/)
+## Useful links
+* [Canonical Data Fabric](https://canonical.com/data)
 * [Charmed MySQL](https://charmhub.io/mysql)
 * [MySQL Router](https://charmhub.io/mysql-router)
 * [Git sources for MySQL Router](https://github.com/canonical/mysql-router-operator)
