@@ -8,6 +8,7 @@ Based off specification: DA058 - In-Place Upgrades - Kubernetes v2
 """
 
 import abc
+import copy
 import json
 import logging
 import pathlib
@@ -73,22 +74,21 @@ class Upgrade(abc.ABC):
         except KeyError as exception:
             logger.debug("`versions` missing from peer relation", exc_info=exception)
             return False
+        # TODO charm versioning: remove `.split("+")` (which removes git hash before comparing)
+        previous_version_strs["charm"] = previous_version_strs["charm"].split("+")[0]
         previous_versions: typing.Dict[str, poetry_version.Version] = {
             key: poetry_version.Version.parse(value)
             for key, value in previous_version_strs.items()
         }
+        current_version_strs = copy.copy(self._current_versions)
+        current_version_strs["charm"] = current_version_strs["charm"].split("+")[0]
         current_versions = {
-            key: poetry_version.Version.parse(value)
-            for key, value in self._current_versions.items()
+            key: poetry_version.Version.parse(value) for key, value in current_version_strs.items()
         }
         try:
             if (
-                # TODO charm versioning: Un-comment when charm versioning specification is
-                # implemented. Charm versions with git hash (temporary implementation) cannot be
-                # compared with `<`
-                # previous_versions["charm"] > current_versions["charm"] or
-                previous_versions["charm"].major
-                != current_versions["charm"].major
+                previous_versions["charm"] > current_versions["charm"]
+                or previous_versions["charm"].major != current_versions["charm"].major
             ):
                 logger.debug(
                     f'{previous_versions["charm"]=} incompatible with {current_versions["charm"]=}'
