@@ -36,10 +36,11 @@ def patch(monkeypatch):
         "abstract_charm.MySQLRouterCharm.wait_until_mysql_router_ready",
         lambda *args, **kwargs: None,
     )
-    monkeypatch.setattr(
-        "workload.AuthenticatedWorkload._router_username", lambda *args, **kwargs: ""
-    )
+    monkeypatch.setattr("workload.AuthenticatedWorkload._router_username", "")
     monkeypatch.setattr("mysql_shell.Shell.is_router_in_cluster_set", lambda *args, **kwargs: True)
+    monkeypatch.setattr("upgrade.Upgrade.in_progress", False)
+    monkeypatch.setattr("upgrade.Upgrade.versions_set", True)
+    monkeypatch.setattr("upgrade.Upgrade.is_compatible", True)
 
 
 @pytest.fixture(autouse=True)
@@ -53,6 +54,9 @@ def machine_patch(monkeypatch):
             self.services = {"mysqlrouter-service": {"active": False}}
 
         def ensure(self, *_, **__):
+            return
+
+        def hold(self, *_, **__):
             return
 
         def start(self, services: list[str] = None, *_, **__):

@@ -1,0 +1,7 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+resume-upgrade:
+  description: Upgrade remaining units (after you manually verified that upgraded units are healthy).
+force-upgrade:
+  description: Force upgrade of this unit.

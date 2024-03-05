@@ -80,22 +80,10 @@ class RelationEndpoint:
             database_name="mysql_innodb_cluster_metadata",
             extra_user_roles="mysqlrouter",
         )
-        charm_.framework.observe(
-            charm_.on[self._NAME].relation_created,
-            charm_.reconcile_database_relations,
-        )
-        charm_.framework.observe(
-            self._interface.on.database_created,
-            charm_.reconcile_database_relations,
-        )
-        charm_.framework.observe(
-            self._interface.on.endpoints_changed,
-            charm_.reconcile_database_relations,
-        )
-        charm_.framework.observe(
-            charm_.on[self._NAME].relation_broken,
-            charm_.reconcile_database_relations,
-        )
+        charm_.framework.observe(charm_.on[self._NAME].relation_created, charm_.reconcile)
+        charm_.framework.observe(self._interface.on.database_created, charm_.reconcile)
+        charm_.framework.observe(self._interface.on.endpoints_changed, charm_.reconcile)
+        charm_.framework.observe(charm_.on[self._NAME].relation_broken, charm_.reconcile)
 
     def get_connection_info(self, *, event) -> typing.Optional[ConnectionInformation]:
         """Information for connection to MySQL cluster"""
