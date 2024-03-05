@@ -1,0 +1,10 @@
+import json
+
+cluster_set = dba.get_cluster_set()
+routers = cluster_set.list_routers()
+# mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+# dict), but do not serialize to JSON correctly.
+# Cast to str & load from JSON str before serializing
+routers = json.loads(str(routers))
+with open("{{ output_filepath }}", "w") as file:
+    json.dump(routers, file)

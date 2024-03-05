@@ -52,6 +52,7 @@ class Unit(ops.Object):
         super().__init__(charm, str(type(self)))
         if subordinated_relation_endpoint_names is None:
             subordinated_relation_endpoint_names = ()
+        self._subordinate = bool(subordinated_relation_endpoint_names)
         self._charm = charm
         for relation_endpoint in self.model.relations:
             if relation_endpoint in subordinated_relation_endpoint_names:
@@ -126,6 +127,15 @@ class Unit(ops.Object):
         else:
             # Situation #1, #2, or #3
             self._unit_tearing_down_and_app_active = _UnitTearingDownAndAppActive.FALSE
+
+    @property
+    def tearing_down_and_app_active(self) -> bool:
+        """Whether unit is tearing down and 1+ other units are NOT tearing down
+
+        Cannot be called on subordinate charms
+        """
+        assert not self._subordinate
+        return self._unit_tearing_down_and_app_active is not _UnitTearingDownAndAppActive.FALSE
 
     @property
     def authorized_leader(self) -> bool:

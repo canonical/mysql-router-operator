@@ -7,6 +7,7 @@ import configparser
 import io
 import logging
 import pathlib
+import re
 import socket
 import string
 import typing
@@ -16,12 +17,22 @@ import ops
 import container
 import logrotate
 import mysql_shell
+import server_exceptions
 
 if typing.TYPE_CHECKING:
     import abstract_charm
     import relations.database_requires
 
 logger = logging.getLogger(__name__)
+
+
+class _NoQuorum(server_exceptions.Error):
+    """MySQL Server does not have quorum"""
+
+    MESSAGE = "MySQL Server does not have quorum. Will retry next Juju event"
+
+    def __init__(self):
+        super().__init__(ops.WaitingStatus(self.MESSAGE))
 
 
 class Workload:
@@ -82,6 +93,15 @@ class Workload:
         self._container.update_mysql_router_exporter_service(enabled=False)
         logger.debug("Disabled MySQL Router exporter service")
 
+    def upgrade(self, *, unit: ops.Unit, tls: bool) -> None:
+        """Upgrade MySQL Router.
+
+        Only applies to machine charm
+        """
+        logger.debug("Upgrading MySQL Router")
+        self._container.upgrade(unit=unit)
+        logger.debug("Upgraded MySQL Router")
+
     @property
     def _tls_config_file_data(self) -> str:
         """Render config file template to string.
@@ -114,10 +134,13 @@ class Workload:
             file.unlink(missing_ok=True)
         logger.debug("Disabled TLS")
 
-    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+    @property
+    def status(self) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""
         if not self.container_ready:
             return ops.MaintenanceStatus("Waiting for container")
+        if not self._container.mysql_router_service_enabled:
+            return ops.WaitingStatus()
 
 
 class AuthenticatedWorkload(Workload):
@@ -128,7 +151,7 @@ class AuthenticatedWorkload(Workload):
         *,
         container_: container.Container,
         logrotate_: logrotate.LogRotate,
-        connection_info: "relations.database_requires.ConnectionInformation",
+        connection_info: "relations.database_requires.CompleteConnectionInformation",
         cos_: "relations.cos.COSRelation",
         charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
@@ -141,11 +164,7 @@ class AuthenticatedWorkload(Workload):
     def shell(self) -> mysql_shell.Shell:
         """MySQL Shell"""
         return mysql_shell.Shell(
-            _container=self._container,
-            username=self._connection_info.username,
-            _password=self._connection_info.password,
-            _host=self._connection_info.host,
-            _port=self._connection_info.port,
+            _container=self._container, _connection_info=self._connection_info
         )
 
     @property
@@ -157,32 +176,32 @@ class AuthenticatedWorkload(Workload):
         # MySQL Router is bootstrapped without `--directory`—there is one system-wide instance.
         return f"{socket.getfqdn()}::system"
 
-    def _cleanup_after_potential_container_restart(self) -> None:
-        """Remove MySQL Router cluster metadata & user after (potential) container restart.
+    def _cleanup_after_upgrade_or_potential_container_restart(self) -> None:
+        """Remove Router user after upgrade or (potential) container restart.
 
-        Only applies to Kubernetes charm
-
-        (Storage is not persisted on container restart—MySQL Router's config file is deleted.
-        Therefore, MySQL Router needs to be bootstrapped again.)
+        (On Kubernetes, storage is not persisted on container restart—MySQL Router's config file is
+        deleted. Therefore, MySQL Router needs to be bootstrapped again.)
         """
         if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
-            logger.debug("Cleaning up after container restart")
-            self.shell.remove_router_from_cluster_metadata(user_info.router_id)
+            logger.debug("Cleaning up after upgrade or container restart")
             self.shell.delete_user(user_info.username)
-            logger.debug("Cleaned up after container restart")
+            logger.debug("Cleaned up after upgrade or container restart")
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _get_bootstrap_command(self, password: str) -> typing.List[str]:
+    def _get_bootstrap_command(
+        self, connection_info: "relations.database_requires.ConnectionInformation"
+    ) -> typing.List[str]:
         return [
             "--bootstrap",
-            self._connection_info.username
+            connection_info.username
             + ":"
-            + password
+            + connection_info.password
             + "@"
-            + self._connection_info.host
+            + connection_info.host
             + ":"
-            + self._connection_info.port,
+            + connection_info.port,
             "--strict",
+            "--force",
             "--conf-set-option",
             "http_server.bind_address=127.0.0.1",
             "--conf-use-gr-notifications",
@@ -194,19 +213,39 @@ class AuthenticatedWorkload(Workload):
             f"Bootstrapping router {tls=}, {self._connection_info.host=}, {self._connection_info.port=}"
         )
         # Redact password from log
-        logged_command = self._get_bootstrap_command("***")
+        logged_command = self._get_bootstrap_command(self._connection_info.redacted)
 
-        command = self._get_bootstrap_command(self._connection_info.password)
+        command = self._get_bootstrap_command(self._connection_info)
         try:
             self._container.run_mysql_router(command, timeout=30)
         except container.CalledProcessError as e:
-            # Use `logger.error` instead of `logger.exception` so password isn't logged
-            logger.error(f"Failed to bootstrap router\n{logged_command=}\nstderr:\n{e.stderr}\n")
             # Original exception contains password
             # Re-raising would log the password to Juju's debug log
             # Raise new exception
             # `from None` disables exception chaining so that the original exception is not
             # included in the traceback
+
+            # Use `logger.error` instead of `logger.exception` so password isn't logged
+            logger.error(f"Failed to bootstrap router\n{logged_command=}\nstderr:\n{e.stderr}\n")
+            stderr = e.stderr.strip()
+            if (
+                stderr
+                == "Error: The provided server is currently not in a InnoDB cluster group with quorum and thus may contain inaccurate or outdated data."
+            ):
+                logger.error(_NoQuorum.MESSAGE)
+                raise _NoQuorum from None
+            # Example errors:
+            # - "Error: Unable to connect to the metadata server: Error connecting to MySQL server at mysql-k8s-primary.foo1.svc.cluster.local:3306: Can't connect to MySQL server on 'mysql-k8s-primary.foo1.svc.cluster.local:3306' (111) (2003)"
+            # - "Error: Unable to connect to the metadata server: Error connecting to MySQL server at mysql-k8s-primary.foo3.svc.cluster.local:3306: Unknown MySQL server host 'mysql-k8s-primary.foo3.svc.cluster.local' (-2) (2005)"
+            # Codes 2000-2999 are client errors
+            # (https://dev.mysql.com/doc/refman/8.0/en/error-message-elements.html#error-code-ranges)
+            elif match := re.fullmatch(r"Error:.*\((?P<code>2[0-9]{3})\)", stderr):
+                code = int(match.group("code"))
+                if code == 2003:
+                    logger.error(server_exceptions.ConnectionError.MESSAGE)
+                    raise server_exceptions.ConnectionError from None
+                else:
+                    logger.error(f"Bootstrap failed with MySQL client error {code}")
             raise Exception("Failed to bootstrap router") from None
         logger.debug(
             f"Bootstrapped router {tls=}, {self._connection_info.host=}, {self._connection_info.port=}"
@@ -244,7 +283,7 @@ class AuthenticatedWorkload(Workload):
             return
 
         logger.debug("Enabling MySQL Router service")
-        self._cleanup_after_potential_container_restart()
+        self._cleanup_after_upgrade_or_potential_container_restart()
         self._bootstrap_router(tls=tls)
         self.shell.add_attributes_to_mysql_router_user(
             username=self._router_username, router_id=self._router_id, unit_name=unit_name
@@ -287,9 +326,10 @@ class AuthenticatedWorkload(Workload):
         if self._container.mysql_router_service_enabled:
             self._restart(tls=False)
 
-    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+    @property
+    def status(self) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""
-        if status := super().get_status(event):
+        if status := super().status:
             return status
         if not self.shell.is_router_in_cluster_set(self._router_id):
             # Router should not be removed from ClusterSet after bootstrap (except by MySQL charm
@@ -311,3 +351,13 @@ class AuthenticatedWorkload(Workload):
         with io.StringIO() as string_io:
             config.write(string_io)
             self._container.rest_api_conf.write_text(string_io.getvalue())
+
+    def upgrade(self, *, unit: ops.Unit, tls: bool) -> None:
+        enabled = self._container.mysql_router_service_enabled
+        if enabled:
+            logger.debug("Disabling MySQL Router service before upgrade")
+            self.disable()
+        super().upgrade(unit=unit, tls=tls)
+        if enabled:
+            logger.debug("Re-enabling MySQL Router service after upgrade")
+            self.enable(tls=tls, unit_name=unit.name)

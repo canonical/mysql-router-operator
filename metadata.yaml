@@ -41,6 +41,11 @@ requires:
 peers:
   mysql-router-peers:
     interface: mysql_router_peers
+  upgrade-version-a:
+    # Relation versioning scheme:
+    # DA056 - Upgrading in-place upgrade protocol
+    # https://docs.google.com/document/d/1H7qy5SAwLiCOKO9xMQJbbQP5_-jGV6Lhi-mJOk4gZ08/edit
+    interface: upgrade
   # DEPRECATED shared-db: Workaround for legacy "mysql-shared" interface using unit databags instead of app databag
   deprecated-shared-db-credentials:
     interface: _deprecated_shared_db_peers

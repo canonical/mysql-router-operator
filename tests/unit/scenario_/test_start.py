@@ -11,8 +11,11 @@ import machine_charm
 @pytest.mark.parametrize("leader", [False, True])
 def test_start_sets_status_if_no_relations(leader):
     context = scenario.Context(machine_charm.MachineSubordinateRouterCharm)
-    input_state = scenario.State(leader=leader)
+    input_state = scenario.State(
+        leader=leader,
+        relations=[scenario.PeerRelation(endpoint="upgrade-version-a")],
+    )
     output_state = context.run("start", input_state)
     if leader:
         assert output_state.app_status == ops.BlockedStatus("Missing relation: backend-database")
-    assert output_state.unit_status == ops.ActiveStatus()
+    assert output_state.unit_status == ops.WaitingStatus()

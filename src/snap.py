@@ -3,6 +3,7 @@
 
 """Workload snap container & installer"""
 
+import enum
 import logging
 import pathlib
 import shutil
@@ -18,9 +19,37 @@ import container
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
-_REVISION = "92"  # v8.0.35
+REVISION = "92"  # Keep in sync with `workload_version` file
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
+
+
+class _RefreshVerb(str, enum.Enum):
+    INSTALL = "install"
+    UPGRADE = "upgrade"
+
+
+def _refresh(*, unit: ops.Unit, verb: _RefreshVerb) -> None:
+    # TODO python3.10 min version: use `removesuffix` instead of `rstrip`
+    logger.debug(f'{verb.capitalize().rstrip("e")}ing {_SNAP_NAME=}, {REVISION=}')
+    unit.status = ops.MaintenanceStatus(f'{verb.capitalize().rstrip("e")}ing snap')
+
+    def _set_retry_status(_) -> None:
+        message = f"Snap {verb} failed. Retrying..."
+        unit.status = ops.MaintenanceStatus(message)
+        logger.debug(message)
+
+    for attempt in tenacity.Retrying(
+        stop=tenacity.stop_after_delay(60 * 5),
+        wait=tenacity.wait_exponential(multiplier=10),
+        retry=tenacity.retry_if_exception_type(snap_lib.SnapError),
+        after=_set_retry_status,
+        reraise=True,
+    ):
+        with attempt:
+            _snap.ensure(state=snap_lib.SnapState.Present, revision=REVISION)
+    _snap.hold()
+    logger.debug(f'{verb.capitalize().rstrip("e")}ed {_SNAP_NAME=}, {REVISION=}')
 
 
 def install(*, unit: ops.Unit, model_uuid: str):
@@ -41,27 +70,9 @@ def install(*, unit: ops.Unit, model_uuid: str):
         )
         logger.error(f"{_SNAP_NAME} snap already installed on machine. Installation aborted")
         raise Exception(f"Multiple {_SNAP_NAME} snap installs not supported on one machine")
-    logger.debug(f"Installing {_SNAP_NAME=}, {_REVISION=}")
-    unit.status = ops.MaintenanceStatus("Installing snap")
-
-    def _set_retry_status(_) -> None:
-        message = "Snap install failed. Retrying..."
-        unit.status = ops.MaintenanceStatus(message)
-        logger.debug(message)
-
-    for attempt in tenacity.Retrying(
-        stop=tenacity.stop_after_delay(60 * 5),
-        wait=tenacity.wait_exponential(multiplier=10),
-        retry=tenacity.retry_if_exception_type(snap_lib.SnapError),
-        after=_set_retry_status,
-        reraise=True,
-    ):
-        with attempt:
-            _snap.ensure(state=snap_lib.SnapState.Present, revision=_REVISION)
+    _refresh(unit=unit, verb=_RefreshVerb.INSTALL)
     installed_by_unit.write_text(unique_unit_name)
     logger.debug(f"Wrote {unique_unit_name=} to {installed_by_unit.name=}")
-    _snap.hold()
-    logger.debug(f"Installed {_SNAP_NAME=}, {_REVISION=}")
 
 
 def uninstall():
@@ -106,6 +117,9 @@ class _Path(pathlib.PosixPath, container.Path):
         if parent := self._container_parent:
             return pathlib.PurePosixPath("/", self.relative_to(parent))
         return self
+
+    def open(self, mode="r", buffering=-1, encoding="utf-8", *args, **kwargs):
+        return super().open(mode, buffering, encoding, *args, **kwargs)
 
     def read_text(self, encoding="utf-8", *args, **kwargs) -> str:
         return super().read_text(encoding, *args, **kwargs)
@@ -183,6 +197,10 @@ class Snap(container.Container):
             _snap.unset("mysqlrouter-exporter.password")
             _snap.unset("mysqlrouter-exporter.url")
             _snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)
+
+    def upgrade(self, unit: ops.Unit) -> None:
+        """Upgrade snap."""
+        _refresh(unit=unit, verb=_RefreshVerb.UPGRADE)
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _run_command(

@@ -8,6 +8,8 @@ import pathlib
 import subprocess
 import typing
 
+import ops
+
 
 class Path(pathlib.PurePosixPath, abc.ABC):
     """Workload container (snap or ROCK) filesystem path"""
@@ -19,6 +21,11 @@ class Path(pathlib.PurePosixPath, abc.ABC):
 
         Only differs from `self` on machine charm
         """
+
+    @abc.abstractmethod
+    def open(self, mode="r") -> typing.TextIO:
+        """Open the file in read text mode."""
+        assert mode == "r"
 
     @abc.abstractmethod
     def read_text(self) -> str:
@@ -127,6 +134,13 @@ class Container(abc.ABC):
 
         Args:
             enabled: Whether MySQL Router exporter service is enabled
+        """
+
+    @abc.abstractmethod
+    def upgrade(self, unit: ops.Unit) -> None:
+        """Upgrade container version
+
+        Only applies to machine charm
         """
 
     @abc.abstractmethod

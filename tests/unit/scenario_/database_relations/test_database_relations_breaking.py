@@ -20,11 +20,13 @@ def output_state(
 ) -> scenario.State:
     context = scenario.Context(machine_charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
-        relations=relations,
+        relations=[*relations, scenario.PeerRelation(endpoint="upgrade-version-a")],
         secrets=secrets,
         leader=True,
     )
-    return context.run(event, input_state)
+    output = context.run(event, input_state)
+    output.relations.pop()  # Remove PeerRelation
+    return output
 
 
 @pytest.mark.usefixtures("only_without_juju_secrets")
