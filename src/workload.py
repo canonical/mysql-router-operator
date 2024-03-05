@@ -153,14 +153,13 @@ class AuthenticatedWorkload(Workload):
         return f"{socket.getfqdn()}::system"
 
     def _cleanup_after_upgrade_or_potential_container_restart(self) -> None:
-        """Remove Router cluster metadata & user after upgrade or (potential) container restart.
+        """Remove Router user after upgrade or (potential) container restart.
 
         (On Kubernetes, storage is not persisted on container restart—MySQL Router's config file is
         deleted. Therefore, MySQL Router needs to be bootstrapped again.)
         """
         if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
             logger.debug("Cleaning up after upgrade or container restart")
-            self.shell.remove_router_from_cluster_metadata(user_info.router_id)
             self.shell.delete_user(user_info.username)
             logger.debug("Cleaned up after upgrade or container restart")
 
@@ -176,6 +175,7 @@ class AuthenticatedWorkload(Workload):
             + ":"
             + self._connection_info.port,
             "--strict",
+            "--force",
             "--conf-set-option",
             "http_server.bind_address=127.0.0.1",
             "--conf-use-gr-notifications",
