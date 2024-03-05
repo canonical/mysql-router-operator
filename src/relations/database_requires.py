@@ -38,6 +38,28 @@ class _RelationBreaking(_MissingRelation):
 
 
 class ConnectionInformation:
+    """Information for connection to MySQL cluster"""
+
+    host: str
+    port: str
+    username: str
+    password: str
+
+
+class RedactedConnectionInformation(ConnectionInformation):
+    """Connection information with redacted password
+
+    Used for logging
+    """
+
+    def __init__(self, *, host: str, port: str, username: str):
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = "***"
+
+
+class CompleteConnectionInformation(ConnectionInformation):
     """Information for connection to MySQL cluster
 
     User has permission to:
@@ -61,10 +83,17 @@ class ConnectionInformation:
         endpoints = databag["endpoints"].split(",")
         assert len(endpoints) == 1
         endpoint = endpoints[0]
-        self.host: str = endpoint.split(":")[0]
-        self.port: str = endpoint.split(":")[1]
-        self.username: str = databag["username"]
-        self.password: str = databag["password"]
+        self.host = endpoint.split(":")[0]
+        self.port = endpoint.split(":")[1]
+        self.username = databag["username"]
+        self.password = databag["password"]
+
+    @property
+    def redacted(self):
+        """Connection information with redacted password"""
+        return RedactedConnectionInformation(
+            host=self.host, port=self.port, username=self.username
+        )
 
 
 class RelationEndpoint:
@@ -85,17 +114,17 @@ class RelationEndpoint:
         charm_.framework.observe(self._interface.on.endpoints_changed, charm_.reconcile)
         charm_.framework.observe(charm_.on[self._NAME].relation_broken, charm_.reconcile)
 
-    def get_connection_info(self, *, event) -> typing.Optional[ConnectionInformation]:
+    def get_connection_info(self, *, event) -> typing.Optional[CompleteConnectionInformation]:
         """Information for connection to MySQL cluster"""
         try:
-            return ConnectionInformation(interface=self._interface, event=event)
+            return CompleteConnectionInformation(interface=self._interface, event=event)
         except (_MissingRelation, remote_databag.IncompleteDatabag):
             return
 
     def is_relation_breaking(self, event) -> bool:
         """Whether relation will be broken after the current event is handled"""
         try:
-            ConnectionInformation(interface=self._interface, event=event)
+            CompleteConnectionInformation(interface=self._interface, event=event)
         except _RelationBreaking:
             return True
         except (_MissingRelation, remote_databag.IncompleteDatabag):
@@ -105,6 +134,6 @@ class RelationEndpoint:
     def get_status(self, event) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""
         try:
-            ConnectionInformation(interface=self._interface, event=event)
+            CompleteConnectionInformation(interface=self._interface, event=event)
         except (_MissingRelation, remote_databag.IncompleteDatabag) as exception:
             return exception.status

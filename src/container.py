@@ -23,6 +23,11 @@ class Path(pathlib.PurePosixPath, abc.ABC):
         """
 
     @abc.abstractmethod
+    def open(self, mode="r") -> typing.TextIO:
+        """Open the file in read text mode."""
+        assert mode == "r"
+
+    @abc.abstractmethod
     def read_text(self) -> str:
         """Open the file in text mode, read it, and close the file."""
 
