@@ -66,9 +66,9 @@ jobs:
 
   build:
     name: Build charms
-    uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v9.0.2
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v12.6.1
     with:
-      charmcraft-snap-channel: beta
+      cache: true
 
   gh-hosted-collect-integration-tests:
     name: (GH hosted) Collect integration test groups
@@ -144,9 +144,9 @@ jobs:
         if: ${{ matrix.libjuju-version == '2.9.44.1' }}
         run: poetry add --lock --group integration juju@'${{ matrix.libjuju-version }}'
       - name: Download packed charm(s)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.build.outputs.artifact-name }}
+          pattern: ${{ needs.build.outputs.artifact-prefix }}-*
       - name: Select test stability level
         id: select-test-stability
         run: |
