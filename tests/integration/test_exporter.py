@@ -44,6 +44,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
             mysqlrouter_charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=0,
+            series=mysql_router_charm_series,
         ),
         ops_test.model.deploy(
             APPLICATION_APP_NAME,
@@ -59,6 +60,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
             application_name=GRAFANA_AGENT_APP_NAME,
             num_units=0,
             channel="latest/stable",
+            series=mysql_router_charm_series,
         ),
     )
 
