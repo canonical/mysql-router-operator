@@ -140,6 +140,14 @@ class _RelationThatRequestedUser(_UnitThatNeedsUser):
         shell: mysql_shell.Shell,
     ) -> None:
         """Create database & user and update databag."""
+        # Delete user if exists
+        # (If the user was previously created by this charm—but the hook failed—the user will
+        # persist in MySQL but will not persist in the databag. Therefore, we lose the user's
+        # password and need to re-create the user.)
+        logger.debug("Deleting user if exists before creating user")
+        shell.delete_user(self._username, must_exist=False)
+        logger.debug("Deleted user if exists before creating user")
+
         password = shell.create_application_database_and_user(
             username=self._username, database=self._database
         )
@@ -147,11 +155,11 @@ class _RelationThatRequestedUser(_UnitThatNeedsUser):
         self.set_databag(password=password)
 
 
-class _UserNotCreated(Exception):
+class _UserNotShared(Exception):
     """Database & user has not been provided to related application charm"""
 
 
-class _RelationWithCreatedUser(_Relation):
+class _RelationWithSharedUser(_Relation):
     """Related application charm that has been provided with a database & user"""
 
     def __init__(
@@ -163,7 +171,7 @@ class _RelationWithCreatedUser(_Relation):
         super().__init__(relation=relation, peer_relation_app_databag=peer_relation_app_databag)
         for key in (self._peer_databag_username_key, self.peer_databag_password_key):
             if key not in self._peer_app_databag:
-                raise _UserNotCreated
+                raise _UserNotShared
 
     def delete_databag(self) -> None:
         """Remove connection information from databag."""
@@ -176,7 +184,10 @@ class _RelationWithCreatedUser(_Relation):
         """Delete user and update databag."""
         username = self._peer_app_databag[self._peer_databag_username_key]
         logger.debug(f"Deleting user {username=}")
-        shell.delete_user(username)
+        # Delete user if exists
+        # (If the user was previously deleted by this charm—but the hook failed—the user will be
+        # deleted in MySQL but will persist in the databag.)
+        shell.delete_user(username, must_exist=False)
         logger.debug(f"Deleted user {username=}")
         self.delete_databag()
 
@@ -241,19 +252,19 @@ class RelationEndpoint(ops.Object):
 
     @property
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _created_users(self) -> typing.List[_RelationWithCreatedUser]:
-        created_users = []
+    def _shared_users(self) -> typing.List[_RelationWithSharedUser]:
+        shared_users = []
         for relation in self._relations:
             try:
-                created_users.append(
-                    _RelationWithCreatedUser(
+                shared_users.append(
+                    _RelationWithSharedUser(
                         relation=relation,
                         peer_relation_app_databag=self._peer_app_databag,
                     )
                 )
-            except _UserNotCreated:
+            except _UserNotShared:
                 pass
-        return created_users
+        return shared_users
 
     def reconcile_users(
         self,
@@ -284,13 +295,13 @@ class RelationEndpoint(ops.Object):
                 remote_databag.IncompleteDatabag,
             ):
                 pass
-        logger.debug(f"State of reconcile users {requested_users=}, {self._created_users=}")
+        logger.debug(f"State of reconcile users {requested_users=}, {self._shared_users=}")
         for relation in requested_users:
-            if relation not in self._created_users:
+            if relation not in self._shared_users:
                 relation.create_database_and_user(
                     shell=shell,
                 )
-        for relation in self._created_users:
+        for relation in self._shared_users:
             if relation not in requested_users:
                 relation.delete_user(shell=shell)
         logger.debug(f"Reconciled users {event=}")
@@ -304,7 +315,7 @@ class RelationEndpoint(ops.Object):
         will need to be created.
         """
         logger.debug("Deleting all application databags")
-        for relation in self._created_users:
+        for relation in self._shared_users:
             # MySQL charm will delete user; just delete databag
             relation.delete_databag()
         logger.debug("Deleted all application databags")

@@ -164,11 +164,15 @@ class Shell:
         )
         logger.debug(f"Removed {router_id=} from cluster metadata")
 
-    def delete_user(self, username: str) -> None:
+    def delete_user(self, username: str, *, must_exist=True) -> None:
         """Delete user."""
-        logger.debug(f"Deleting {username=}")
-        self._run_sql([f"DROP USER `{username}`"])
-        logger.debug(f"Deleted {username=}")
+        logger.debug(f"Deleting {username=} {must_exist=}")
+        if must_exist:
+            statement = f"DROP USER `{username}`"
+        else:
+            statement = f"DROP USER IF EXISTS `{username}`"
+        self._run_sql([statement])
+        logger.debug(f"Deleted {username=} {must_exist=}")
 
     def is_router_in_cluster_set(self, router_id: str) -> bool:
         """Check if MySQL Router is part of InnoDB ClusterSet."""
