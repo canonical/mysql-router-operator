@@ -25,7 +25,10 @@ class Upgrade(upgrade.Upgrade):
 
     @property
     def unit_state(self) -> typing.Optional[str]:
-        if self._unit_workload_version != self._app_workload_version:
+        if (
+            self._unit_workload_version is not None
+            and self._unit_workload_version != self._app_workload_version
+        ):
             logger.debug("Unit upgrade state: outdated")
             return "outdated"
         return super().unit_state
