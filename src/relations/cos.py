@@ -46,11 +46,11 @@ class COSRelation:
 
         charm_.framework.observe(
             charm_.on[self._NAME].relation_created,
-            charm_.reconcile_database_relations,
+            charm_.reconcile,
         )
         charm_.framework.observe(
             charm_.on[self._NAME].relation_broken,
-            charm_.reconcile_database_relations,
+            charm_.reconcile,
         )
 
     @property

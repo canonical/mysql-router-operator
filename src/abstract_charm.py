@@ -381,12 +381,12 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     )
             if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
                 cos_relation_exists = (
-                    self._cos.relations_exists and not self._cos.is_relation_breaking(event)
+                    self._cos.relation_exists and not self._cos.is_relation_breaking(event)
                 )
                 workload_.enable(
                     tls=self._tls_certificate_saved,
                     unit_name=self.unit.name,
-                    exporter_confi=self._cos.exporter_user_info if cos_relation_exists else {},
+                    exporter_config=self._cos.exporter_user_info if cos_relation_exists else {},
                 )
             elif workload_.container_ready:
                 workload_.disable()
