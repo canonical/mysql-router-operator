@@ -379,17 +379,15 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                         router_read_only_endpoint=self._read_only_endpoint,
                         shell=workload_.shell,
                     )
-            if isinstance(workload_, workload.AuthenticatedWorkload) and workload_.container_ready:
+            if workload_.container_ready:
                 cos_relation_exists = (
                     self._cos.relation_exists and not self._cos.is_relation_breaking(event)
                 )
-                workload_.enable(
+                workload_.reconcile(
                     tls=self._tls_certificate_saved,
                     unit_name=self.unit.name,
                     exporter_config=self._cos.exporter_user_info if cos_relation_exists else {},
                 )
-            elif workload_.container_ready:
-                workload_.disable()
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload
             if not workload_.status or workload_.status == ops.WaitingStatus():
