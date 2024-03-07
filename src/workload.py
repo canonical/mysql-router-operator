@@ -122,7 +122,13 @@ class Workload:
         logger.debug("Disabled TLS")
 
     def reconcile(
-        self, *, tls: bool, unit_name: str, exporter_config: dict = {}, key: str = None, certificate: str = None
+        self,
+        *,
+        tls: bool,
+        unit_name: str,
+        exporter_config: dict = {},
+        key: str = None,
+        certificate: str = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
         if tls and (not (key and certificate)):
@@ -289,7 +295,13 @@ class AuthenticatedWorkload(Workload):
         self._charm.set_status(event=None)
 
     def reconcile(
-        self, *, tls: bool, unit_name: str, exporter_config: dict = {}, key: str = None, certificate: str = None
+        self,
+        *,
+        tls: bool,
+        unit_name: str,
+        exporter_config: dict = {},
+        key: str = None,
+        certificate: str = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
         if tls and (not (key and certificate)):
