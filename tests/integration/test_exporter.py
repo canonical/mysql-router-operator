@@ -34,7 +34,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
     # and will be installed with the related consumer application
     applications = await asyncio.gather(
         ops_test.model.deploy(
-            "mysql",
+            MYSQL_APP_NAME,
             channel="8.0/edge",
             application_name=MYSQL_APP_NAME,
             config={"profile": "testing"},
