@@ -157,7 +157,7 @@ class Container(abc.ABC):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: typing.Optional[str],
+        input: typing.Optional[str] = None,
     ) -> str:
         """Run command in container.
 
@@ -189,16 +189,17 @@ class Container(abc.ABC):
     def path(self, *args) -> Path:
         """Container filesystem path"""
 
-    def set_mysql_router_rest_api_password(
-        self, *, user: str = None, password: str = None
-    ) -> None:
-        """Set REST API credentials using the mysqlrouter_password command."""
+    def create_router_rest_api_credentials_file(self) -> None:
+        """Creates a credentials file for the router rest api if it does not exist."""
         if not self.rest_api_credentials_file.exists():
             # create empty credentials file
             self.rest_api_credentials_file.write_text("")
 
-        if not user:
-            return
+    def set_mysql_router_rest_api_password(
+        self, *, user: str, password: typing.Optional[str]
+    ) -> None:
+        """Set REST API credentials using the mysqlrouter_password command."""
+        self.create_router_rest_api_credentials_file()
 
         action = "set" if password else "delete"
         self._run_command(

@@ -194,9 +194,9 @@ class Snap(container.Container):
         if enabled:
             _snap.set(
                 {
-                    "mysqlrouter-exporter.user": config["username"],
-                    "mysqlrouter-exporter.password": config["password"],
-                    "mysqlrouter-exporter.url": config["url"],
+                    "mysqlrouter-exporter.user": config.username,
+                    "mysqlrouter-exporter.password": config.password,
+                    "mysqlrouter-exporter.url": config.url,
                 }
             )
             _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
@@ -216,7 +216,7 @@ class Snap(container.Container):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: typing.Optional[str],
+        input: typing.Optional[str] = None,
     ) -> str:
         try:
             output = subprocess.run(

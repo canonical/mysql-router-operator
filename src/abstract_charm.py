@@ -75,12 +75,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """
 
     @property
-    def _tls_certificate_saved(self) -> bool:
-        """Whether a TLS certificate is available to use"""
-        # TODO VM TLS: Remove property after implementing TLS on machine charm
-        return False
-
-    @property
     @abc.abstractmethod
     def _container(self) -> container.Container:
         """Workload container (snap or ROCK)"""
@@ -342,9 +336,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 return
             if self._upgrade.unit_state == "outdated":
                 if self._upgrade.authorized:
-                    self._upgrade.upgrade_unit(
-                        workload_=workload_, tls=self._tls_certificate_saved
-                    )
+                    self._upgrade.upgrade_unit(workload_=workload_, tls=False)
                 else:
                     self.set_status(event=event)
                     logger.debug("Waiting to upgrade")
@@ -383,7 +375,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     self._cos.relation_exists and not self._cos.is_relation_breaking(event)
                 )
                 workload_.reconcile(
-                    tls=self._tls_certificate_saved,
                     unit_name=self.unit.name,
                     exporter_config=self._cos.exporter_user_info if cos_relation_exists else None,
                 )
