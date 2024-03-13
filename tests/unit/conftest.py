@@ -73,14 +73,16 @@ def machine_patch(monkeypatch):
             return
 
         def start(self, services: list[str] = None, *_, **__):
-            assert services == ["mysqlrouter-service"] or services == ["mysqlrouter-exporter"]
-            self.services["mysqlrouter-service"]["active"] = True
-            self.services["mysqlrouter-exporter"]["active"] = True
+            assert "mysqlrouter-service" in services or "mysqlrouter-exporter" in services
+            self.services["mysqlrouter-service"]["active"] = "mysqlrouter-service" in services
+            self.services["mysqlrouter-exporter"]["active"] = "mysqlrouter-exporter" in services
 
         def stop(self, services: list[str] = None, *_, **__):
-            assert services == ["mysqlrouter-service"] or services == ["mysqlrouter-exporter"]
-            self.services["mysqlrouter-service"]["active"] = False
-            self.services["mysqlrouter-exporter"]["active"] = False
+            assert "mysqlrouter-service" in services or "mysqlrouter-exporter" in services
+            if "mysqlrouter-service" in services:
+                self.services["mysqlrouter-service"]["active"] = False
+            if "mysqlrouter-exporter" in services:
+                self.services["mysqlrouter-exporter"]["active"] = False
 
     monkeypatch.setattr(snap, "_snap", Snap())
 

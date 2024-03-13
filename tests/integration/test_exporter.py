@@ -114,11 +114,12 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
 
     try:
         http.request("GET", f"http://{unit_address}:49152/metrics")
-        assert False, "❌ can connect to metrics endpoint without relation with cos"
     except urllib3.exceptions.MaxRetryError as e:
         assert (
             "[Errno 111] Connection refused" in e.reason.args[0]
         ), "❌ expected connection refused error"
+    else:
+        assert False, "❌ can connect to metrics endpoint without relation with cos"
 
     await ops_test.model.relate(
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"

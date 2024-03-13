@@ -10,6 +10,9 @@ import typing
 
 import ops
 
+if typing.TYPE_CHECKING:
+    import relations.cos
+
 
 class Path(pathlib.PurePosixPath, abc.ABC):
     """Workload container (snap or ROCK) filesystem path"""
@@ -80,7 +83,8 @@ class Container(abc.ABC):
         return self.router_config_directory / "rest_api_credentials"
 
     @property
-    def rest_api_conf(self) -> Path:
+    def rest_api_config_file(self) -> Path:
+        """Configuration file for the REST API for MySQLRouter"""
         return self.router_config_directory / "router_rest_api.conf"
 
     @property
@@ -129,11 +133,14 @@ class Container(abc.ABC):
             assert tls is not None, "`tls` argument required when enabled=True"
 
     @abc.abstractmethod
-    def update_mysql_router_exporter_service(self, *, enabled: bool) -> None:
+    def update_mysql_router_exporter_service(
+        self, *, enabled: bool, config: "relations.cos.ExporterConfig"
+    ) -> None:
         """Update and restart the MySQL Router exporter service.
 
         Args:
             enabled: Whether MySQL Router exporter service is enabled
+            config: The configuration for MySQL Router exporter
         """
 
     @abc.abstractmethod
@@ -145,7 +152,13 @@ class Container(abc.ABC):
 
     @abc.abstractmethod
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _run_command(self, command: typing.List[str], *, timeout: typing.Optional[int]) -> str:
+    def _run_command(
+        self,
+        command: typing.List[str],
+        *,
+        timeout: typing.Optional[int],
+        input: typing.Optional[str],
+    ) -> str:
         """Run command in container.
 
         Raises:
@@ -153,9 +166,7 @@ class Container(abc.ABC):
         """
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def run_mysql_router(
-        self, args: typing.List[str], *, timeout: int = None, input: typing.Optional[str] = None
-    ) -> str:
+    def run_mysql_router(self, args: typing.List[str], *, timeout: int = None) -> str:
         """Run MySQL Router command.
 
         Raises:
@@ -182,10 +193,9 @@ class Container(abc.ABC):
         self, *, user: str = None, password: str = None
     ) -> None:
         """Set REST API credentials using the mysqlrouter_password command."""
-        credentials_file = self.rest_api_credentials_file
-        if not credentials_file.exists():
+        if not self.rest_api_credentials_file.exists():
             # create empty credentials file
-            credentials_file.write_text("")
+            self.rest_api_credentials_file.write_text("")
 
         if not user:
             return
@@ -195,7 +205,7 @@ class Container(abc.ABC):
             [
                 self._mysql_router_password_command,
                 action,
-                str(credentials_file),
+                str(self.rest_api_credentials_file),
                 user,
             ],
             input=password,

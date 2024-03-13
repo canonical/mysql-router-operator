@@ -16,6 +16,9 @@ import tenacity
 
 import container
 
+if typing.TYPE_CHECKING:
+    import relations.cos
+
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
@@ -176,13 +179,18 @@ class Snap(container.Container):
             raise NotImplementedError  # TODO VM TLS
 
         if enabled:
-            _snap.set({"mysqlrouter.extra-options": f"--extra-config {self.rest_api_conf}"})
+            _snap.set({"mysqlrouter.extra-options": f"--extra-config {self.rest_api_config_file}"})
             _snap.start([self._SERVICE_NAME], enable=True)
         else:
             _snap.unset("mysqlrouter.extra-options")
             _snap.stop([self._SERVICE_NAME], disable=True)
 
-    def update_mysql_router_exporter_service(self, *, enabled: bool, config: dict = {}) -> None:
+    def update_mysql_router_exporter_service(
+        self, *, enabled: bool, config: "relations.cos.ExporterConfig"
+    ) -> None:
+        if enabled and not config:
+            raise ValueError("Missing MySQL Router exporter config")
+
         if enabled:
             _snap.set(
                 {
@@ -207,8 +215,8 @@ class Snap(container.Container):
         self,
         command: typing.List[str],
         *,
-        timeout: int,
-        input: str = None,
+        timeout: typing.Optional[int],
+        input: typing.Optional[str],
     ) -> str:
         try:
             output = subprocess.run(

@@ -23,6 +23,15 @@ MONITORING_USERNAME = "monitoring"
 MONITORING_PASSWORD_KEY = "monitoring-password"
 
 
+class ExporterConfig:
+    """Configuration for the MySQL Router exporter"""
+
+    def __init__(self, url: str, username: str, password: str) -> None:
+        self.url = url
+        self.username = username
+        self.password = password
+
+
 class COSRelation:
     """Relation with the cos bundle."""
 
@@ -56,11 +65,11 @@ class COSRelation:
     @property
     def exporter_user_info(self) -> dict:
         """Returns user info needed for the router exporter service."""
-        return {
-            "url": f"https://127.0.0.1:{self._HTTP_SERVER_PORT}",
-            "username": MONITORING_USERNAME,
-            "password": self._get_monitoring_password(),
-        }
+        return ExporterConfig(
+            url=f"https://127.0.0.1:{self._HTTP_SERVER_PORT}",
+            username=MONITORING_USERNAME,
+            password=self._get_monitoring_password(),
+        )
 
     @property
     def relation_exists(self) -> bool:
@@ -76,6 +85,10 @@ class COSRelation:
         monitoring_password = utils.generate_password()
         self.charm.set_secret(secrets.UNIT_SCOPE, MONITORING_PASSWORD_KEY, monitoring_password)
         return monitoring_password
+
+    def _reset_monitoring_password(self) -> None:
+        """Reset the monitoring password from unit peer data."""
+        self.charm.set_secret(secrets.UNIT_SCOPE, MONITORING_PASSWORD_KEY, None)
 
     def is_relation_breaking(self, event) -> bool:
         """Whether relation will be broken after the current event is handled."""
@@ -103,4 +116,5 @@ class COSRelation:
             user=MONITORING_USERNAME,
             password=None,
         )
+        self._reset_monitoring_password()
         logger.debug("Cleaned router REST API user for mysqlrouter exporter")

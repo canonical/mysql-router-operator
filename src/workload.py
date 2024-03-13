@@ -15,12 +15,13 @@ import typing
 import ops
 
 import container
-import logrotate
 import mysql_shell
 import server_exceptions
 
 if typing.TYPE_CHECKING:
     import abstract_charm
+    import logrotate
+    import relations.cos
     import relations.database_requires
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class Workload:
         self,
         *,
         container_: container.Container,
-        logrotate_: logrotate.LogRotate,
+        logrotate_: "logrotate.LogRotate",
         cos_: "relations.cos.COSRelation",
     ) -> None:
         self._container = container_
@@ -93,7 +94,12 @@ class Workload:
         )
         return config_string
 
-    def disable_exporter(self) -> None:
+    @property
+    def _custom_tls_enabled(self) -> bool:
+        """Whether custom TLS certs are enabled for MySQL Router"""
+        return self._tls_key_file.exists() and self._tls_certificate_file.exists()
+
+    def _disable_exporter(self) -> None:
         """Stop and disable MySQL Router exporter service, keeping router enabled."""
         if not self._container.mysql_router_exporter_service_enabled:
             return
@@ -145,7 +151,7 @@ class Workload:
             self._router_data_directory.mkdir()
             logger.debug("Disabled MySQL Router service")
 
-        self.disable_exporter()
+        self._disable_exporter()
 
         if tls:
             self.enable_tls(key=key, certificate=certificate)
@@ -168,7 +174,7 @@ class AuthenticatedWorkload(Workload):
         self,
         *,
         container_: container.Container,
-        logrotate_: logrotate.LogRotate,
+        logrotate_: "logrotate.LogRotate",
         connection_info: "relations.database_requires.CompleteConnectionInformation",
         cos_: "relations.cos.COSRelation",
         charm_: "abstract_charm.MySQLRouterCharm",
@@ -299,23 +305,21 @@ class AuthenticatedWorkload(Workload):
         *,
         tls: bool,
         unit_name: str,
-        exporter_config: dict = {},
+        exporter_config: "relations.cos.ExporterConfig",
         key: str = None,
         certificate: str = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
         if tls and (not (key and certificate)):
-            logger.warning("TLS enabled without valid key and certificate")
-            return
+            raise ValueError("Missing TLS key or certificate")
 
         if tls:
-            self.enable_tls() and self._container.mysql_router_service_enabled and self._restart(
-                tls=tls
-            )
+            tls_enabled = self._custom_tls_enabled
+            self.enable_tls(key=key, certificate=certificate)
+            tls_enabled and self._container.mysql_router_service_enabled and self._restart(tls=tls)
         else:
-            self.disable_tls() and self._container.mysql_router_service_enabled and self._restart(
-                tls=tls
-            )
+            self.disable_tls()
+            self._container.mysql_router_service_enabled and self._restart(tls=tls)
 
         # If the host or port changes, MySQL Router will receive topology change
         # notifications from MySQL.
@@ -368,7 +372,7 @@ class AuthenticatedWorkload(Workload):
 
         with io.StringIO() as string_io:
             config.write(string_io)
-            self._container.rest_api_conf.write_text(string_io.getvalue())
+            self._container.rest_api_config_file.write_text(string_io.getvalue())
 
     def upgrade(self, *, unit: ops.Unit, tls: bool) -> None:
         enabled = self._container.mysql_router_service_enabled
