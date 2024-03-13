@@ -330,7 +330,7 @@ class AuthenticatedWorkload(Workload):
             )
             logger.debug("Enabled MySQL Router exporter service")
         elif self._container.mysql_router_exporter_service_enabled and not exporter_config:
-            self.disable_exporter()
+            self._disable_exporter()
 
     @property
     def status(self) -> typing.Optional[ops.StatusBase]:
