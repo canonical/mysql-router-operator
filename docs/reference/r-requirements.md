@@ -5,12 +5,10 @@ The charm supports both [Juju 2.9 LTS](https://github.com/juju/juju/releases) an
 The minimum supported Juju versions are:
 
 * 2.9.32+
-* 3.1.6+ (due to issues with Juju secrets in previous versions, see [#1](https://bugs.launchpad.net/juju/+bug/2029285) and [#2](https://bugs.launchpad.net/juju/+bug/2029282))
-
-## Minimum requirements
+* 3.1.7+ (Juju secrets refactored/stabilized in Juju 3.1.7)
 
 Make sure your machine meets the following requirements:
-- Ubuntu 20.04 (Focal) or later.
+- Ubuntu 22.04 (Jammy) or later.
 - 8GB of RAM.
 - 2 CPU threads.
 - At least 20GB of available storage.
