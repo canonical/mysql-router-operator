@@ -4,18 +4,14 @@
 """Relation to the cos charms."""
 
 import logging
-import typing
 
-import charms.data_platform_libs.v0.data_secrets as secrets
 import ops
 from charms.grafana_agent.v0.cos_agent import COSAgentProvider
 
+import abstract_charm
 import container
 import utils
 from snap import _SNAP_NAME
-
-if typing.TYPE_CHECKING:
-    import abstract_charm
 
 logger = logging.getLogger(__name__)
 
@@ -78,17 +74,21 @@ class COSRelation:
 
     def _get_monitoring_password(self) -> str:
         """Gets the monitoring password from unit peer data, or generate and cache it."""
-        monitoring_password = self.charm.get_secret(secrets.UNIT_SCOPE, MONITORING_PASSWORD_KEY)
+        monitoring_password = self.charm.get_secret(
+            abstract_charm.UNIT_SCOPE, MONITORING_PASSWORD_KEY
+        )
         if monitoring_password:
             return monitoring_password
 
         monitoring_password = utils.generate_password()
-        self.charm.set_secret(secrets.UNIT_SCOPE, MONITORING_PASSWORD_KEY, monitoring_password)
+        self.charm.set_secret(
+            abstract_charm.UNIT_SCOPE, MONITORING_PASSWORD_KEY, monitoring_password
+        )
         return monitoring_password
 
     def _reset_monitoring_password(self) -> None:
         """Reset the monitoring password from unit peer data."""
-        self.charm.set_secret(secrets.UNIT_SCOPE, MONITORING_PASSWORD_KEY, None)
+        self.charm.set_secret(abstract_charm.UNIT_SCOPE, MONITORING_PASSWORD_KEY, None)
 
     def is_relation_breaking(self, event) -> bool:
         """Whether relation will be broken after the current event is handled."""

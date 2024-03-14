@@ -8,7 +8,7 @@ import logging
 import socket
 import typing
 
-import charms.data_platform_libs.v0.data_secrets as secrets
+import charms.data_platform_libs.v0.data_interfaces as data_interfaces
 import ops
 import tenacity
 
@@ -24,15 +24,17 @@ import workload
 
 logger = logging.getLogger(__name__)
 
-
-class MySQLRouterSecretsError(Exception):
-    """MySQLRouter secrets related error."""
+APP_SCOPE = "app"
+UNIT_SCOPE = "unit"
+Scopes = typing.Literal[APP_SCOPE, UNIT_SCOPE]
 
 
 class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     """MySQL Router charm"""
 
     _PEER_RELATION_NAME = "mysql-router-peers"
+    _SECRET_INTERNAL_LABEL = "internal-secret"
+    _SECRET_DELETED_LABEL = "None"
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -40,7 +42,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self._unit_lifecycle = lifecycle.Unit(
             self, subordinated_relation_endpoint_names=self._subordinate_relation_endpoint_names
         )
-        self._secrets = secrets.SecretCache(self)
 
         self._workload_type = workload.Workload
         self._authenticated_workload_type = workload.AuthenticatedWorkload
@@ -192,114 +193,51 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         else:
             logger.debug("MySQL Router is ready")
 
-    def _scope_obj(self, scope: secrets.Scopes) -> dict:
-        """Return corresponding data unit for app/unit."""
-        if scope == secrets.APP_SCOPE:
+    # =======================
+    #  Secrets Related
+    # =======================
+
+    def _scope_obj(self, scope: Scopes):
+        if scope == APP_SCOPE:
             return self.app
-        if scope == secrets.UNIT_SCOPE:
+        if scope == UNIT_SCOPE:
             return self.unit
 
-    def _peer_data(self, scope: secrets.Scopes) -> dict:
-        """Return corresponding databag for app/unit."""
-        if self.peers is None:
-            return {}
-        return self.peers.data[self._scope_obj(scope)]
+    def peer_relation_data(self, scope: Scopes) -> data_interfaces.DataPeer:
+        """Returns the peer relation data per scope."""
+        if scope == APP_SCOPE:
+            return self.peer_relation_app
+        elif scope == UNIT_SCOPE:
+            return self.peer_relation_unit
 
-    def _get_secret_from_juju(self, scope: secrets.Scopes, key: str) -> typing.Optional[str]:
-        """Retrieve and return the secret from the juju secret storage."""
-        label = secrets.generate_secret_label(self, scope)
-        secret = self._secrets.get(label)
+    def get_secret(self, scope: Scopes, key: str) -> typing.Optional[str]:
+        """Get secret from the secret storage."""
+        if scope not in typing.get_args(Scopes):
+            raise ValueError("Unknown secret scope")
 
-        if not secret:
-            logger.debug("Getting a secret when secret is not added in juju")
-            return
+        peers = self.model.get_relation(self._PEER_RELATION_NAME)
+        return self.peer_relation_data(scope).fetch_my_relation_field(peers.id, key)
 
-        value = secret.get_content().get(key)
-        logger.debug(f"Retrieved secret {key} for unit from juju")
-        return value
-
-    def _get_secret_from_databag(self, scope: secrets.Scopes, key: str) -> typing.Optional[str]:
-        """Retrieve and return the secret from the peer relation databag."""
-        return self._peer_data(scope).get(key)
-
-    def get_secret(self, scope: secrets.Scopes, key: str) -> typing.Optional[str]:
-        """Get secret from the secret storage.
-
-        Retrieve secret from juju secrets backend if secret exists there.
-        Else retrieve from peer databag. This is to account for cases where
-        secrets are stored in peer databag but the charm is then refreshed to
-        a newer revision.
-        """
-        if scope not in [secrets.APP_SCOPE, secrets.UNIT_SCOPE]:
-            raise MySQLRouterSecretsError(f"Invalid secret scope: {scope}")
-
-        if ops.jujuversion.JujuVersion.from_environ().has_secrets:
-            secret = self._get_secret_from_juju(scope, key)
-            if secret:
-                return secret
-
-        return self._get_secret_from_databag(scope, key)
-
-    def _set_secret_in_juju(
-        self, scope: secrets.Scopes, key: str, value: typing.Optional[str]
-    ) -> None:
-        """Set the secret in the juju secret storage."""
-        # Charm could have been upgraded since last run
-        # We make an attempt to remove potential traces from the databag
-        self._peer_data(scope).pop(key, None)
-
-        label = secrets.generate_secret_label(self, scope)
-        secret = self._secrets.get(label)
-        if not secret and value:
-            self._secrets.add(label, {key: value}, scope)
-            return
-
-        content = secret.get_content() if secret else None
+    def set_secret(
+        self, scope: Scopes, key: str, value: typing.Optional[str]
+    ) -> typing.Optional[str]:
+        """Set secret from the secret storage."""
+        if scope not in typing.get_args(Scopes):
+            raise ValueError("Unknown secret scope")
 
         if not value:
-            if content and key in content:
-                content.pop(key, None)
-            else:
-                logger.error(f"Non-existing secret {scope}:{key} was attempted to be removed.")
-                return
-        else:
-            content.update({key: value})
+            return self.remove_secret(scope, key)
 
-        secret.set_content(content)
+        peers = self.model.get_relation(self._PEER_RELATION_NAME)
+        self.peer_relation_data(scope).update_relation_data(peers.id, {key: value})
 
-    def _set_secret_in_databag(
-        self, scope: secrets.Scopes, key: str, value: typing.Optional[str]
-    ) -> None:
-        """Set secret in the peer relation databag."""
-        if not value:
-            try:
-                self._peer_data(scope).pop(key)
-                return
-            except KeyError:
-                logger.error(f"Non-existing secret {scope}:{key} was attempted to be removed.")
-                return
+    def remove_secret(self, scope: Scopes, key: str) -> None:
+        """Removing a secret."""
+        if scope not in typing.get_args(Scopes):
+            raise ValueError("Unknown secret scope")
 
-        self._peer_data(scope)[key] = value
-
-    def set_secret(self, scope: secrets.Scopes, key: str, value: typing.Optional[str]) -> None:
-        """Set a secret in the secret storage."""
-        if scope not in [secrets.APP_SCOPE, secrets.UNIT_SCOPE]:
-            raise MySQLRouterSecretsError(f"Invalid secret scope: {scope}")
-
-        if scope == secrets.APP_SCOPE and not self.unit.is_leader():
-            raise MySQLRouterSecretsError("Can only set app secrets on the leader unit")
-
-        if ops.jujuversion.JujuVersion.from_environ().has_secrets:
-            self._set_secret_in_juju(scope, key, value)
-
-            # for refresh from juju <= 3.1.4 to >= 3.1.5, we need to clear out
-            # secrets from the databag as well
-            if self._get_secret_from_databag(scope, key):
-                self._set_secret_in_databag(scope, key, None)
-
-            return
-
-        self._set_secret_in_databag(scope, key, value)
+        peers = self.model.get_relation(self._PEER_RELATION_NAME)
+        self.peer_relation_data(scope).delete_relation_data(peers.id, [key])
 
     # =======================
     #  Handlers

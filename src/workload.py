@@ -105,7 +105,7 @@ class Workload:
             return
         logger.debug("Disabling MySQL Router exporter service")
         self._cos.cleanup_monitoring_user()
-        self._container.update_mysql_router_exporter_service(enabled=False)
+        self._container.update_mysql_router_exporter_service(enabled=False, config=None)
         logger.debug("Disabled MySQL Router exporter service")
 
     def enable_tls(self, *, key: str, certificate: str) -> None:
