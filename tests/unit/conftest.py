@@ -47,6 +47,7 @@ def patch(monkeypatch):
     monkeypatch.setattr("upgrade.Upgrade.is_compatible", True)
 
 
+# flake8: noqa: C901
 @pytest.fixture(autouse=True)
 def machine_patch(monkeypatch):
     monkeypatch.setattr("lifecycle.Unit._on_subordinate_relation_broken", lambda *args: None)
@@ -73,12 +74,16 @@ def machine_patch(monkeypatch):
             return
 
         def start(self, services: list[str] = None, *_, **__):
-            assert "mysqlrouter-service" in services or "mysqlrouter-exporter" in services
+            for service in services:
+                assert service in ("mysqlrouter-service", "mysqlrouter-exporter")
+
             self.services["mysqlrouter-service"]["active"] = "mysqlrouter-service" in services
             self.services["mysqlrouter-exporter"]["active"] = "mysqlrouter-exporter" in services
 
         def stop(self, services: list[str] = None, *_, **__):
-            assert "mysqlrouter-service" in services or "mysqlrouter-exporter" in services
+            for service in services:
+                assert service in ("mysqlrouter-service", "mysqlrouter-exporter")
+
             if "mysqlrouter-service" in services:
                 self.services["mysqlrouter-service"]["active"] = False
             if "mysqlrouter-exporter" in services:

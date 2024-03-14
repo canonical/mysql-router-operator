@@ -9,7 +9,6 @@
 import logging
 import typing
 
-import charms.data_platform_libs.v0.data_interfaces as data_interfaces
 import ops
 
 import abstract_charm
@@ -39,22 +38,6 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self.framework.observe(self.on.remove, self._on_remove)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
         self.framework.observe(self.on["force-upgrade"].action, self._on_force_upgrade_action)
-
-        self.peer_relation_app = data_interfaces.DataPeer(
-            self,
-            relation_name=self._PEER_RELATION_NAME,
-            secret_field_name=self._SECRET_INTERNAL_LABEL,
-            deleted_label=self._SECRET_DELETED_LABEL,
-        )
-        self.peer_relation_unit = data_interfaces.DataPeerUnit(
-            self,
-            relation_name=self._PEER_RELATION_NAME,
-            additional_secret_fields=[
-                relations.cos.MONITORING_PASSWORD_KEY,
-            ],
-            secret_field_name=self._SECRET_INTERNAL_LABEL,
-            deleted_label=self._SECRET_DELETED_LABEL,
-        )
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:

@@ -8,33 +8,28 @@ import logging
 import socket
 import typing
 
-import charms.data_platform_libs.v0.data_interfaces as data_interfaces
 import ops
 import tenacity
 
+import constants
 import container
 import lifecycle
 import logrotate
 import machine_upgrade
 import relations.database_provides
 import relations.database_requires
+import relations.secrets
 import server_exceptions
 import upgrade
 import workload
 
 logger = logging.getLogger(__name__)
 
-APP_SCOPE = "app"
-UNIT_SCOPE = "unit"
-Scopes = typing.Literal[APP_SCOPE, UNIT_SCOPE]
-
 
 class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     """MySQL Router charm"""
 
-    _PEER_RELATION_NAME = "mysql-router-peers"
-    _SECRET_INTERNAL_LABEL = "internal-secret"
-    _SECRET_DELETED_LABEL = "None"
+    _COS_PEER_RELATION_NAME = "cos"
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -67,6 +62,12 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             self._upgrade_relation_created,
         )
 
+        self.cos_secrets = relations.secrets.RelationSecrets(
+            self,
+            self._COS_PEER_RELATION_NAME,
+            unit_secret_fields=[constants.MONITORING_PASSWORD_KEY],
+        )
+
     @property
     @abc.abstractmethod
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
@@ -74,6 +75,12 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
         Does NOT include relations where charm is principal
         """
+
+    @property
+    def _tls_certificate_saved(self) -> bool:
+        """Whether a TLS certificate is available to use"""
+        # TODO VM TLS: Remove property after implementing TLS on machine charm
+        return False
 
     @property
     @abc.abstractmethod
@@ -100,11 +107,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def _read_only_endpoint(self) -> str:
         """MySQL Router read-only endpoint"""
 
-    @property
-    def peers(self) -> typing.Optional[ops.model.Relation]:
-        """Retrieve the peer relation."""
-        return self.model.get_relation(self._PEER_RELATION_NAME)
-
     def get_workload(self, *, event):
         """MySQL Router workload"""
         if connection_info := self._database_requires.get_connection_info(event=event):
@@ -112,11 +114,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 container_=self._container,
                 logrotate_=self._logrotate,
                 connection_info=connection_info,
-                cos_=self._cos,
+                cos=self._cos,
                 charm_=self,
             )
         return self._workload_type(
-            container_=self._container, logrotate_=self._logrotate, cos_=self._cos
+            container_=self._container, logrotate_=self._logrotate, cos=self._cos
         )
 
     @staticmethod
@@ -192,52 +194,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             raise
         else:
             logger.debug("MySQL Router is ready")
-
-    # =======================
-    #  Secrets Related
-    # =======================
-
-    def _scope_obj(self, scope: Scopes):
-        if scope == APP_SCOPE:
-            return self.app
-        if scope == UNIT_SCOPE:
-            return self.unit
-
-    def peer_relation_data(self, scope: Scopes) -> data_interfaces.DataPeer:
-        """Returns the peer relation data per scope."""
-        if scope == APP_SCOPE:
-            return self.peer_relation_app
-        elif scope == UNIT_SCOPE:
-            return self.peer_relation_unit
-
-    def get_secret(self, scope: Scopes, key: str) -> typing.Optional[str]:
-        """Get secret from the secret storage."""
-        if scope not in typing.get_args(Scopes):
-            raise ValueError("Unknown secret scope")
-
-        peers = self.model.get_relation(self._PEER_RELATION_NAME)
-        return self.peer_relation_data(scope).fetch_my_relation_field(peers.id, key)
-
-    def set_secret(
-        self, scope: Scopes, key: str, value: typing.Optional[str]
-    ) -> typing.Optional[str]:
-        """Set secret from the secret storage."""
-        if scope not in typing.get_args(Scopes):
-            raise ValueError("Unknown secret scope")
-
-        if not value:
-            return self.remove_secret(scope, key)
-
-        peers = self.model.get_relation(self._PEER_RELATION_NAME)
-        self.peer_relation_data(scope).update_relation_data(peers.id, {key: value})
-
-    def remove_secret(self, scope: Scopes, key: str) -> None:
-        """Removing a secret."""
-        if scope not in typing.get_args(Scopes):
-            raise ValueError("Unknown secret scope")
-
-        peers = self.model.get_relation(self._PEER_RELATION_NAME)
-        self.peer_relation_data(scope).delete_relation_data(peers.id, [key])
 
     # =======================
     #  Handlers

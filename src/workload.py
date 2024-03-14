@@ -44,11 +44,11 @@ class Workload:
         *,
         container_: container.Container,
         logrotate_: "logrotate.LogRotate",
-        cos_: "relations.cos.COSRelation",
+        cos: "relations.cos.COSRelation",
     ) -> None:
         self._container = container_
         self._logrotate = logrotate_
-        self._cos = cos_
+        self._cos = cos
         self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
         self._tls_key_file = self._container.router_config_directory / "custom-key.pem"
         self._tls_certificate_file = (
@@ -105,7 +105,7 @@ class Workload:
             return
         logger.debug("Disabling MySQL Router exporter service")
         self._cos.cleanup_monitoring_user()
-        self._container.update_mysql_router_exporter_service(enabled=False, config=None)
+        self._container.update_mysql_router_exporter_service(enabled=False)
         logger.debug("Disabled MySQL Router exporter service")
 
     def enable_tls(self, *, key: str, certificate: str) -> None:
@@ -164,12 +164,12 @@ class AuthenticatedWorkload(Workload):
         container_: container.Container,
         logrotate_: "logrotate.LogRotate",
         connection_info: "relations.database_requires.CompleteConnectionInformation",
-        cos_: "relations.cos.COSRelation",
+        cos: "relations.cos.COSRelation",
         charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
-        super().__init__(container_=container_, logrotate_=logrotate_, cos_=cos_)
+        super().__init__(container_=container_, logrotate_=logrotate_, cos=cos)
         self._connection_info = connection_info
-        self._cos = cos_
+        self._cos = cos
         self._charm = charm_
 
     @property

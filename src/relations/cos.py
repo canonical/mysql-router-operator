@@ -4,28 +4,33 @@
 """Relation to the cos charms."""
 
 import logging
+import typing
+from dataclasses import dataclass
 
 import ops
 from charms.grafana_agent.v0.cos_agent import COSAgentProvider
+from relations.secrets import UNIT_SCOPE
 
-import abstract_charm
+import constants
 import container
 import utils
 from snap import _SNAP_NAME
 
+if typing.TYPE_CHECKING:
+    import abstract_charm
+
 logger = logging.getLogger(__name__)
 
 MONITORING_USERNAME = "monitoring"
-MONITORING_PASSWORD_KEY = "monitoring-password"
 
 
+@dataclass
 class ExporterConfig:
     """Configuration for the MySQL Router exporter"""
 
-    def __init__(self, url: str, username: str, password: str) -> None:
-        self.url = url
-        self.username = username
-        self.password = password
+    url: str
+    username: str
+    password: str
 
 
 class COSRelation:
@@ -74,21 +79,21 @@ class COSRelation:
 
     def _get_monitoring_password(self) -> str:
         """Gets the monitoring password from unit peer data, or generate and cache it."""
-        monitoring_password = self.charm.get_secret(
-            abstract_charm.UNIT_SCOPE, MONITORING_PASSWORD_KEY
+        monitoring_password = self.charm.cos_secrets.get_secret(
+            UNIT_SCOPE, constants.MONITORING_PASSWORD_KEY
         )
         if monitoring_password:
             return monitoring_password
 
         monitoring_password = utils.generate_password()
-        self.charm.set_secret(
-            abstract_charm.UNIT_SCOPE, MONITORING_PASSWORD_KEY, monitoring_password
+        self.charm.cos_secrets.set_secret(
+            UNIT_SCOPE, constants.MONITORING_PASSWORD_KEY, monitoring_password
         )
         return monitoring_password
 
     def _reset_monitoring_password(self) -> None:
         """Reset the monitoring password from unit peer data."""
-        self.charm.set_secret(abstract_charm.UNIT_SCOPE, MONITORING_PASSWORD_KEY, None)
+        self.charm.cos_secrets.set_secret(UNIT_SCOPE, constants.MONITORING_PASSWORD_KEY, None)
 
     def is_relation_breaking(self, event) -> bool:
         """Whether relation will be broken after the current event is handled."""

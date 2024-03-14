@@ -39,8 +39,8 @@ requires:
     interface: juju-info
     scope: container
 peers:
-  mysql-router-peers:
-    interface: mysql_router_peers
+  cos:
+    interface: cos
   upgrade-version-a:
     # Relation versioning scheme:
     # DA056 - Upgrading in-place upgrade protocol

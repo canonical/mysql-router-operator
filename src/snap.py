@@ -186,7 +186,7 @@ class Snap(container.Container):
             _snap.stop([self._SERVICE_NAME], disable=True)
 
     def update_mysql_router_exporter_service(
-        self, *, enabled: bool, config: "relations.cos.ExporterConfig"
+        self, *, enabled: bool, config: "relations.cos.ExporterConfig" = None
     ) -> None:
         if enabled and not config:
             raise ValueError("Missing MySQL Router exporter config")

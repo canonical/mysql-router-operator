@@ -134,7 +134,7 @@ class Container(abc.ABC):
 
     @abc.abstractmethod
     def update_mysql_router_exporter_service(
-        self, *, enabled: bool, config: "relations.cos.ExporterConfig"
+        self, *, enabled: bool, config: "relations.cos.ExporterConfig" = None
     ) -> None:
         """Update and restart the MySQL Router exporter service.
 
@@ -157,7 +157,7 @@ class Container(abc.ABC):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: typing.Optional[str] = None,
+        input: str = None,
     ) -> str:
         """Run command in container.
 
