@@ -186,7 +186,7 @@ class Snap(container.Container):
     def update_mysql_router_exporter_service(
         self, *, enabled: bool, config: "relations.cos.ExporterConfig" = None
     ) -> None:
-        super().update_mysql_router_exporter_service(enabled, config=config)
+        super().update_mysql_router_exporter_service(enabled=enabled, config=config)
 
         if enabled:
             _snap.set(
