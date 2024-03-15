@@ -142,6 +142,8 @@ class Container(abc.ABC):
             enabled: Whether MySQL Router exporter service is enabled
             config: The configuration for MySQL Router exporter
         """
+        if enabled and not config:
+            raise ValueError("Missing MySQL Router exporter config")
 
     @abc.abstractmethod
     def upgrade(self, unit: ops.Unit) -> None:

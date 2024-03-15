@@ -9,10 +9,9 @@ from dataclasses import dataclass
 
 import ops
 from charms.grafana_agent.v0.cos_agent import COSAgentProvider
-from relations.secrets import UNIT_SCOPE
 
-import constants
 import container
+import relations.secrets
 import utils
 from snap import _SNAP_NAME
 
@@ -22,6 +21,7 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 MONITORING_USERNAME = "monitoring"
+MONITORING_PASSWORD_KEY = "monitoring-password"
 
 
 @dataclass
@@ -39,6 +39,7 @@ class COSRelation:
     _EXPORTER_PORT = "49152"
     _HTTP_SERVER_PORT = "8443"
     _NAME = "cos-agent"
+    _PEER_RELATION_NAME = "cos"
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm", container_: container.Container):
         self._interface = COSAgentProvider(
@@ -63,9 +64,15 @@ class COSRelation:
             charm_.reconcile,
         )
 
+        self._secrets = relations.secrets.RelationSecrets(
+            charm_,
+            self._PEER_RELATION_NAME,
+            unit_secret_fields=[MONITORING_PASSWORD_KEY],
+        )
+
     @property
-    def exporter_user_info(self) -> dict:
-        """Returns user info needed for the router exporter service."""
+    def exporter_user_config(self) -> dict:
+        """Returns user config needed for the router exporter service."""
         return ExporterConfig(
             url=f"https://127.0.0.1:{self._HTTP_SERVER_PORT}",
             username=MONITORING_USERNAME,
@@ -79,21 +86,21 @@ class COSRelation:
 
     def _get_monitoring_password(self) -> str:
         """Gets the monitoring password from unit peer data, or generate and cache it."""
-        monitoring_password = self.charm.cos_secrets.get_secret(
-            UNIT_SCOPE, constants.MONITORING_PASSWORD_KEY
+        monitoring_password = self._secrets.get_secret(
+            relations.secrets.UNIT_SCOPE, MONITORING_PASSWORD_KEY
         )
         if monitoring_password:
             return monitoring_password
 
         monitoring_password = utils.generate_password()
-        self.charm.cos_secrets.set_secret(
-            UNIT_SCOPE, constants.MONITORING_PASSWORD_KEY, monitoring_password
+        self._secrets.set_secret(
+            relations.secrets.UNIT_SCOPE, MONITORING_PASSWORD_KEY, monitoring_password
         )
         return monitoring_password
 
     def _reset_monitoring_password(self) -> None:
         """Reset the monitoring password from unit peer data."""
-        self.charm.cos_secrets.set_secret(UNIT_SCOPE, constants.MONITORING_PASSWORD_KEY, None)
+        self._secrets.set_secret(relations.secrets.UNIT_SCOPE, MONITORING_PASSWORD_KEY, None)
 
     def is_relation_breaking(self, event) -> bool:
         """Whether relation will be broken after the current event is handled."""

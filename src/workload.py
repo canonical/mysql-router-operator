@@ -4,7 +4,6 @@
 """MySQL Router workload"""
 
 import configparser
-import io
 import logging
 import pathlib
 import re
@@ -45,10 +44,12 @@ class Workload:
         container_: container.Container,
         logrotate_: "logrotate.LogRotate",
         cos: "relations.cos.COSRelation",
+        charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
         self._container = container_
         self._logrotate = logrotate_
         self._cos = cos
+        self._charm = charm_
         self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
         self._tls_key_file = self._container.router_config_directory / "custom-key.pem"
         self._tls_certificate_file = (
@@ -127,13 +128,19 @@ class Workload:
             file.unlink(missing_ok=True)
         logger.debug("Deleting TLS files")
 
-    def reconcile(
+    def _reconcile(
         self,
         *,
+        tls: bool,
         unit_name: str,
         exporter_config: "relations.cos.ExporterConfig",
+        key: str = None,
+        certificate: str = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
+        if tls and (not (key and certificate)):
+            raise ValueError("Missing TLS key or certificate")
+
         if self._container.mysql_router_service_enabled:
             logger.debug("Disabling MySQL Router service")
             self._container.update_mysql_router_service(enabled=False)
@@ -145,6 +152,21 @@ class Workload:
             logger.debug("Disabled MySQL Router service")
 
         self._disable_exporter()
+
+        if tls:
+            self.enable_tls(key=key, certificate=certificate)
+        else:
+            self.disable_tls()
+
+    def reconcile_services(self, event) -> None:
+        """Wrapper around _reconcile."""
+        self._reconcile(
+            tls=self._charm.tls_certificate_saved,
+            unit_name=self._charm.unit.name,
+            exporter_config=self._charm.cos_exporter_config(event),
+            key=self._charm.tls_key,
+            certificate=self._charm.tls_certificate,
+        )
 
     @property
     def status(self) -> typing.Optional[ops.StatusBase]:
@@ -167,7 +189,7 @@ class AuthenticatedWorkload(Workload):
         cos: "relations.cos.COSRelation",
         charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
-        super().__init__(container_=container_, logrotate_=logrotate_, cos=cos)
+        super().__init__(container_=container_, logrotate_=logrotate_, cos=cos, charm_=charm_)
         self._connection_info = connection_info
         self._cos = cos
         self._charm = charm_
@@ -216,6 +238,10 @@ class AuthenticatedWorkload(Workload):
             "--force",
             "--conf-set-option",
             "http_server.bind_address=127.0.0.1",
+            "--conf-set-option",
+            "http_auth_backend:default_auth_backend.backend=file",
+            "--conf-set-option",
+            f"http_auth_backend:default_auth_backend.filename={str(self._container.path(self._container.rest_api_credentials_file))}",
             "--conf-use-gr-notifications",
         ]
 
@@ -298,25 +324,40 @@ class AuthenticatedWorkload(Workload):
         super().disable_tls()
         self._container.mysql_router_service_enabled and self._restart(tls=False)
 
-    def reconcile(
+    def _reconcile(
         self,
         *,
+        tls: bool,
         unit_name: str,
         exporter_config: "relations.cos.ExporterConfig",
+        key: str = None,
+        certificate: str = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
+        if tls and (not (key and certificate)):
+            raise ValueError("Missing TLS key or certificate")
+
+        tls_enabled = self._custom_tls_enabled
+        if tls:
+            self.enable_tls(key, certificate)
+            not tls_enabled and self._container.mysql_router_service_enabled and self._restart(
+                tls=tls
+            )
+        else:
+            self.disable_tls()
+            tls_enabled and self._container.mysql_router_service_enabled and self._restart(tls=tls)
+
         # If the host or port changes, MySQL Router will receive topology change
         # notifications from MySQL.
         # Therefore, if the host or port changes, we do not need to restart MySQL Router.
         if not self._container.mysql_router_service_enabled:
             logger.debug("Enabling MySQL Router service")
             self._cleanup_after_upgrade_or_potential_container_restart()
+            self._container.create_router_rest_api_credentials_file()  # create an empty credentials file
             self._bootstrap_router(tls=self._custom_tls_enabled)
             self.shell.add_attributes_to_mysql_router_user(
                 username=self._router_username, router_id=self._router_id, unit_name=unit_name
             )
-            self._render_http_backend_auth_config()
-            self._container.create_router_rest_api_credentials_file()  # create an empty credentials file
             self._container.update_mysql_router_service(enabled=True, tls=self._custom_tls_enabled)
             self._logrotate.enable()
             logger.debug("Enabled MySQL Router service")
@@ -345,18 +386,6 @@ class AuthenticatedWorkload(Workload):
             return ops.BlockedStatus(
                 "Router was manually removed from MySQL ClusterSet. Remove & re-deploy unit"
             )
-
-    def _render_http_backend_auth_config(self) -> None:
-        """Render the router config for the http backend auth."""
-        config = configparser.ConfigParser(interpolation=None)
-        config["http_auth_backend:default_auth_backend"] = {
-            "backend": "file",
-            "filename": str(self._container.path(self._container.rest_api_credentials_file)),
-        }
-
-        with io.StringIO() as string_io:
-            config.write(string_io)
-            self._container.rest_api_config_file.write_text(string_io.getvalue())
 
     def upgrade(self, *, unit: ops.Unit, tls: bool) -> None:
         enabled = self._container.mysql_router_service_enabled

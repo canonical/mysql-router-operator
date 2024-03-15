@@ -31,7 +31,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         super().__init__(*args)
         # DEPRECATED shared-db: Enable legacy "mysql-shared" interface
         self._database_provides = relations.database_providers_wrapper.RelationEndpoint(self)
-        self._cos = relations.cos.COSRelation(self, self._container)
+        self._cos_relation = relations.cos.COSRelation(self, self._container)
 
         self._authenticated_workload_type = socket_workload.AuthenticatedSocketWorkload
         self.framework.observe(self.on.install, self._on_install)
@@ -60,6 +60,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def _logrotate(self) -> machine_logrotate.LogRotate:
         return machine_logrotate.LogRotate(container_=self._container)
+
+    @property
+    def _cos(self) -> relations.cos.COSRelation:
+        return self._cos_relation
 
     @property
     def _read_write_endpoint(self) -> str:
@@ -107,7 +111,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         logger.debug("Forcing upgrade")
         event.log(f"Forcefully upgrading {self.unit.name}")
         self._upgrade.upgrade_unit(
-            workload_=self.get_workload(event=None), tls=self._tls_certificate_saved
+            workload_=self.get_workload(event=None), tls=self.tls_certificate_saved
         )
         self.reconcile()
         event.set_results({"result": f"Forcefully upgraded {self.unit.name}"})
