@@ -138,8 +138,8 @@ class Workload:
         certificate: str = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
-        if tls and (not (key and certificate)):
-            raise ValueError("Missing TLS key or certificate")
+        if tls and not (key and certificate):
+            raise ValueError("`key` and `certificate` arguments required when tls=True")
 
         if self._container.mysql_router_service_enabled:
             logger.debug("Disabling MySQL Router service")
@@ -241,7 +241,7 @@ class AuthenticatedWorkload(Workload):
             "--conf-set-option",
             "http_auth_backend:default_auth_backend.backend=file",
             "--conf-set-option",
-            f"http_auth_backend:default_auth_backend.filename={str(self._container.path(self._container.rest_api_credentials_file))}",
+            f"http_auth_backend:default_auth_backend.filename={self._container.path(self._container.rest_api_credentials_file).relative_to_container}",
             "--conf-use-gr-notifications",
         ]
 
@@ -314,16 +314,6 @@ class AuthenticatedWorkload(Workload):
         # status
         self._charm.set_status(event=None)
 
-    def _enable_tls(self, *, key: str, certificate: str) -> None:
-        """Enable TLS."""
-        super()._enable_tls()
-        self._container.mysql_router_service_enabled and self._restart(tls=True)
-
-    def _disable_tls(self) -> None:
-        """Disable TLS."""
-        super()._disable_tls()
-        self._container.mysql_router_service_enabled and self._restart(tls=False)
-
     def _reconcile(
         self,
         *,
@@ -334,18 +324,19 @@ class AuthenticatedWorkload(Workload):
         certificate: str = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
-        if tls and (not (key and certificate)):
-            raise ValueError("Missing TLS key or certificate")
+        if tls and not (key and certificate):
+            raise ValueError("`key` and `certificate` arguments required when tls=True")
 
-        tls_enabled = self._custom_tls_enabled
+        # value changes based on whether tls is enabled or disabled
+        tls_was_enabled = self._custom_tls_enabled
         if tls:
             self._enable_tls(key, certificate)
-            not tls_enabled and self._container.mysql_router_service_enabled and self._restart(
-                tls=tls
-            )
+            if not tls_was_enabled and self._container.mysql_router_service_enabled:
+                self._restart(tls=tls)
         else:
             self._disable_tls()
-            tls_enabled and self._container.mysql_router_service_enabled and self._restart(tls=tls)
+            if tls_was_enabled and self._container.mysql_router_service_enabled:
+                self._restart(tls=tls)
 
         # If the host or port changes, MySQL Router will receive topology change
         # notifications from MySQL.

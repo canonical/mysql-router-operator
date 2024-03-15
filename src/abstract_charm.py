@@ -115,7 +115,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         # TODO VM TLS: Remove property after implementing TLS on machine_charm
         return None
 
-    def cos_exporter_config(self, event) -> relations.cos.ExporterConfig:
+    def cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
         cos_relation_exists = self._cos.relation_exists and not self._cos.is_relation_breaking(
             event
