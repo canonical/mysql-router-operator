@@ -28,8 +28,6 @@ logger = logging.getLogger(__name__)
 class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     """MySQL Router charm"""
 
-    _COS_PEER_RELATION_NAME = "cos"
-
     def __init__(self, *args) -> None:
         super().__init__(*args)
         # Instantiate before registering other event observers
