@@ -52,8 +52,25 @@ def _refresh(*, unit: ops.Unit, verb: _RefreshVerb) -> None:
     logger.debug(f'{verb.capitalize().rstrip("e")}ed {_SNAP_NAME=}, {REVISION=}')
 
 
-def install(*, unit: ops.Unit, model_uuid: str):
+def install(*, unit: ops.Unit, model_uuid: str, enable_multi_mysql_snaps: bool = False) -> None:
     """Install snap."""
+    global _snap, _SNAP_NAME
+
+    if enable_multi_mysql_snaps:
+        # Replace it with an alias
+        _SNAP_NAME = "charmed-mysql_router"
+        _snap = snap_lib.SnapCache()[_SNAP_NAME]
+        try:
+            set_snap_config = subprocess.check_output(
+                ["snap", "set", "system", "experimental.parallel-instances=true"], shell=True
+            )
+            logger.debug(
+                f"Set snapd for experimental parallel instances resulted in: {set_snap_config}"
+            )
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error setting snapd for experimental parallel instances: {e}")
+            raise
+
     installed_by_unit = pathlib.Path(
         "/var/snap", _SNAP_NAME, "common", "installed_by_mysql_router_charm_unit"
     )
@@ -150,7 +167,15 @@ class Snap(container.Container):
 
     _SERVICE_NAME = "mysqlrouter-service"
 
-    def __init__(self) -> None:
+    def __init__(self, enable_multi_mysql_snaps=False) -> None:
+        global _snap, _SNAP_NAME
+
+        if enable_multi_mysql_snaps:
+            # Replace it with an alias
+            _SNAP_NAME = "charmed-mysql_router"
+            _snap = snap_lib.SnapCache()[_SNAP_NAME]
+
+        # Now, we can run the super().__init__ method
         super().__init__(
             mysql_router_command=f"{_SNAP_NAME}.mysqlrouter",
             mysql_shell_command=f"{_SNAP_NAME}.mysqlsh",

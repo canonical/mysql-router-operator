@@ -1,0 +1,8 @@
+options:
+  enable-experimental-colocation-with-mysql:
+    default: false
+    type: bool
+    description: |
+      If set to true, enables the experimental feature in snapd that allows
+      more than one instance of the same snap to be installed at the same time.
+      The main goal is to allow the router co-exist with mysql database itself in the same node.
