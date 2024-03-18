@@ -44,12 +44,10 @@ class Workload:
         container_: container.Container,
         logrotate_: "logrotate.LogRotate",
         cos: "relations.cos.COSRelation",
-        charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
         self._container = container_
         self._logrotate = logrotate_
         self._cos = cos
-        self._charm = charm_
         self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
         self._tls_key_file = self._container.router_config_directory / "custom-key.pem"
         self._tls_certificate_file = (
@@ -128,7 +126,7 @@ class Workload:
             file.unlink(missing_ok=True)
         logger.debug("Deleting TLS files")
 
-    def _reconcile(
+    def reconcile(
         self,
         *,
         tls: bool,
@@ -158,16 +156,6 @@ class Workload:
         else:
             self._disable_tls()
 
-    def reconcile_services(self, event) -> None:
-        """Wrapper around _reconcile."""
-        self._reconcile(
-            tls=self._charm.tls_certificate_saved,
-            unit_name=self._charm.unit.name,
-            exporter_config=self._charm.cos_exporter_config(event),
-            key=self._charm.tls_key,
-            certificate=self._charm.tls_certificate,
-        )
-
     @property
     def status(self) -> typing.Optional[ops.StatusBase]:
         """Report non-active status."""
@@ -189,7 +177,7 @@ class AuthenticatedWorkload(Workload):
         cos: "relations.cos.COSRelation",
         charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
-        super().__init__(container_=container_, logrotate_=logrotate_, cos=cos, charm_=charm_)
+        super().__init__(container_=container_, logrotate_=logrotate_, cos=cos)
         self._connection_info = connection_info
         self._cos = cos
         self._charm = charm_
@@ -314,7 +302,7 @@ class AuthenticatedWorkload(Workload):
         # status
         self._charm.set_status(event=None)
 
-    def _reconcile(
+    def reconcile(
         self,
         *,
         tls: bool,

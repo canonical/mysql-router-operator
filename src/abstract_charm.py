@@ -100,19 +100,19 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     @property
     def tls_certificate_saved(self) -> bool:
         """Whether a TLS certificate is available to use"""
-        # TODO VM TLS: Remove property after implementing TLS on machine_charm
+        # TODO VM TLS: Update property after implementing TLS on machine_charm
         return False
 
     @property
     def tls_key(self) -> str:
         """Custom TLS key"""
-        # TODO VM TLS: Remove property after implementing TLS on machine_charm
+        # TODO VM TLS: Update property after implementing TLS on machine_charm
         return None
 
     @property
     def tls_certificate(self) -> str:
         """Custom TLS certificate"""
-        # TODO VM TLS: Remove property after implementing TLS on machine_charm
+        # TODO VM TLS: Update property after implementing TLS on machine_charm
         return None
 
     def cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
@@ -133,7 +133,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 charm_=self,
             )
         return self._workload_type(
-            container_=self._container, logrotate_=self._logrotate, cos=self._cos, charm_=self
+            container_=self._container, logrotate_=self._logrotate, cos=self._cos
         )
 
     @staticmethod
@@ -280,7 +280,13 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                         shell=workload_.shell,
                     )
             if workload_.container_ready:
-                workload_.reconcile_services(event)
+                workload_.reconcile(
+                    tls=self.tls_certificate_saved,
+                    unit_name=self.unit.name,
+                    exporter_config=self.cos_exporter_config(event),
+                    key=self.tls_key,
+                    certificate=self.tls_certificate,
+                )
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload
             if not workload_.status or workload_.status == ops.WaitingStatus():
