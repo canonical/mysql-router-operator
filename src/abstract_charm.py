@@ -38,6 +38,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self._workload_type = workload.Workload
         self._authenticated_workload_type = workload.AuthenticatedWorkload
         self._database_requires = relations.database_requires.RelationEndpoint(self)
+        self._database_provides = relations.database_provides.RelationEndpoint(self)
         self.framework.observe(self.on.update_status, self.reconcile)
         self.framework.observe(
             self.on[upgrade.PEER_RELATION_ENDPOINT_NAME].relation_changed, self.reconcile
