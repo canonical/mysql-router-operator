@@ -111,7 +111,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         logger.debug("Forcing upgrade")
         event.log(f"Forcefully upgrading {self.unit.name}")
         self._upgrade.upgrade_unit(
-            workload_=self.get_workload(event=None), tls=self.tls_certificate_saved
+            workload_=self.get_workload(event=None), tls=self._tls_certificate_saved
         )
         self.reconcile()
         event.set_results({"result": f"Forcefully upgraded {self.unit.name}"})

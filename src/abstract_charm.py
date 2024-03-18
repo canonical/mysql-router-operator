@@ -98,24 +98,24 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """MySQL Router read-only endpoint"""
 
     @property
-    def tls_certificate_saved(self) -> bool:
+    def _tls_certificate_saved(self) -> bool:
         """Whether a TLS certificate is available to use"""
         # TODO VM TLS: Update property after implementing TLS on machine_charm
         return False
 
     @property
-    def tls_key(self) -> str:
+    def _tls_key(self) -> str:
         """Custom TLS key"""
         # TODO VM TLS: Update property after implementing TLS on machine_charm
         return None
 
     @property
-    def tls_certificate(self) -> str:
+    def _tls_certificate(self) -> str:
         """Custom TLS certificate"""
         # TODO VM TLS: Update property after implementing TLS on machine_charm
         return None
 
-    def cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
+    def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
         cos_relation_exists = self._cos.relation_exists and not self._cos.is_relation_breaking(
             event
@@ -245,7 +245,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 return
             if self._upgrade.unit_state == "outdated":
                 if self._upgrade.authorized:
-                    self._upgrade.upgrade_unit(workload_=workload_, tls=self.tls_certificate_saved)
+                    self._upgrade.upgrade_unit(
+                        workload_=workload_, tls=self._tls_certificate_saved
+                    )
                 else:
                     self.set_status(event=event)
                     logger.debug("Waiting to upgrade")
@@ -281,11 +283,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     )
             if workload_.container_ready:
                 workload_.reconcile(
-                    tls=self.tls_certificate_saved,
+                    tls=self._tls_certificate_saved,
                     unit_name=self.unit.name,
-                    exporter_config=self.cos_exporter_config(event),
-                    key=self.tls_key,
-                    certificate=self.tls_certificate,
+                    exporter_config=self._cos_exporter_config(event),
+                    key=self._tls_key,
+                    certificate=self._tls_certificate,
                 )
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload
