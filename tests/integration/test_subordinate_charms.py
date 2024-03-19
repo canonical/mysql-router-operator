@@ -27,7 +27,6 @@ async def test_ubuntu_pro(ops_test, mysql_router_charm_series, github_secrets):
             channel="8.0/edge",
             application_name=MYSQL_APP_NAME,
             config={"profile": "testing"},
-            series=mysql_router_charm_series,
         ),
         ops_test.model.deploy(
             mysqlrouter_charm,
