@@ -10,21 +10,18 @@ import dataclasses
 import json
 import logging
 import pathlib
-import secrets
-import string
 import typing
 
 import jinja2
 
 import container
 import server_exceptions
+import utils
 
 if typing.TYPE_CHECKING:
     import relations.database_requires
 
 logger = logging.getLogger(__name__)
-
-_PASSWORD_LENGTH = 24
 
 
 # TODO python3.10 min version: Add `(kw_only=True)`
@@ -123,11 +120,6 @@ class Shell:
             _jinja_env.get_template("run_sql.py.jinja").render(statements=sql_statements)
         )
 
-    @staticmethod
-    def _generate_password() -> str:
-        choices = string.ascii_letters + string.digits
-        return "".join(secrets.choice(choices) for _ in range(_PASSWORD_LENGTH))
-
     def _get_attributes(self, additional_attributes: dict = None) -> str:
         """Attributes for (MySQL) users created by this charm
 
@@ -143,7 +135,7 @@ class Shell:
         """Create database and user for related database_provides application."""
         attributes = self._get_attributes()
         logger.debug(f"Creating {database=} and {username=} with {attributes=}")
-        password = self._generate_password()
+        password = utils.generate_password()
         self._run_sql(
             [
                 f"CREATE DATABASE IF NOT EXISTS `{database}`",

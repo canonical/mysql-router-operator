@@ -16,6 +16,9 @@ import tenacity
 
 import container
 
+if typing.TYPE_CHECKING:
+    import relations.cos
+
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
@@ -149,11 +152,13 @@ class Snap(container.Container):
     """Workload snap container"""
 
     _SERVICE_NAME = "mysqlrouter-service"
+    _EXPORTER_SERVICE_NAME = "mysqlrouter-exporter"
 
     def __init__(self) -> None:
         super().__init__(
             mysql_router_command=f"{_SNAP_NAME}.mysqlrouter",
             mysql_shell_command=f"{_SNAP_NAME}.mysqlsh",
+            mysql_router_password_command=f"{_SNAP_NAME}.mysqlrouter-passwd",
         )
 
     @property
@@ -164,24 +169,56 @@ class Snap(container.Container):
     def mysql_router_service_enabled(self) -> bool:
         return _snap.services[self._SERVICE_NAME]["active"]
 
+    @property
+    def mysql_router_exporter_service_enabled(self) -> bool:
+        return _snap.services[self._EXPORTER_SERVICE_NAME]["active"]
+
     def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
         super().update_mysql_router_service(enabled=enabled, tls=tls)
         if tls:
             raise NotImplementedError  # TODO VM TLS
+
         if enabled:
             _snap.start([self._SERVICE_NAME], enable=True)
         else:
             _snap.stop([self._SERVICE_NAME], disable=True)
+
+    def update_mysql_router_exporter_service(
+        self, *, enabled: bool, config: "relations.cos.ExporterConfig" = None
+    ) -> None:
+        super().update_mysql_router_exporter_service(enabled=enabled, config=config)
+
+        if enabled:
+            _snap.set(
+                {
+                    "mysqlrouter-exporter.user": config.username,
+                    "mysqlrouter-exporter.password": config.password,
+                    "mysqlrouter-exporter.url": config.url,
+                }
+            )
+            _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
+        else:
+            _snap.unset("mysqlrouter-exporter.user")
+            _snap.unset("mysqlrouter-exporter.password")
+            _snap.unset("mysqlrouter-exporter.url")
+            _snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)
 
     def upgrade(self, unit: ops.Unit) -> None:
         """Upgrade snap."""
         _refresh(unit=unit, verb=_RefreshVerb.UPGRADE)
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _run_command(self, command: typing.List[str], *, timeout: typing.Optional[int]) -> str:
+    def _run_command(
+        self,
+        command: typing.List[str],
+        *,
+        timeout: typing.Optional[int],
+        input: typing.Optional[str] = None,
+    ) -> str:
         try:
             output = subprocess.run(
                 command,
+                input=input,
                 capture_output=True,
                 timeout=timeout,
                 check=True,

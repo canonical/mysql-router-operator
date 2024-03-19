@@ -28,8 +28,12 @@ class RelationEndpoint:
     (deprecated_shared_db_database_provides.py) endpoint
     """
 
-    def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
-        self._database_provides = relations.database_provides.RelationEndpoint(charm_)
+    def __init__(
+        self,
+        charm_: "abstract_charm.MySQLRouterCharm",
+        database_provides: relations.database_provides.RelationEndpoint,
+    ) -> None:
+        self._database_provides = database_provides
         self._deprecated_shared_db = deprecated_shared_db_database_provides.RelationEndpoint(
             charm_
         )

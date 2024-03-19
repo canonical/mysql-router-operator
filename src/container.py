@@ -10,6 +10,9 @@ import typing
 
 import ops
 
+if typing.TYPE_CHECKING:
+    import relations.cos
+
 
 class Path(pathlib.PurePosixPath, abc.ABC):
     """Workload container (snap or ROCK) filesystem path"""
@@ -75,13 +78,30 @@ class Container(abc.ABC):
         return self.router_config_directory / "mysqlrouter.conf"
 
     @property
+    def rest_api_credentials_file(self) -> Path:
+        """Credentials file for MySQL Router's REST API"""
+        return self.router_config_directory / "rest_api_credentials"
+
+    @property
+    def rest_api_config_file(self) -> Path:
+        """Configuration file for the REST API for MySQLRouter"""
+        return self.router_config_directory / "router_rest_api.conf"
+
+    @property
     def tls_config_file(self) -> Path:
         """Extra MySQL Router configuration file to enable TLS"""
         return self.router_config_directory / "tls.conf"
 
-    def __init__(self, *, mysql_router_command: str, mysql_shell_command: str) -> None:
+    def __init__(
+        self,
+        *,
+        mysql_router_command: str,
+        mysql_shell_command: str,
+        mysql_router_password_command: str,
+    ) -> None:
         self._mysql_router_command = mysql_router_command
         self._mysql_shell_command = mysql_shell_command
+        self._mysql_router_password_command = mysql_router_password_command
 
     @property
     @abc.abstractmethod
@@ -96,6 +116,11 @@ class Container(abc.ABC):
     def mysql_router_service_enabled(self) -> bool:
         """MySQL Router service status"""
 
+    @property
+    @abc.abstractmethod
+    def mysql_router_exporter_service_enabled(self) -> bool:
+        """MySQL Router exporter service status"""
+
     @abc.abstractmethod
     def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
         """Update and restart MySQL Router service.
@@ -108,6 +133,19 @@ class Container(abc.ABC):
             assert tls is not None, "`tls` argument required when enabled=True"
 
     @abc.abstractmethod
+    def update_mysql_router_exporter_service(
+        self, *, enabled: bool, config: "relations.cos.ExporterConfig" = None
+    ) -> None:
+        """Update and restart the MySQL Router exporter service.
+
+        Args:
+            enabled: Whether MySQL Router exporter service is enabled
+            config: The configuration for MySQL Router exporter
+        """
+        if enabled and not config:
+            raise ValueError("Missing MySQL Router exporter config")
+
+    @abc.abstractmethod
     def upgrade(self, unit: ops.Unit) -> None:
         """Upgrade container version
 
@@ -116,7 +154,13 @@ class Container(abc.ABC):
 
     @abc.abstractmethod
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _run_command(self, command: typing.List[str], *, timeout: typing.Optional[int]) -> str:
+    def _run_command(
+        self,
+        command: typing.List[str],
+        *,
+        timeout: typing.Optional[int],
+        input: str = None,
+    ) -> str:
         """Run command in container.
 
         Raises:
@@ -146,3 +190,27 @@ class Container(abc.ABC):
     @abc.abstractmethod
     def path(self, *args) -> Path:
         """Container filesystem path"""
+
+    def create_router_rest_api_credentials_file(self) -> None:
+        """Creates a credentials file for the router rest api if it does not exist."""
+        if not self.rest_api_credentials_file.exists():
+            # create empty credentials file
+            self.rest_api_credentials_file.write_text("")
+
+    def set_mysql_router_rest_api_password(
+        self, *, user: str, password: typing.Optional[str]
+    ) -> None:
+        """Set REST API credentials using the mysqlrouter_password command."""
+        self.create_router_rest_api_credentials_file()
+
+        action = "set" if password else "delete"
+        self._run_command(
+            [
+                self._mysql_router_password_command,
+                action,
+                str(self.rest_api_credentials_file),
+                user,
+            ],
+            input=password,
+            timeout=30,
+        )

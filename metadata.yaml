@@ -26,6 +26,9 @@ provides:
   shared-db:
     interface: mysql-shared
     scope: container
+  cos-agent:
+    interface: cos_agent
+    limit: 1
 requires:
   backend-database:
     interface: mysql_client
@@ -36,14 +39,13 @@ requires:
     interface: juju-info
     scope: container
 peers:
+  cos:
+    interface: cos
   upgrade-version-a:
     # Relation versioning scheme:
     # DA056 - Upgrading in-place upgrade protocol
     # https://docs.google.com/document/d/1H7qy5SAwLiCOKO9xMQJbbQP5_-jGV6Lhi-mJOk4gZ08/edit
     interface: upgrade
-# TODO TLS VM: re-enable peer relation
-#  mysql-router-peers:
-#    interface: mysql_router_peers
   # DEPRECATED shared-db: Workaround for legacy "mysql-shared" interface using unit databags instead of app databag
   deprecated-shared-db-credentials:
     interface: _deprecated_shared_db_peers
