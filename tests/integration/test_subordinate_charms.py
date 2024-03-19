@@ -24,6 +24,7 @@ async def test_ubuntu_pro(ops_test, mysql_router_charm_series, github_secrets):
     await asyncio.gather(
         ops_test.model.deploy(
             MYSQL_APP_NAME,
+            channel="8.0/edge",
             application_name=MYSQL_APP_NAME,
             config={"profile": "testing"},
             series=mysql_router_charm_series,
