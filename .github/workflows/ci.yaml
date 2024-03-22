@@ -159,3 +159,9 @@ jobs:
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }}
         env:
           LIBJUJU_VERSION_SPECIFIER: ${{ matrix.libjuju-version }}
+          SECRETS_FROM_GITHUB: |
+            {
+              "UBUNTU_PRO_TOKEN" : "${{ secrets.UBUNTU_PRO_TOKEN }}",
+              "LANDSCAPE_ACCOUNT_NAME": "${{ secrets.LANDSCAPE_ACCOUNT_NAME }}",
+              "LANDSCAPE_REGISTRATION_KEY": "${{ secrets.LANDSCAPE_REGISTRATION_KEY }}",
+            }
