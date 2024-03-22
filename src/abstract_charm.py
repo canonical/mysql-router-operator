@@ -39,6 +39,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self._authenticated_workload_type = workload.AuthenticatedWorkload
         self._database_requires = relations.database_requires.RelationEndpoint(self)
         self._database_provides = relations.database_provides.RelationEndpoint(self)
+        self._cos_relation = relations.cos.COSRelation(self, self._container)
         self.framework.observe(self.on.update_status, self.reconcile)
         self.framework.observe(
             self.on[upgrade.PEER_RELATION_ENDPOINT_NAME].relation_changed, self.reconcile
@@ -84,9 +85,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """logrotate"""
 
     @property
-    @abc.abstractmethod
     def _cos(self) -> relations.cos.COSRelation:
         """COS"""
+        return self._cos_relation
 
     @property
     @abc.abstractmethod
@@ -116,12 +117,19 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         # TODO VM TLS: Update property after implementing TLS on machine_charm
         return None
 
+    @property
+    def _tls_certificate_authority(self) -> str:
+        # TODO VM TLS: Update property after implementing TLS on machine charm
+        return None
+
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
         cos_relation_exists = self._cos.relation_exists and not self._cos.is_relation_breaking(
             event
         )
-        return self._cos.exporter_user_config if cos_relation_exists else None
+        if cos_relation_exists:
+            return self._cos.exporter_user_config
+        return None
 
     def get_workload(self, *, event):
         """MySQL Router workload"""
@@ -259,7 +267,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             f"{isinstance(workload_, workload.AuthenticatedWorkload)=}, "
             f"{workload_.container_ready=}, "
             f"{self._database_requires.is_relation_breaking(event)=}, "
-            f"{self._upgrade.in_progress=}"
+            f"{self._upgrade.in_progress=}, "
             f"{self._cos.is_relation_breaking(event)=}"
         )
 
@@ -287,8 +295,10 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     tls=self._tls_certificate_saved,
                     unit_name=self.unit.name,
                     exporter_config=self._cos_exporter_config(event),
+                    event_is_cos_related=self._cos.is_relation_metrics_endpoint_related(event),
                     key=self._tls_key,
                     certificate=self._tls_certificate,
+                    certificate_authority=self._tls_certificate_authority,
                 )
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload

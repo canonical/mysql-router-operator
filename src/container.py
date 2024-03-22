@@ -134,13 +134,24 @@ class Container(abc.ABC):
 
     @abc.abstractmethod
     def update_mysql_router_exporter_service(
-        self, *, enabled: bool, config: "relations.cos.ExporterConfig" = None
+        self,
+        *,
+        enabled: bool,
+        config: "relations.cos.ExporterConfig" = None,
+        tls: bool = None,
+        key: str = None,
+        certificate: str = None,
+        certificate_authority: str = None,
     ) -> None:
         """Update and restart the MySQL Router exporter service.
 
         Args:
             enabled: Whether MySQL Router exporter service is enabled
             config: The configuration for MySQL Router exporter
+            tls: Whether custom TLS is enabled on the unit
+            key: The TLS key
+            certificate: The TLS certificate
+            certificate_authority: The TLS certificate authority
         """
         if enabled and not config:
             raise ValueError("Missing MySQL Router exporter config")
