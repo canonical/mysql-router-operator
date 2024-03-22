@@ -18,9 +18,6 @@ jinja2 = "^3.1.2"
 [tool.poetry.group.charm-libs.dependencies]
 # data_platform_libs/v0/data_interfaces.py
 ops = ">=2.0.0"
-# grafana_agent/v0/cos_agent.py
-pydantic = "<2"
-cosl = "*"
 
 [tool.poetry.group.format]
 optional = true
@@ -56,7 +53,6 @@ pytest = "^7.4.0"
 pytest-operator = "^0.28.0"
 pytest-operator-cache = {git = "https://github.com/canonical/data-platform-workflows", tag = "v7.0.0", subdirectory = "python/pytest_plugins/pytest_operator_cache"}
 pytest-operator-groups = {git = "https://github.com/canonical/data-platform-workflows", tag = "v7.0.0", subdirectory = "python/pytest_plugins/pytest_operator_groups"}
-pytest-github-secrets = {git = "https://github.com/canonical/data-platform-workflows", tag = "v7.0.0", subdirectory = "python/pytest_plugins/github_secrets"}
 juju = "3.2.0.1"
 mysql-connector-python = "~8.0.33"
 tenacity = "^8.2.2"
