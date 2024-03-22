@@ -114,14 +114,14 @@ class COSRelation:
             and event.relation.id == self._charm.model.relations[self._NAME][0].id
         )
 
-    def is_relation_metrics_endpoint_related(self, event) -> bool:
+    def is_relation_cos_related(self, event) -> bool:
         """Whether relation is related to the metrics endpoint."""
         if not self.relation_exists:
             return False
 
         return (
             hasattr(event, "relation")
-            and event.relation.id == self._charm.model.relations[self._METRICS_RELATION_NAME][0].id
+            and event.relation.id == self._charm.model.relations[self._NAME][0].id
         )
 
     def _wait_until_http_server_authenticates(self) -> None:

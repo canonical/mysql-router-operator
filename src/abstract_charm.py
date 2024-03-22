@@ -295,7 +295,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     tls=self._tls_certificate_saved,
                     unit_name=self.unit.name,
                     exporter_config=self._cos_exporter_config(event),
-                    event_is_cos_related=self._cos.is_relation_metrics_endpoint_related(event),
+                    event_is_cos_related=self._cos.is_relation_cos_related(event),
                     key=self._tls_key,
                     certificate=self._tls_certificate,
                     certificate_authority=self._tls_certificate_authority,

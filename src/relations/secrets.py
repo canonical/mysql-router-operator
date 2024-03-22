@@ -49,18 +49,12 @@ class RelationSecrets:
             deleted_label=self._SECRET_DELETED_LABEL,
         )
 
-    def _scope_obj(self, scope: Scopes):
-        if scope == APP_SCOPE:
-            return self.app
-        if scope == UNIT_SCOPE:
-            return self.unit
-
     def peer_relation_data(self, scope: Scopes) -> data_interfaces.DataPeer:
         """Returns the peer relation data per scope."""
         if scope == APP_SCOPE:
             return self._peer_relation_app
         elif scope == UNIT_SCOPE:
-            return self.peer_relation_unit
+            return self._peer_relation_unit
 
     def get_secret(self, scope: Scopes, key: str) -> typing.Optional[str]:
         """Get secret from the secret storage."""
