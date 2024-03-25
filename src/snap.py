@@ -193,7 +193,14 @@ class Snap(container.Container):
         certificate: str = None,
         certificate_authority: str = None,
     ) -> None:
-        super().update_mysql_router_exporter_service(enabled=enabled, config=config)
+        super().update_mysql_router_exporter_service(
+            enabled=enabled,
+            config=config,
+            tls=tls,
+            key=key,
+            certificate=certificate,
+            certificate_authority=certificate_authority,
+        )
 
         if enabled:
             _snap.set(

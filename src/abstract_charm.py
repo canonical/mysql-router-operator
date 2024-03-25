@@ -85,11 +85,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """logrotate"""
 
     @property
-    def _cos(self) -> relations.cos.COSRelation:
-        """COS"""
-        return self._cos_relation
-
-    @property
     @abc.abstractmethod
     def _read_write_endpoint(self) -> str:
         """MySQL Router read-write endpoint"""
@@ -124,12 +119,12 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
-        cos_relation_exists = self._cos.relation_exists and not self._cos.is_relation_breaking(
-            event
+        cos_relation_exists = (
+            self._cos_relation.relation_exists
+            and not self._cos_relation.is_relation_breaking(event)
         )
         if cos_relation_exists:
-            return self._cos.exporter_user_config
-        return None
+            return self._cos_relation.exporter_user_config
 
     def get_workload(self, *, event):
         """MySQL Router workload"""
@@ -138,11 +133,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 container_=self._container,
                 logrotate_=self._logrotate,
                 connection_info=connection_info,
-                cos=self._cos,
+                cos=self._cos_relation,
                 charm_=self,
             )
         return self._workload_type(
-            container_=self._container, logrotate_=self._logrotate, cos=self._cos
+            container_=self._container, logrotate_=self._logrotate, cos=self._cos_relation
         )
 
     @staticmethod
@@ -268,7 +263,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             f"{workload_.container_ready=}, "
             f"{self._database_requires.is_relation_breaking(event)=}, "
             f"{self._upgrade.in_progress=}, "
-            f"{self._cos.is_relation_breaking(event)=}"
+            f"{self._cos_relation.is_relation_breaking(event)=}"
         )
 
         try:
@@ -295,7 +290,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     tls=self._tls_certificate_saved,
                     unit_name=self.unit.name,
                     exporter_config=self._cos_exporter_config(event),
-                    event_is_cos_related=self._cos.is_relation_cos_related(event),
                     key=self._tls_key,
                     certificate=self._tls_certificate,
                     certificate_authority=self._tls_certificate_authority,

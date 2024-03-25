@@ -132,7 +132,6 @@ class Workload:
         tls: bool,
         unit_name: str,
         exporter_config: "relations.cos.ExporterConfig",
-        event_is_cos_related: bool,
         key: str = None,
         certificate: str = None,
         certificate_authority: str = None,
@@ -310,14 +309,15 @@ class AuthenticatedWorkload(Workload):
         tls: bool,
         unit_name: str,
         exporter_config: "relations.cos.ExporterConfig",
-        event_is_cos_related: bool,
         key: str = None,
         certificate: str = None,
         certificate_authority: str = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
         if tls and not (key and certificate and certificate_authority):
-            raise ValueError("`key` and `certificate` arguments required when tls=True")
+            raise ValueError(
+                "`key`, `certificate`, and `certificate_authority` arguments required when tls=True"
+            )
 
         # value changes based on whether tls is enabled or disabled
         tls_was_enabled = self._custom_tls_enabled
@@ -346,21 +346,20 @@ class AuthenticatedWorkload(Workload):
             logger.debug("Enabled MySQL Router service")
             self._charm.wait_until_mysql_router_ready()
 
-        if event_is_cos_related:
-            if not self._container.mysql_router_exporter_service_enabled and exporter_config:
-                logger.debug("Enabling MySQL Router exporter service")
-                self._cos.setup_monitoring_user()
-                self._container.update_mysql_router_exporter_service(
-                    enabled=True,
-                    config=exporter_config,
-                    tls=tls,
-                    key=key,
-                    certificate=certificate,
-                    certificate_authority=certificate_authority,
-                )
-                logger.debug("Enabled MySQL Router exporter service")
-            elif self._container.mysql_router_exporter_service_enabled and not exporter_config:
-                self._disable_exporter()
+        if not self._container.mysql_router_exporter_service_enabled and exporter_config:
+            logger.debug("Enabling MySQL Router exporter service")
+            self._cos.setup_monitoring_user()
+            self._container.update_mysql_router_exporter_service(
+                enabled=True,
+                config=exporter_config,
+                tls=tls,
+                key=key,
+                certificate=certificate,
+                certificate_authority=certificate_authority,
+            )
+            logger.debug("Enabled MySQL Router exporter service")
+        elif self._container.mysql_router_exporter_service_enabled and not exporter_config:
+            self._disable_exporter()
 
     @property
     def status(self) -> typing.Optional[ops.StatusBase]:

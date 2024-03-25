@@ -114,36 +114,26 @@ class COSRelation:
             and event.relation.id == self._charm.model.relations[self._NAME][0].id
         )
 
-    def is_relation_cos_related(self, event) -> bool:
-        """Whether relation is related to the metrics endpoint."""
-        if not self.relation_exists:
-            return False
-
-        return (
-            hasattr(event, "relation")
-            and event.relation.id == self._charm.model.relations[self._NAME][0].id
-        )
-
     def _wait_until_http_server_authenticates(self) -> None:
         """Wait until the router HTTP server authenticates with the monitoring credentials."""
         logger.debug("Waiting until router HTTP server authenticates")
         try:
             for attempt in tenacity.Retrying(
-                reraise=True,
+                reraise=tenacity.reraise_if_exception_type(
+                    AssertionError, requests.exceptions.HTTPError
+                ),
                 stop=tenacity.stop_after_delay(30),
                 wait=tenacity.wait_fixed(5),
             ):
                 with attempt:
-                    # do not verify tls certs as default certs do not have 127.0.0.1
-                    # in its list of IP SANs
                     response = requests.get(
                         f"https://127.0.0.1:{self._HTTP_SERVER_PORT}/api/20190715/routes",
                         auth=(self._MONITORING_USERNAME, self._get_monitoring_password()),
-                        verify=False,
+                        verify=False,  # do not verify tls certs as default certs do not have 127.0.0.1 in its list of IP SANs
                     )
-                    assert response.status_code == 200
+                    assert response.raise_for_status()
                     assert "bootstrap_rw" in response.text
-        except AssertionError:
+        except (requests.exceptions.HTTPError, AssertionError):
             logger.exception("Unable to authenticate router HTTP server")
             raise
         else:

@@ -156,6 +156,11 @@ class Container(abc.ABC):
         if enabled and not config:
             raise ValueError("Missing MySQL Router exporter config")
 
+        if tls and not (certificate_authority and certificate and key):
+            raise ValueError(
+                "`key`, `certificate` and `certificate_authority` required when tls=True"
+            )
+
     @abc.abstractmethod
     def upgrade(self, unit: ops.Unit) -> None:
         """Upgrade container version
