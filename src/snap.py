@@ -193,6 +193,10 @@ class Snap(container.Container):
         certificate: str = None,
         certificate_authority: str = None,
     ) -> None:
+        if tls:
+            raise NotImplementedError
+
+
         super().update_mysql_router_exporter_service(
             enabled=enabled,
             config=config,

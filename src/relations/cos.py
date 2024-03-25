@@ -115,7 +115,7 @@ class COSRelation:
         )
 
     def _wait_until_http_server_authenticates(self) -> None:
-        """Wait until the router HTTP server authenticates with the monitoring credentials."""
+        """Wait until active connection with router HTTP server using monitoring credentials."""
         logger.debug("Waiting until router HTTP server authenticates")
         try:
             for attempt in tenacity.Retrying(
