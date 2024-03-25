@@ -119,9 +119,9 @@ class COSRelation:
         logger.debug("Waiting until router HTTP server authenticates")
         try:
             for attempt in tenacity.Retrying(
-                retry=tenacity.retry_if_exception_type(
-                    AssertionError, requests.exceptions.HTTPError
-                ),
+                retry=tenacity.retry_if_exception_type(AssertionError)
+                | tenacity.retry_if_exception_type(requests.exceptions.HTTPError),
+                reraise=True,
                 stop=tenacity.stop_after_delay(30),
                 wait=tenacity.wait_fixed(5),
             ):
@@ -131,7 +131,7 @@ class COSRelation:
                         auth=(self._MONITORING_USERNAME, self._get_monitoring_password()),
                         verify=False,  # do not verify tls certs as default certs do not have 127.0.0.1 in its list of IP SANs
                     )
-                    assert response.raise_for_status()
+                    response.raise_for_status()
                     assert "bootstrap_rw" in response.text
         except (requests.exceptions.HTTPError, AssertionError):
             logger.exception("Unable to authenticate router HTTP server")
