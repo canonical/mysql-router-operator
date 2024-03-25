@@ -196,7 +196,6 @@ class Snap(container.Container):
         if tls:
             raise NotImplementedError
 
-
         super().update_mysql_router_exporter_service(
             enabled=enabled,
             config=config,
