@@ -119,7 +119,7 @@ class COSRelation:
         logger.debug("Waiting until router HTTP server authenticates")
         try:
             for attempt in tenacity.Retrying(
-                reraise=tenacity.reraise_if_exception_type(
+                retry=tenacity.retry_if_exception_type(
                     AssertionError, requests.exceptions.HTTPError
                 ),
                 stop=tenacity.stop_after_delay(30),
