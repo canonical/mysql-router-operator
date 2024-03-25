@@ -64,7 +64,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
         ),
     )
 
-    mysql_app, mysql_router_app, mysql_test_app, grafana_agent_app = applications
+    [mysql_app, mysql_router_app, mysql_test_app, grafana_agent_app] = applications
 
     logger.info("Relating mysqlrouter and grafana-agent with mysql-test-app")
 
@@ -121,6 +121,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
     else:
         assert False, "❌ can connect to metrics endpoint without relation with cos"
 
+    logger.info("Relating mysqlrouter with grafana agent")
     await ops_test.model.relate(
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
@@ -133,6 +134,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
         jmx_resp.data
     ), "❌ did not find expected metric in response"
 
+    logger.info("Removing relation between mysqlrouter and grafana agent")
     await mysql_router_app.remove_relation(
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
@@ -141,8 +143,9 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
 
     try:
         http.request("GET", f"http://{unit_address}:49152/metrics")
-        assert False, "❌ can connect to metrics endpoint without relation with cos"
     except urllib3.exceptions.MaxRetryError as e:
         assert (
             "[Errno 111] Connection refused" in e.reason.args[0]
         ), "❌ expected connection refused error"
+    else:
+        assert False, "❌ can connect to metrics endpoint without relation with cos"

@@ -184,9 +184,26 @@ class Snap(container.Container):
             _snap.stop([self._SERVICE_NAME], disable=True)
 
     def update_mysql_router_exporter_service(
-        self, *, enabled: bool, config: "relations.cos.ExporterConfig" = None
+        self,
+        *,
+        enabled: bool,
+        config: "relations.cos.ExporterConfig" = None,
+        tls: bool = None,
+        key: str = None,
+        certificate: str = None,
+        certificate_authority: str = None,
     ) -> None:
-        super().update_mysql_router_exporter_service(enabled=enabled, config=config)
+        if tls:
+            raise NotImplementedError
+
+        super().update_mysql_router_exporter_service(
+            enabled=enabled,
+            config=config,
+            tls=tls,
+            key=key,
+            certificate=certificate,
+            certificate_authority=certificate_authority,
+        )
 
         if enabled:
             _snap.set(
@@ -213,7 +230,7 @@ class Snap(container.Container):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: typing.Optional[str] = None,
+        input: str = None,
     ) -> str:
         try:
             output = subprocess.run(

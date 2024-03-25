@@ -8,6 +8,8 @@ import typing
 from dataclasses import dataclass
 
 import ops
+import requests
+import tenacity
 from charms.grafana_agent.v0.cos_agent import COSAgentProvider
 
 import container
@@ -52,7 +54,7 @@ class COSRelation:
             ],
             log_slots=[f"{_SNAP_NAME}:logs"],
         )
-        self.charm = charm_
+        self._charm = charm_
         self._container = container_
 
         charm_.framework.observe(
@@ -82,7 +84,7 @@ class COSRelation:
     @property
     def relation_exists(self) -> bool:
         """Whether relation with cos exists."""
-        return len(self.charm.model.relations.get(self._NAME, [])) == 1
+        return len(self._charm.model.relations.get(self._NAME, [])) == 1
 
     def _get_monitoring_password(self) -> str:
         """Gets the monitoring password from unit peer data, or generate and cache it."""
@@ -109,8 +111,33 @@ class COSRelation:
 
         return (
             isinstance(event, ops.RelationBrokenEvent)
-            and event.relation.id == self.charm.model.relations[self._NAME][0].id
+            and event.relation.id == self._charm.model.relations[self._NAME][0].id
         )
+
+    def _wait_until_http_server_authenticates(self) -> None:
+        """Wait until active connection with router HTTP server using monitoring credentials."""
+        logger.debug("Waiting until router HTTP server authenticates")
+        try:
+            for attempt in tenacity.Retrying(
+                retry=tenacity.retry_if_exception_type(AssertionError)
+                | tenacity.retry_if_exception_type(requests.exceptions.HTTPError),
+                reraise=True,
+                stop=tenacity.stop_after_delay(30),
+                wait=tenacity.wait_fixed(5),
+            ):
+                with attempt:
+                    response = requests.get(
+                        f"https://127.0.0.1:{self._HTTP_SERVER_PORT}/api/20190715/routes",
+                        auth=(self._MONITORING_USERNAME, self._get_monitoring_password()),
+                        verify=False,  # do not verify tls certs as default certs do not have 127.0.0.1 in its list of IP SANs
+                    )
+                    response.raise_for_status()
+                    assert "bootstrap_rw" in response.text
+        except (requests.exceptions.HTTPError, AssertionError):
+            logger.exception("Unable to authenticate router HTTP server")
+            raise
+        else:
+            logger.debug("Successfully authenticated router HTTP server")
 
     def setup_monitoring_user(self) -> None:
         """Set up a router REST API use for mysqlrouter exporter."""
@@ -119,6 +146,7 @@ class COSRelation:
             user=self._MONITORING_USERNAME,
             password=self._get_monitoring_password(),
         )
+        self._wait_until_http_server_authenticates()
         logger.debug("Set up router REST API user for mysqlrouter exporter")
 
     def cleanup_monitoring_user(self) -> None:
