@@ -116,6 +116,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         # TODO VM TLS: Update property after implementing TLS on machine_charm
         return None
 
+    def is_exposed(self, relation=None) -> bool:
+        return self._database_provides.is_exposed(relation)
+
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
         cos_relation_exists = self._cos.relation_exists and not self._cos.is_relation_breaking(

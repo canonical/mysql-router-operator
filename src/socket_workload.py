@@ -20,10 +20,11 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload):
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(self, password: str) -> typing.List[str]:
         command = super()._get_bootstrap_command(password)
+        bind_address = "0.0.0.0" if self._charm._database_provides.is_exposed() else "127.0.0.1"
         command.extend(
             [
                 "--conf-bind-address",
-                "127.0.0.1",
+                bind_address,
                 "--conf-use-sockets",
                 # For unix sockets, authentication fails on first connection if this option is not
                 # set. Workaround for https://bugs.mysql.com/bug.php?id=107291

@@ -27,6 +27,9 @@ logger = logging.getLogger(__name__)
 class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     """MySQL Router machine subordinate charm"""
 
+    READ_WRITE_PORT = 6446
+    READ_ONLY_PORT = 6447
+
     def __init__(self, *args) -> None:
         super().__init__(*args)
         # DEPRECATED shared-db: Enable legacy "mysql-shared" interface
@@ -68,11 +71,20 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         return self._cos_relation
 
     @property
+    def _host_address(self) -> str:
+        """The host address for the machine."""
+        return self.model.get_binding(upgrade.PEER_RELATION_ENDPOINT_NAME).network.bind_address
+
+    @property
     def _read_write_endpoint(self) -> str:
+        if self._database_provides.is_exposed():
+            return f"{self._host_address}:{self.READ_WRITE_PORT}"
         return f'file://{self._container.path("/run/mysqlrouter/mysql.sock")}'
 
     @property
     def _read_only_endpoint(self) -> str:
+        if self._database_provides.is_exposed():
+            return f"{self._host_address}:{self.READ_ONLY_PORT}"
         return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
 
     # =======================
@@ -118,6 +130,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self.reconcile()
         event.set_results({"result": f"Forcefully upgraded {self.unit.name}"})
         logger.debug("Forced upgrade")
+
+    def reconcile(self, event=None) -> None:
+        self.database_provides.reconcile_ports()
+        super().reconcile(event=event)
 
 
 if __name__ == "__main__":

@@ -162,6 +162,8 @@ class RelationEndpoint:
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
         self._interface = data_interfaces.DatabaseProvides(charm_, relation_name=self._NAME)
+        self._charm = charm_
+
         charm_.framework.observe(charm_.on[self._NAME].relation_created, charm_.reconcile)
         charm_.framework.observe(self._interface.on.database_requested, charm_.reconcile)
         charm_.framework.observe(charm_.on[self._NAME].relation_broken, charm_.reconcile)
@@ -178,6 +180,21 @@ class RelationEndpoint:
             except _UserNotShared:
                 pass
         return shared_users
+
+    def is_exposed(self) -> bool:
+        """Whether the relation is exposed."""
+        relation_data = self._interface.fetch_relation_data(fields=["external-node-connectivity"])
+        return any(
+            [data.get("external-node-connectivity") == "true" for data in relation_data.values()]
+        )
+
+    def reconcile_ports(self) -> None:
+        """Reconcile ports for this unit"""
+        if self.is_exposed():
+            ports = [self._charm.READ_WRITE_PORT, self._charm.READ_ONLY_PORT]
+        else:
+            ports = []
+        self._charm.unit.set_ports(ports)
 
     def reconcile_users(
         self,

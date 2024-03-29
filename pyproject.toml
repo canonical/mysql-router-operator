@@ -18,6 +18,9 @@ jinja2 = "^3.1.2"
 [tool.poetry.group.charm-libs.dependencies]
 # data_platform_libs/v0/data_interfaces.py
 ops = ">=2.0.0"
+# tls_certificates_interface/v1/tls_certificates.py
+cryptography = "*"
+jsonschema = "*"
 # grafana_agent/v0/cos_agent.py
 pydantic = "<2"
 cosl = "*"
