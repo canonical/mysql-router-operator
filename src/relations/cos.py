@@ -34,11 +34,11 @@ class COSRelation:
     """Relation with the cos bundle."""
 
     _EXPORTER_PORT = "49152"
-    _HTTP_SERVER_PORT = "8443"
+    HTTP_SERVER_PORT = "8443"
     _NAME = "cos-agent"
     _PEER_RELATION_NAME = "cos"
 
-    _MONITORING_USERNAME = "monitoring"
+    MONITORING_USERNAME = "monitoring"
     _MONITORING_PASSWORD_KEY = "monitoring-password"
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm", container_: container.Container):
@@ -74,9 +74,9 @@ class COSRelation:
     def exporter_user_config(self) -> ExporterConfig:
         """Returns user config needed for the router exporter service."""
         return ExporterConfig(
-            url=f"https://127.0.0.1:{self._HTTP_SERVER_PORT}",
-            username=self._MONITORING_USERNAME,
-            password=self._get_monitoring_password(),
+            url=f"https://127.0.0.1:{self.HTTP_SERVER_PORT}",
+            username=self.MONITORING_USERNAME,
+            password=self.get_monitoring_password(),
         )
 
     @property
@@ -84,7 +84,7 @@ class COSRelation:
         """Whether relation with cos exists."""
         return len(self._charm.model.relations.get(self._NAME, [])) == 1
 
-    def _get_monitoring_password(self) -> str:
+    def get_monitoring_password(self) -> str:
         """Gets the monitoring password from unit peer data, or generate and cache it."""
         monitoring_password = self._secrets.get_secret(
             relations.secrets.UNIT_SCOPE, self._MONITORING_PASSWORD_KEY
