@@ -34,11 +34,11 @@ class COSRelation:
     """Relation with the cos bundle."""
 
     _EXPORTER_PORT = "49152"
-    _HTTP_SERVER_PORT = "8443"
+    HTTP_SERVER_PORT = "8443"
     _NAME = "cos-agent"
     _PEER_RELATION_NAME = "cos"
 
-    _MONITORING_USERNAME = "monitoring"
+    MONITORING_USERNAME = "monitoring"
     _MONITORING_PASSWORD_KEY = "monitoring-password"
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm", container_: container.Container):
@@ -52,7 +52,7 @@ class COSRelation:
             ],
             log_slots=[f"{_SNAP_NAME}:logs"],
         )
-        self.charm = charm_
+        self._charm = charm_
         self._container = container_
 
         charm_.framework.observe(
@@ -74,17 +74,17 @@ class COSRelation:
     def exporter_user_config(self) -> ExporterConfig:
         """Returns user config needed for the router exporter service."""
         return ExporterConfig(
-            url=f"https://127.0.0.1:{self._HTTP_SERVER_PORT}",
-            username=self._MONITORING_USERNAME,
-            password=self._get_monitoring_password(),
+            url=f"https://127.0.0.1:{self.HTTP_SERVER_PORT}",
+            username=self.MONITORING_USERNAME,
+            password=self.get_monitoring_password(),
         )
 
     @property
     def relation_exists(self) -> bool:
         """Whether relation with cos exists."""
-        return len(self.charm.model.relations.get(self._NAME, [])) == 1
+        return len(self._charm.model.relations.get(self._NAME, [])) == 1
 
-    def _get_monitoring_password(self) -> str:
+    def get_monitoring_password(self) -> str:
         """Gets the monitoring password from unit peer data, or generate and cache it."""
         monitoring_password = self._secrets.get_secret(
             relations.secrets.UNIT_SCOPE, self._MONITORING_PASSWORD_KEY
@@ -109,24 +109,5 @@ class COSRelation:
 
         return (
             isinstance(event, ops.RelationBrokenEvent)
-            and event.relation.id == self.charm.model.relations[self._NAME][0].id
+            and event.relation.id == self._charm.model.relations[self._NAME][0].id
         )
-
-    def setup_monitoring_user(self) -> None:
-        """Set up a router REST API use for mysqlrouter exporter."""
-        logger.debug("Setting up router REST API user for mysqlrouter exporter")
-        self._container.set_mysql_router_rest_api_password(
-            user=self._MONITORING_USERNAME,
-            password=self._get_monitoring_password(),
-        )
-        logger.debug("Set up router REST API user for mysqlrouter exporter")
-
-    def cleanup_monitoring_user(self) -> None:
-        """Clean up router REST API user for mysqlrouter exporter."""
-        logger.debug("Cleaning router REST API user for mysqlrouter exporter")
-        self._container.set_mysql_router_rest_api_password(
-            user=self._MONITORING_USERNAME,
-            password=None,
-        )
-        self._reset_monitoring_password()
-        logger.debug("Cleaned router REST API user for mysqlrouter exporter")
