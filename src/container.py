@@ -139,9 +139,9 @@ class Container(abc.ABC):
         enabled: bool,
         config: "relations.cos.ExporterConfig" = None,
         tls: bool = None,
-        key: str = None,
-        certificate: str = None,
-        certificate_authority: str = None,
+        key_filename: str = None,
+        certificate_filename: str = None,
+        certificate_authority_filename: str = None,
     ) -> None:
         """Update and restart the MySQL Router exporter service.
 
@@ -149,14 +149,14 @@ class Container(abc.ABC):
             enabled: Whether MySQL Router exporter service is enabled
             config: The configuration for MySQL Router exporter
             tls: Whether custom TLS is enabled on the unit
-            key: The TLS key
-            certificate: The TLS certificate
-            certificate_authority: The TLS certificate authority
+            key_filename: The TLS key filename
+            certificate_filename: The TLS certificate filename
+            certificate_authority_filename: The TLS certificate authority filename
         """
         if enabled and not config:
             raise ValueError("Missing MySQL Router exporter config")
 
-        if tls and not (certificate_authority and certificate and key):
+        if tls and not (certificate_authority_filename and certificate_filename and key_filename):
             raise ValueError(
                 "`key`, `certificate` and `certificate_authority` required when tls=True"
             )
@@ -218,6 +218,18 @@ class Container(abc.ABC):
     ) -> None:
         """Set REST API credentials using the mysqlrouter_password command."""
         self.create_router_rest_api_credentials_file()
+
+        if not password:
+            users_credentials = self._run_command(
+                [
+                    self._mysql_router_password_command,
+                    "list",
+                    str(self.rest_api_credentials_file),
+                ],
+                timeout=30,
+            )
+            if user not in users_credentials:
+                return
 
         action = "set" if password else "delete"
         self._run_command(

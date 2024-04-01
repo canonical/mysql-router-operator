@@ -189,9 +189,9 @@ class Snap(container.Container):
         enabled: bool,
         config: "relations.cos.ExporterConfig" = None,
         tls: bool = None,
-        key: str = None,
-        certificate: str = None,
-        certificate_authority: str = None,
+        key_filename: str = None,
+        certificate_filename: str = None,
+        certificate_authority_filename: str = None,
     ) -> None:
         if tls:
             raise NotImplementedError
@@ -200,9 +200,9 @@ class Snap(container.Container):
             enabled=enabled,
             config=config,
             tls=tls,
-            key=key,
-            certificate=certificate,
-            certificate_authority=certificate_authority,
+            key_filename=key_filename,
+            certificate_filename=certificate_filename,
+            certificate_authority_filename=certificate_authority_filename,
         )
 
         if enabled:

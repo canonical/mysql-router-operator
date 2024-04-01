@@ -8,8 +8,6 @@ import typing
 from dataclasses import dataclass
 
 import ops
-import requests
-import tenacity
 from charms.grafana_agent.v0.cos_agent import COSAgentProvider
 
 import container
@@ -113,48 +111,3 @@ class COSRelation:
             isinstance(event, ops.RelationBrokenEvent)
             and event.relation.id == self._charm.model.relations[self._NAME][0].id
         )
-
-    def _wait_until_http_server_authenticates(self) -> None:
-        """Wait until active connection with router HTTP server using monitoring credentials."""
-        logger.debug("Waiting until router HTTP server authenticates")
-        try:
-            for attempt in tenacity.Retrying(
-                retry=tenacity.retry_if_exception_type(AssertionError)
-                | tenacity.retry_if_exception_type(requests.exceptions.HTTPError),
-                reraise=True,
-                stop=tenacity.stop_after_delay(30),
-                wait=tenacity.wait_fixed(5),
-            ):
-                with attempt:
-                    response = requests.get(
-                        f"https://127.0.0.1:{self._HTTP_SERVER_PORT}/api/20190715/routes",
-                        auth=(self._MONITORING_USERNAME, self._get_monitoring_password()),
-                        verify=False,  # do not verify tls certs as default certs do not have 127.0.0.1 in its list of IP SANs
-                    )
-                    response.raise_for_status()
-                    assert "bootstrap_rw" in response.text
-        except (requests.exceptions.HTTPError, AssertionError):
-            logger.exception("Unable to authenticate router HTTP server")
-            raise
-        else:
-            logger.debug("Successfully authenticated router HTTP server")
-
-    def setup_monitoring_user(self) -> None:
-        """Set up a router REST API use for mysqlrouter exporter."""
-        logger.debug("Setting up router REST API user for mysqlrouter exporter")
-        self._container.set_mysql_router_rest_api_password(
-            user=self._MONITORING_USERNAME,
-            password=self._get_monitoring_password(),
-        )
-        self._wait_until_http_server_authenticates()
-        logger.debug("Set up router REST API user for mysqlrouter exporter")
-
-    def cleanup_monitoring_user(self) -> None:
-        """Clean up router REST API user for mysqlrouter exporter."""
-        logger.debug("Cleaning router REST API user for mysqlrouter exporter")
-        self._container.set_mysql_router_rest_api_password(
-            user=self._MONITORING_USERNAME,
-            password=None,
-        )
-        self._reset_monitoring_password()
-        logger.debug("Cleaned router REST API user for mysqlrouter exporter")

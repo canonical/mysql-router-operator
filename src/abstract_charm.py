@@ -101,19 +101,19 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         return False
 
     @property
-    def _tls_key(self) -> str:
+    def _tls_key(self) -> typing.Optional[str]:
         """Custom TLS key"""
         # TODO VM TLS: Update property after implementing TLS on machine_charm
         return None
 
     @property
-    def _tls_certificate(self) -> str:
+    def _tls_certificate(self) -> typing.Optional[str]:
         """Custom TLS certificate"""
         # TODO VM TLS: Update property after implementing TLS on machine_charm
         return None
 
     @property
-    def _tls_certificate_authority(self) -> str:
+    def _tls_certificate_authority(self) -> typing.Optional[str]:
         # TODO VM TLS: Update property after implementing TLS on machine charm
         return None
 
