@@ -38,9 +38,10 @@ class RelationEndpoint:
             charm_
         )
 
-    def is_exposed(self, _) -> bool:
+    @property
+    def is_exposed(self) -> bool:
         """Whether the relation is exposed"""
-        return self._database_provides.is_exposed()
+        return self._database_provides.is_exposed
 
     def reconcile_ports(self) -> None:
         """Reconcile ports for this unit"""

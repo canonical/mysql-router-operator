@@ -14,7 +14,6 @@ import ops
 import abstract_charm
 import machine_logrotate
 import machine_upgrade
-import relations.cos
 import relations.database_providers_wrapper
 import snap
 import socket_workload
@@ -36,8 +35,6 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self._database_provides = relations.database_providers_wrapper.RelationEndpoint(
             self, self._database_provides
         )
-        self._cos_relation = relations.cos.COSRelation(self, self._container)
-
         self._authenticated_workload_type = socket_workload.AuthenticatedSocketWorkload
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.remove, self._on_remove)
@@ -67,23 +64,19 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         return machine_logrotate.LogRotate(container_=self._container)
 
     @property
-    def _cos(self) -> relations.cos.COSRelation:
-        return self._cos_relation
-
-    @property
     def _host_address(self) -> str:
         """The host address for the machine."""
         return self.model.get_binding(upgrade.PEER_RELATION_ENDPOINT_NAME).network.bind_address
 
     @property
     def _read_write_endpoint(self) -> str:
-        if self._database_provides.is_exposed():
+        if self._database_provides.is_exposed:
             return f"{self._host_address}:{self.READ_WRITE_PORT}"
         return f'file://{self._container.path("/run/mysqlrouter/mysql.sock")}'
 
     @property
     def _read_only_endpoint(self) -> str:
-        if self._database_provides.is_exposed():
+        if self._database_provides.is_exposed:
             return f"{self._host_address}:{self.READ_ONLY_PORT}"
         return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
 
@@ -132,7 +125,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         logger.debug("Forced upgrade")
 
     def reconcile(self, event=None) -> None:
-        self.database_provides.reconcile_ports()
+        self._database_provides.reconcile_ports()
         super().reconcile(event=event)
 
 

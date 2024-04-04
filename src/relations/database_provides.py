@@ -181,6 +181,7 @@ class RelationEndpoint:
                 pass
         return shared_users
 
+    @property
     def is_exposed(self) -> bool:
         """Whether the relation is exposed."""
         relation_data = self._interface.fetch_relation_data(fields=["external-node-connectivity"])
@@ -190,11 +191,12 @@ class RelationEndpoint:
 
     def reconcile_ports(self) -> None:
         """Reconcile ports for this unit"""
-        if self.is_exposed():
-            ports = [self._charm.READ_WRITE_PORT, self._charm.READ_ONLY_PORT]
+        if self.is_exposed:
+            self._charm.unit.open_port("tcp", self._charm.READ_WRITE_PORT)
+            self._charm.unit.open_port("tcp", self._charm.READ_ONLY_PORT)
         else:
-            ports = []
-        self._charm.unit.set_ports(ports)
+            self._charm.unit.close_port("tcp", self._charm.READ_WRITE_PORT)
+            self._charm.unit.close_port("tcp", self._charm.READ_ONLY_PORT)
 
     def reconcile_users(
         self,
