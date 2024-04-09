@@ -18,6 +18,7 @@ import machine_upgrade
 import relations.cos
 import relations.database_provides
 import relations.database_requires
+import relations.tls
 import server_exceptions
 import upgrade
 import workload
@@ -60,6 +61,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             self.on[upgrade.PEER_RELATION_ENDPOINT_NAME].relation_created,
             self._upgrade_relation_created,
         )
+        self.tls = relations.tls.RelationEndpoint(self)
 
     @property
     @abc.abstractmethod
@@ -95,30 +97,28 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """MySQL Router read-only endpoint"""
 
     @property
+    @abc.abstractmethod
     def _tls_certificate_saved(self) -> bool:
         """Whether a TLS certificate is available to use"""
-        # TODO VM TLS: Update property after implementing TLS on machine_charm
-        return False
 
     @property
+    @abc.abstractmethod
     def _tls_key(self) -> typing.Optional[str]:
         """Custom TLS key"""
-        # TODO VM TLS: Update property after implementing TLS on machine_charm
-        return None
 
     @property
+    @abc.abstractmethod
+    def _tls_certificate_authority(self) -> typing.Optional[str]:
+        """Custom TLS certificate authority"""
+
+    @property
+    @abc.abstractmethod
     def _tls_certificate(self) -> typing.Optional[str]:
         """Custom TLS certificate"""
-        # TODO VM TLS: Update property after implementing TLS on machine_charm
-        return None
 
+    @abc.abstractmethod
     def is_exposed(self, relation=None) -> bool:
-        return self._database_provides.is_exposed(relation)
-
-    @property
-    def _tls_certificate_authority(self) -> typing.Optional[str]:
-        # TODO VM TLS: Update property after implementing TLS on machine charm
-        return None
+        """Whether router is exposed externally"""
 
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
@@ -208,9 +208,13 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 wait=tenacity.wait_fixed(5),
             ):
                 with attempt:
-                    for port in (6446, 6447):
-                        with socket.socket() as s:
-                            assert s.connect_ex(("localhost", port)) == 0
+                    if self.is_exposed():
+                        for port in (6446, 6447):
+                            with socket.socket() as s:
+                                assert s.connect_ex(("localhost", port)) == 0
+                    else:
+                        assert self._container.path("/run/mysqlrouter/mysql.sock").exists()
+                        assert self._container.path("/run/mysqlrouter/mysqlro.sock").exists()
         except AssertionError:
             logger.exception("Unable to connect to MySQL Router")
             raise
@@ -290,7 +294,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     )
             if workload_.container_ready:
                 workload_.reconcile(
-                    tls=self._tls_certificate_saved,
+                    tls=self.tls.relation_exists and not self.tls.is_relation_breaking(event),
                     unit_name=self.unit.name,
                     exporter_config=self._cos_exporter_config(event),
                     key=self._tls_key,

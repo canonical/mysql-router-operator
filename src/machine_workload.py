@@ -14,33 +14,38 @@ import workload
 logger = logging.getLogger(__name__)
 
 
-class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload):
+class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
     """Workload with connection to MySQL cluster and with Unix sockets enabled"""
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(self, password: str) -> typing.List[str]:
         command = super()._get_bootstrap_command(password)
-        bind_address = "0.0.0.0" if self._charm._database_provides.is_exposed else "127.0.0.1"
-        command.extend(
-            [
-                "--conf-bind-address",
-                bind_address,
-                "--conf-use-sockets",
-                # For unix sockets, authentication fails on first connection if this option is not
-                # set. Workaround for https://bugs.mysql.com/bug.php?id=107291
-                "--conf-set-option",
-                "DEFAULT.server_ssl_mode=PREFERRED",
-            ]
-        )
+        if self._charm.is_exposed():
+            command.extend(
+                [
+                    "--conf-bind-address",
+                    "0.0.0.0",
+                ]
+            )
+        else:
+            command.extend(
+                [
+                    "--conf-use-sockets",
+                    # For unix sockets, authentication fails on first connection if this option is not
+                    # set. Workaround for https://bugs.mysql.com/bug.php?id=107291
+                    "--conf-set-option",
+                    "DEFAULT.server_ssl_mode=PREFERRED",
+                ]
+            )
         return command
 
-    def _update_configured_socket_file_locations(self) -> None:
+    def _update_configured_socket_file_locations_and_bind_address(self) -> None:
         """Update configured socket file locations from `/tmp` to `/run/mysqlrouter`.
 
         Called after MySQL Router bootstrap & before MySQL Router service is enabled
 
         Change configured location of socket files before socket files are created by MySQL Router
-        service.
+        service. Also remove bind_address and bind_port for all router services: rw, ro, x_rw, x_ro
 
         Needed since `/tmp` inside a snap is not accessible to non-root users. The socket files
         must be accessible to applications related via database_provides endpoint.
@@ -54,6 +59,8 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload):
             section["socket"] = str(
                 self._container.path("/run/mysqlrouter") / pathlib.PurePath(section["socket"]).name
             )
+            del section["bind_address"]
+            del section["bind_port"]
         with io.StringIO() as output:
             config.write(output)
             self._container.router_config_file.write_text(output.getvalue())
@@ -61,4 +68,5 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload):
 
     def _bootstrap_router(self, *, tls: bool) -> None:
         super()._bootstrap_router(tls=tls)
-        self._update_configured_socket_file_locations()
+        if not self._charm.is_exposed():
+            self._update_configured_socket_file_locations_and_bind_address()

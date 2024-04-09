@@ -14,9 +14,9 @@ import ops
 import abstract_charm
 import machine_logrotate
 import machine_upgrade
+import machine_workload
 import relations.database_providers_wrapper
 import snap
-import socket_workload
 import upgrade
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self._database_provides = relations.database_providers_wrapper.RelationEndpoint(
             self, self._database_provides
         )
-        self._authenticated_workload_type = socket_workload.AuthenticatedSocketWorkload
+        self._authenticated_workload_type = machine_workload.AuthenticatedMachineWorkload
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.remove, self._on_remove)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
@@ -50,7 +50,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
     @property
     def _container(self) -> snap.Snap:
-        return snap.Snap()
+        return snap.Snap(unit_name=self.unit.name)
 
     @property
     def _upgrade(self) -> typing.Optional[machine_upgrade.Upgrade]:
@@ -66,19 +66,41 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def _host_address(self) -> str:
         """The host address for the machine."""
-        return self.model.get_binding(upgrade.PEER_RELATION_ENDPOINT_NAME).network.bind_address
+        return self.model.get_binding("juju-info").network.bind_address
 
     @property
     def _read_write_endpoint(self) -> str:
-        if self._database_provides.is_exposed:
+        if self.is_exposed():
             return f"{self._host_address}:{self.READ_WRITE_PORT}"
         return f'file://{self._container.path("/run/mysqlrouter/mysql.sock")}'
 
     @property
     def _read_only_endpoint(self) -> str:
-        if self._database_provides.is_exposed:
+        if self.is_exposed():
             return f"{self._host_address}:{self.READ_ONLY_PORT}"
         return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
+
+    @property
+    def _tls_certificate_saved(self) -> bool:
+        """Whether a TLS certificate is available to use"""
+        return self.tls.certificate_saved
+
+    @property
+    def _tls_key(self) -> typing.Optional[str]:
+        """Custom TLS key"""
+        return self.tls.key
+
+    @property
+    def _tls_certificate(self) -> typing.Optional[str]:
+        """Custom TLS certificate"""
+        return self.tls.certificate
+
+    @property
+    def _tls_certificate_authority(self) -> typing.Optional[str]:
+        return self.tls.certificate_authority
+
+    def is_exposed(self, relation=None) -> bool:
+        return self._database_provides.is_exposed
 
     # =======================
     #  Handlers
