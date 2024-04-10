@@ -44,7 +44,8 @@ def _generate_private_key() -> str:
     return tls_certificates.generate_private_key().decode("utf-8")
 
 
-@dataclasses.dataclass(kw_only=True)
+# TODO python3.10 min version: Add `(kw_only=True)`
+@dataclasses.dataclass
 class _Relation:
     """Relation to TLS certificate provider"""
 
