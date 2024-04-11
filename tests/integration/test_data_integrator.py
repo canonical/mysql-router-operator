@@ -71,7 +71,7 @@ async def test_external_connectivity_with_data_integrator(
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,
                 application_name=DATA_INTEGRATOR_APP_NAME,
-                channel="latest/edge",
+                channel="latest/stable",
                 series=mysql_router_charm_series,
                 config=data_integrator_config,
             ),
