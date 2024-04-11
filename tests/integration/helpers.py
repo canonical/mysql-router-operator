@@ -44,11 +44,12 @@ async def get_inserted_data_by_application(unit: Unit) -> str:
     return result.results.get("data")
 
 
-async def execute_queries_on_unit(
+async def execute_queries_against_unit(
     unit_address: str,
     username: str,
     password: str,
     queries: List[str],
+    port: int = 3306,
     commit: bool = False,
 ) -> List:
     """Execute given MySQL queries on a unit.
@@ -67,6 +68,7 @@ async def execute_queries_on_unit(
         "user": username,
         "password": password,
         "host": unit_address,
+        "port": port,
         "raise_on_warnings": False,
     }
 

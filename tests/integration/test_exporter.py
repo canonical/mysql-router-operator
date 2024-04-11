@@ -10,14 +10,22 @@ import pytest
 import urllib3
 from pytest_operator.plugin import OpsTest
 
+from . import juju_
+
 logger = logging.getLogger(__name__)
 
 MYSQL_APP_NAME = "mysql"
 MYSQL_ROUTER_APP_NAME = "mysql-router"
 APPLICATION_APP_NAME = "mysql-test-app"
 GRAFANA_AGENT_APP_NAME = "grafana-agent"
-TLS_APP_NAME = "tls-certificates-operator"
 SLOW_TIMEOUT = 25 * 60
+
+if juju_.has_secrets:
+    TLS_APP_NAME = "self-signed-certificates"
+    TLS_CONFIG = {"ca-common-name": "Test CA"}
+else:
+    TLS_APP_NAME = "tls-certificates-operator"
+    TLS_CONFIG = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
 
 
 @pytest.mark.group(1)
@@ -165,7 +173,7 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
         TLS_APP_NAME,
         application_name=TLS_APP_NAME,
         channel="stable",
-        config={"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"},
+        config=TLS_CONFIG,
     )
 
     await ops_test.model.wait_for_idle([TLS_APP_NAME], status="active", timeout=SLOW_TIMEOUT)
