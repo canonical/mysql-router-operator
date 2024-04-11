@@ -9,9 +9,8 @@ import typing
 import pytest
 from pytest_operator.plugin import OpsTest
 
+from . import juju_, markers
 from .helpers import execute_queries_against_unit, get_tls_certificate_issuer
-from . import juju_
-from . import markers
 
 logger = logging.getLogger(__name__)
 
