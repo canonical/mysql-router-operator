@@ -9,8 +9,9 @@ import typing
 import pytest
 from pytest_operator.plugin import OpsTest
 
-from . import juju_
 from .helpers import execute_queries_against_unit, get_tls_certificate_issuer
+from . import juju_
+from . import markers
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ async def get_data_integrator_credentials(ops_test: OpsTest) -> typing.Dict:
 
 @pytest.mark.group(1)
 @pytest.mark.abort_on_fail
+@markers.only_with_juju_secrets
 async def test_external_connectivity_with_data_integrator(
     ops_test: OpsTest, mysql_router_charm_series: str
 ) -> None:
@@ -103,6 +105,7 @@ async def test_external_connectivity_with_data_integrator(
 
 @pytest.mark.group(1)
 @pytest.mark.abort_on_fail
+@markers.only_with_juju_secrets
 async def test_external_connectivity_with_data_integrator_and_tls(ops_test: OpsTest) -> None:
     """Test data integrator along with TLS operator"""
     logger.info("Ensuring no data exists in the test database")

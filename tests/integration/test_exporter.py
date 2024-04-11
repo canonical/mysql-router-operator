@@ -178,7 +178,7 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
 
     await ops_test.model.wait_for_idle([TLS_APP_NAME], status="active", timeout=SLOW_TIMEOUT)
 
-    logger.info(f"Relation mysqlrouter with {TLS_APP_NAME}")
+    logger.info(f"Relating mysqlrouter with {TLS_APP_NAME}")
 
     await ops_test.model.relate(
         f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{TLS_APP_NAME}:certificates"
