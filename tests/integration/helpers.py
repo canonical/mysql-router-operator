@@ -3,7 +3,7 @@
 
 import itertools
 import tempfile
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from juju.unit import Unit
 from pytest_operator.plugin import OpsTest
@@ -222,3 +222,21 @@ async def stop_running_flush_mysqlrouter_cronjobs(ops_test: OpsTest, unit_name: 
         with attempt:
             if await get_process_pid(ops_test, unit_name, "logrotate"):
                 raise Exception("Failed to stop the flush_mysql_logs logrotate process")
+
+
+async def get_tls_certificate_issuer(
+    ops_test: OpsTest,
+    unit_name: str,
+    socket: Optional[str] = None,
+    host: Optional[str] = None,
+    port: Optional[int] = None,
+) -> str:
+    connect_args = f"-unix {socket}" if socket else f"-connect {host}:{port}"
+    get_tls_certificate_issuer_commands = [
+        "ssh",
+        unit_name,
+        f"openssl s_client -showcerts -starttls mysql {connect_args} < /dev/null | openssl x509 -text | grep Issuer",
+    ]
+    return_code, issuer, _ = await ops_test.juju(*get_tls_certificate_issuer_commands)
+    assert return_code == 0, f"failed to get TLS certificate issuer on {unit_name=}"
+    return issuer

@@ -20,7 +20,7 @@ requests = "^2.31.0"
 # data_platform_libs/v0/data_interfaces.py
 ops = ">=2.0.0"
 # tls_certificates_interface/v1/tls_certificates.py
-cryptography = "*"
+cryptography = ">=42.0.5"
 jsonschema = "*"
 # grafana_agent/v0/cos_agent.py
 pydantic = "<2"

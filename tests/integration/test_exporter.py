@@ -16,6 +16,7 @@ MYSQL_APP_NAME = "mysql"
 MYSQL_ROUTER_APP_NAME = "mysql-router"
 APPLICATION_APP_NAME = "mysql-test-app"
 GRAFANA_AGENT_APP_NAME = "grafana-agent"
+TLS_APP_NAME = "tls-certificates-operator"
 SLOW_TIMEOUT = 25 * 60
 
 
@@ -149,3 +150,76 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
         ), "❌ expected connection refused error"
     else:
         assert False, "❌ can connect to metrics endpoint without relation with cos"
+
+
+@pytest.mark.group(1)
+@pytest.mark.abort_on_fail
+async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
+    """Test that the exporter endpoint works when related with TLS"""
+    http = urllib3.PoolManager()
+
+    mysql_router_app = ops_test.model.applications[MYSQL_ROUTER_APP_NAME]
+
+    logger.info(f"Deploying {TLS_APP_NAME}")
+    await ops_test.model.deploy(
+        TLS_APP_NAME,
+        application_name=TLS_APP_NAME,
+        channel="stable",
+        config={"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"},
+    )
+
+    await ops_test.model.wait_for_idle([TLS_APP_NAME], status="active", timeout=SLOW_TIMEOUT)
+
+    logger.info(f"Relation mysqlrouter with {TLS_APP_NAME}")
+
+    await ops_test.model.relate(
+        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{TLS_APP_NAME}:certificates"
+    )
+
+    time.sleep(30)
+
+    mysql_test_app = ops_test.model.applications[APPLICATION_APP_NAME]
+    unit_address = await mysql_test_app.units[0].get_public_address()
+
+    try:
+        http.request("GET", f"http://{unit_address}:49152/metrics")
+    except urllib3.exceptions.MaxRetryError as e:
+        assert (
+            "[Errno 111] Connection refused" in e.reason.args[0]
+        ), "❌ expected connection refused error"
+    else:
+        assert False, "❌ can connect to metrics endpoint without relation with cos"
+
+    logger.info("Relating mysqlrouter with grafana agent")
+    await ops_test.model.relate(
+        f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
+    )
+
+    time.sleep(30)
+
+    jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
+    assert jmx_resp.status == 200, "❌ cannot connect to metrics endpoint with relation with cos"
+    assert "mysqlrouter_route_health" in str(
+        jmx_resp.data
+    ), "❌ did not find expected metric in response"
+
+    logger.info("Removing relation between mysqlrouter and grafana agent")
+    await mysql_router_app.remove_relation(
+        f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
+    )
+
+    time.sleep(30)
+
+    try:
+        http.request("GET", f"http://{unit_address}:49152/metrics")
+    except urllib3.exceptions.MaxRetryError as e:
+        assert (
+            "[Errno 111] Connection refused" in e.reason.args[0]
+        ), "❌ expected connection refused error"
+    else:
+        assert False, "❌ can connect to metrics endpoint without relation with cos"
+
+    logger.info(f"Removing relation between mysqlrouter and {TLS_APP_NAME}")
+    await mysql_router_app.remove_relation(
+        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{TLS_APP_NAME}:certificates"
+    )
