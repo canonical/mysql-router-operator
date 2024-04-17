@@ -77,8 +77,10 @@ def machine_patch(monkeypatch):
             for service in services:
                 assert service in ("mysqlrouter-service", "mysqlrouter-exporter")
 
-            self.services["mysqlrouter-service"]["active"] = "mysqlrouter-service" in services
-            self.services["mysqlrouter-exporter"]["active"] = "mysqlrouter-exporter" in services
+            if "mysqlrouter-service" in services:
+                self.services["mysqlrouter-service"]["active"] = True
+            if "mysqlrouter-exporter" in services:
+                self.services["mysqlrouter-exporter"]["active"] = True
 
         def stop(self, services: list[str] = None, *_, **__):
             for service in services:
@@ -88,6 +90,12 @@ def machine_patch(monkeypatch):
                 self.services["mysqlrouter-service"]["active"] = False
             if "mysqlrouter-exporter" in services:
                 self.services["mysqlrouter-exporter"]["active"] = False
+
+        def restart(self, services: list[str] = []):
+            if "mysqlrouter-service" in services:
+                self.services["mysqlrouter-service"]["active"] = True
+            if "mysqlrouter-exporter" in services:
+                self.services["mysqlrouter-exporter"]["active"] = True
 
     monkeypatch.setattr(snap, "_snap", Snap())
 
