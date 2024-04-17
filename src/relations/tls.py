@@ -17,7 +17,7 @@ import ops
 import relations.secrets
 
 if typing.TYPE_CHECKING:
-    import kubernetes_charm
+    import abstract_charm
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ def _generate_private_key() -> str:
 class _Relation:
     """Relation to TLS certificate provider"""
 
-    _charm: "kubernetes_charm.KubernetesRouterCharm"
+    _charm: "abstract_charm.MySQLRouterCharm"
     _interface: tls_certificates.TLSCertificatesRequiresV2
     _secrets: relations.secrets.RelationSecrets
 
@@ -113,14 +113,15 @@ class _Relation:
 
     def _generate_csr(self, key: bytes) -> bytes:
         """Generate certificate signing request (CSR)."""
+        sans_ip = ["127.0.0.1"]  # needed for the HTTP server when related with COS
+        if self._charm.is_exposed():
+            sans_ip.append(self._charm.host_address)
+
         return tls_certificates.generate_csr(
             private_key=key,
             subject=socket.getfqdn(),
             organization=self._charm.app.name,
-            sans_ip=[
-                str(self._charm.model.get_binding("juju-info").network.bind_address),
-                "127.0.0.1",
-            ],
+            sans_ip=sans_ip,
         )
 
     def request_certificate_creation(self):
@@ -154,7 +155,7 @@ class RelationEndpoint(ops.Object):
 
     NAME = "certificates"
 
-    def __init__(self, charm_: "kubernetes_charm.KubernetesRouterCharm") -> None:
+    def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
         super().__init__(charm_, self.NAME)
         self._charm = charm_
         self._interface = tls_certificates.TLSCertificatesRequiresV2(self._charm, self.NAME)
@@ -221,11 +222,6 @@ class RelationEndpoint(ops.Object):
             return None
         return self._relation.certificate_authority
 
-    @property
-    def relation_exists(self) -> bool:
-        """Whether relation with cos exists."""
-        return len(self._charm.model.relations.get(self.NAME, [])) == 1
-
     @staticmethod
     def _parse_tls_key(raw_content: str) -> str:
         """Parse TLS key from plain text or base64 format."""
@@ -236,16 +232,6 @@ class RelationEndpoint(ops.Object):
                 raw_content,
             )
         return base64.b64decode(raw_content).decode("utf-8")
-
-    def is_relation_breaking(self, event) -> bool:
-        """Whether relation will be broken after the current event is handled."""
-        if not self.relation_exists:
-            return False
-
-        return (
-            isinstance(event, ops.RelationBrokenEvent)
-            and event.relation.id == self._charm.model.relations[self.NAME][0].id
-        )
 
     def _on_set_tls_private_key(self, event: ops.ActionEvent) -> None:
         """Handle action to set unit TLS private key."""

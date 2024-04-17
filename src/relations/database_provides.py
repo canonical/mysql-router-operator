@@ -70,6 +70,11 @@ class _RelationThatRequestedUser(_Relation):
         # Application charm databag
         databag = remote_databag.RemoteDatabag(interface=interface, relation=relation)
         self._database: str = databag["database"]
+        # Whether endpoints should be externally accessible
+        # (e.g. when related to `data-integrator` charm)
+        # Implements DA073 - Add Expose Flag to the Database Interface
+        # https://docs.google.com/document/d/1Y7OZWwMdvF8eEMuVKrqEfuFV3JOjpqLHL7_GPqJpRHU
+        self._external_connectivity = databag.get("external-node-connectivity") == "true"
         if databag.get("extra-user-roles"):
             raise _UnsupportedExtraUserRole(
                 app_name=relation.app.name, endpoint_name=relation.name
@@ -100,6 +105,8 @@ class _RelationThatRequestedUser(_Relation):
         *,
         router_read_write_endpoint: str,
         router_read_only_endpoint: str,
+        exposed_read_write_endpoint: str,
+        exposed_read_only_endpoint: str,
         shell: mysql_shell.Shell,
     ) -> None:
         """Create database & user and update databag."""
@@ -115,11 +122,23 @@ class _RelationThatRequestedUser(_Relation):
         password = shell.create_application_database_and_user(
             username=username, database=self._database
         )
+
+        rw_endpoint = (
+            exposed_read_write_endpoint
+            if self._external_connectivity
+            else router_read_write_endpoint
+        )
+        ro_endpoint = (
+            exposed_read_only_endpoint
+            if self._external_connectivity
+            else router_read_only_endpoint
+        )
+
         self._set_databag(
             username=username,
             password=password,
-            router_read_write_endpoint=router_read_write_endpoint,
-            router_read_only_endpoint=router_read_only_endpoint,
+            router_read_write_endpoint=rw_endpoint,
+            router_read_only_endpoint=ro_endpoint,
         )
 
 
@@ -189,21 +208,14 @@ class RelationEndpoint:
             [data.get("external-node-connectivity") == "true" for data in relation_data.values()]
         )
 
-    def reconcile_ports(self) -> None:
-        """Reconcile ports for this unit"""
-        if self.is_exposed:
-            self._charm.unit.open_port("tcp", self._charm.READ_WRITE_PORT)
-            self._charm.unit.open_port("tcp", self._charm.READ_ONLY_PORT)
-        else:
-            self._charm.unit.close_port("tcp", self._charm.READ_WRITE_PORT)
-            self._charm.unit.close_port("tcp", self._charm.READ_ONLY_PORT)
-
     def reconcile_users(
         self,
         *,
         event,
         router_read_write_endpoint: str,
         router_read_only_endpoint: str,
+        exposed_read_write_endpoint: str,
+        exposed_read_only_endpoint: str,
         shell: mysql_shell.Shell,
     ) -> None:
         """Create requested users and delete inactive users.
@@ -235,6 +247,8 @@ class RelationEndpoint:
                 relation.create_database_and_user(
                     router_read_write_endpoint=router_read_write_endpoint,
                     router_read_only_endpoint=router_read_only_endpoint,
+                    exposed_read_write_endpoint=exposed_read_write_endpoint,
+                    exposed_read_only_endpoint=exposed_read_only_endpoint,
                     shell=shell,
                 )
         for relation in self._shared_users:

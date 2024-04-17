@@ -37,7 +37,7 @@ async def get_data_integrator_credentials(ops_test: OpsTest) -> typing.Dict:
     if juju_.has_secrets:
         assert result.results["return-code"] == 0
     else:
-        assert result.results["Code"] == 0
+        assert result.results["Code"] == "0"
     assert result.results["ok"] == "True"
     return result.results["mysql"]
 

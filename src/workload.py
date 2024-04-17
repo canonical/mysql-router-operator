@@ -99,9 +99,11 @@ class Workload:
         return config_string
 
     @property
-    def _custom_tls_enabled(self) -> bool:
+    def _custom_certificate(self) -> typing.Optional[str]:
         """Whether custom TLS certs are enabled for MySQL Router"""
-        return self._tls_key_file.exists() and self._tls_certificate_file.exists()
+        if not self._tls_key_file.exists() or not self._tls_certificate_file.exists():
+            return None
+        return self._tls_certificate_file.read_text()
 
     def cleanup_monitoring_user(self) -> None:
         """Clean up router REST API user for mysqlrouter exporter."""
@@ -331,26 +333,29 @@ class AuthenticatedWorkload(Workload):
                 "`key`, `certificate`, and `certificate_authority` arguments required when tls=True"
             )
 
-        # self._custom_tls_enabled` will change after we enable or disable TLS
-        tls_was_enabled = self._custom_tls_enabled
+        custom_certificate = self._custom_certificate
         if tls:
             self._enable_tls(
                 key=key, certificate=certificate, certificate_authority=certificate_authority
             )
-            if not tls_was_enabled and self._container.mysql_router_service_enabled:
+            if custom_certificate != certificate and self._container.mysql_router_service_enabled:
                 self._restart(tls=tls)
         else:
             self._disable_tls()
-            if tls_was_enabled and self._container.mysql_router_service_enabled:
+            if custom_certificate and self._container.mysql_router_service_enabled:
                 self._restart(tls=tls)
 
         # If the host or port changes, MySQL Router will receive topology change
         # notifications from MySQL.
         # Therefore, if the host or port changes, we do not need to restart MySQL Router.
-        if not self._container.mysql_router_service_enabled:
+        is_charm_exposed = self._charm.is_exposed()
+        socket_file_exists = self._container.path("/run/mysqlrouter/mysql.sock").exists()
+        require_rebootstrap = is_charm_exposed == socket_file_exists
+        if not self._container.mysql_router_service_enabled or require_rebootstrap:
             logger.debug("Enabling MySQL Router service")
             self._cleanup_after_upgrade_or_potential_container_restart()
-            self._container.create_router_rest_api_credentials_file()  # create an empty credentials file
+            # create an empty credentials file, if the file does not exist
+            self._container.create_router_rest_api_credentials_file()
             self._bootstrap_router(tls=tls)
             self.shell.add_attributes_to_mysql_router_user(
                 username=self._router_username, router_id=self._router_id, unit_name=unit_name
@@ -361,7 +366,8 @@ class AuthenticatedWorkload(Workload):
             self._charm.wait_until_mysql_router_ready()
 
         if (not self._container.mysql_router_exporter_service_enabled and exporter_config) or (
-            self._container.mysql_router_exporter_service_enabled and tls_was_enabled != tls
+            self._container.mysql_router_exporter_service_enabled
+            and custom_certificate != certificate
         ):
             logger.debug("Enabling MySQL Router exporter service")
             self.setup_monitoring_user()

@@ -3,8 +3,8 @@
 
 from unittest.mock import PropertyMock
 
+import ops
 import pytest
-from ops import JujuVersion
 from pytest_mock import MockerFixture
 
 import snap
@@ -100,6 +100,30 @@ def machine_patch(monkeypatch):
     monkeypatch.setattr("snap._Path.mkdir", lambda *args, **kwargs: None)
     monkeypatch.setattr("snap._Path.rmtree", lambda *args, **kwargs: None)
 
+    def _network_get(*args, **kwargs) -> dict:
+        """Patch for the not-yet-implemented testing backend needed for `bind_address`.
+
+        This can be used for cases such as:
+        self.model.get_binding(event.relation).network.bind_address
+        Will always return '10.1.157.116'
+        """
+        return ops.model.Network(
+            {
+                "bind-addresses": [
+                    {
+                        "mac-address": "",
+                        "interface-name": "",
+                        "addresses": [{"hostname": "", "value": "10.1.157.116", "cidr": ""}],
+                    }
+                ],
+                "bind-address": "10.1.157.116",
+                "egress-subnets": ["10.152.183.65/32"],
+                "ingress-addresses": ["10.152.183.65"],
+            }
+        )
+
+    monkeypatch.setattr("ops.model.Binding._network_get", _network_get)
+
 
 @pytest.fixture(autouse=True, params=["juju2", "juju3"])
 def juju_has_secrets(mocker: MockerFixture, request):
@@ -110,11 +134,11 @@ def juju_has_secrets(mocker: MockerFixture, request):
     """
     if request.param == "juju3":
         mocker.patch.object(
-            JujuVersion, "has_secrets", new_callable=PropertyMock
+            ops.JujuVersion, "has_secrets", new_callable=PropertyMock
         ).return_value = False
         return False
     else:
         mocker.patch.object(
-            JujuVersion, "has_secrets", new_callable=PropertyMock
+            ops.JujuVersion, "has_secrets", new_callable=PropertyMock
         ).return_value = True
         return True

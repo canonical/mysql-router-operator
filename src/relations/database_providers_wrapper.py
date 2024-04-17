@@ -43,16 +43,14 @@ class RelationEndpoint:
         """Whether the relation is exposed"""
         return self._database_provides.is_exposed
 
-    def reconcile_ports(self) -> None:
-        """Reconcile ports for this unit"""
-        self._database_provides.reconcile_ports()
-
     def reconcile_users(
         self,
         *,
         event,
         router_read_write_endpoint: str,
         router_read_only_endpoint: str,
+        exposed_read_write_endpoint: str,
+        exposed_read_only_endpoint: str,
         shell: mysql_shell.Shell,
     ) -> None:
         """Create requested users and delete inactive users.
@@ -65,6 +63,8 @@ class RelationEndpoint:
             event=event,
             router_read_write_endpoint=router_read_write_endpoint,
             router_read_only_endpoint=router_read_only_endpoint,
+            exposed_read_write_endpoint=exposed_read_write_endpoint,
+            exposed_read_only_endpoint=exposed_read_only_endpoint,
             shell=shell,
         )
         self._deprecated_shared_db.reconcile_users(event=event, shell=shell)

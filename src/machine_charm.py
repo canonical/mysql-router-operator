@@ -26,9 +26,6 @@ logger = logging.getLogger(__name__)
 class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     """MySQL Router machine subordinate charm"""
 
-    READ_WRITE_PORT = 6446
-    READ_ONLY_PORT = 6447
-
     def __init__(self, *args) -> None:
         super().__init__(*args)
         # DEPRECATED shared-db: Enable legacy "mysql-shared" interface
@@ -64,21 +61,25 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         return machine_logrotate.LogRotate(container_=self._container)
 
     @property
-    def _host_address(self) -> str:
+    def host_address(self) -> str:
         """The host address for the machine."""
-        return self.model.get_binding("juju-info").network.bind_address
+        return str(self.model.get_binding("juju-info").network.bind_address)
 
     @property
     def _read_write_endpoint(self) -> str:
-        if self.is_exposed():
-            return f"{self._host_address}:{self.READ_WRITE_PORT}"
         return f'file://{self._container.path("/run/mysqlrouter/mysql.sock")}'
 
     @property
     def _read_only_endpoint(self) -> str:
-        if self.is_exposed():
-            return f"{self._host_address}:{self.READ_ONLY_PORT}"
         return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
+
+    @property
+    def _exposed_read_write_endpoint(self) -> str:
+        return f"{self.host_address}:{self._READ_WRITE_PORT}"
+
+    @property
+    def _exposed_read_only_endpoint(self) -> str:
+        return f"{self.host_address}:{self._READ_ONLY_PORT}"
 
     @property
     def _tls_certificate_saved(self) -> bool:
@@ -101,6 +102,21 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
     def is_exposed(self, relation=None) -> bool:
         return self._database_provides.is_exposed
+
+    def _reconcile_node_port(self, event) -> None:
+        """Only applies to Kubernetes charm, so no-op."""
+        pass
+
+    def _reconcile_ports(self) -> None:
+        if self.is_exposed():
+            ports = [self._READ_WRITE_PORT, self._READ_ONLY_PORT]
+        else:
+            ports = []
+        self.unit.set_ports(*ports)
+
+    @property
+    def _substrate(self) -> str:
+        return "vm"
 
     # =======================
     #  Handlers
@@ -145,10 +161,6 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self.reconcile()
         event.set_results({"result": f"Forcefully upgraded {self.unit.name}"})
         logger.debug("Forced upgrade")
-
-    def reconcile(self, event=None) -> None:
-        self._database_provides.reconcile_ports()
-        super().reconcile(event=event)
 
 
 if __name__ == "__main__":

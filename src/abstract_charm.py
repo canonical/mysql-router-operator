@@ -29,6 +29,9 @@ logger = logging.getLogger(__name__)
 class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     """MySQL Router charm"""
 
+    _READ_WRITE_PORT = 6446
+    _READ_ONLY_PORT = 6447
+
     def __init__(self, *args) -> None:
         super().__init__(*args)
         # Instantiate before registering other event observers
@@ -98,6 +101,16 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @property
     @abc.abstractmethod
+    def _exposed_read_write_endpoint(self) -> str:
+        """The exposed read-write endpoint"""
+
+    @property
+    @abc.abstractmethod
+    def _exposed_read_only_endpoint(self) -> str:
+        """The exposed read-only endpoint"""
+
+    @property
+    @abc.abstractmethod
     def _tls_certificate_saved(self) -> bool:
         """Whether a TLS certificate is available to use"""
 
@@ -115,6 +128,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     @abc.abstractmethod
     def _tls_certificate(self) -> typing.Optional[str]:
         """Custom TLS certificate"""
+
+    @property
+    @abc.abstractmethod
+    def _substrate(self) -> str:
+        """Returns the substrate of the charm: vm or k8s"""
 
     @abc.abstractmethod
     def is_exposed(self, relation=None) -> bool:
@@ -208,18 +226,37 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 wait=tenacity.wait_fixed(5),
             ):
                 with attempt:
-                    if self.is_exposed():
+                    if self._substrate == "k8s" or self.is_exposed():
                         for port in (6446, 6447):
                             with socket.socket() as s:
                                 assert s.connect_ex(("localhost", port)) == 0
                     else:
-                        assert self._container.path("/run/mysqlrouter/mysql.sock").exists()
-                        assert self._container.path("/run/mysqlrouter/mysqlro.sock").exists()
+                        for socket_file in (
+                            "/run/mysqlrouter/mysql.sock",
+                            "/run/mysqlrouter/mysqlro.sock",
+                        ):
+                            assert self._container.path(socket_file).exists()
+                            with socket.socket(socket.AF_UNIX) as s:
+                                assert s.connect_ex(str(self._container.path(socket_file))) == 0
         except AssertionError:
             logger.exception("Unable to connect to MySQL Router")
             raise
         else:
             logger.debug("MySQL Router is ready")
+
+    @abc.abstractmethod
+    def _reconcile_node_port(self, event) -> None:
+        """Reconcile node port.
+
+        Only applies to Kubernetes charm
+        """
+
+    @abc.abstractmethod
+    def _reconcile_ports(self) -> None:
+        """Reconcile exposed ports.
+
+        Only applies to Machine charm
+        """
 
     # =======================
     #  Handlers
@@ -286,21 +323,29 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     and isinstance(workload_, workload.AuthenticatedWorkload)
                     and workload_.container_ready
                 ):
+                    self._reconcile_node_port(event=event)
                     self._database_provides.reconcile_users(
                         event=event,
                         router_read_write_endpoint=self._read_write_endpoint,
                         router_read_only_endpoint=self._read_only_endpoint,
+                        exposed_read_write_endpoint=self._exposed_read_write_endpoint,
+                        exposed_read_only_endpoint=self._exposed_read_only_endpoint,
                         shell=workload_.shell,
                     )
             if workload_.container_ready:
                 workload_.reconcile(
-                    tls=self.tls.relation_exists and not self.tls.is_relation_breaking(event),
+                    tls=self._tls_certificate_saved,
                     unit_name=self.unit.name,
                     exporter_config=self._cos_exporter_config(event),
                     key=self._tls_key,
                     certificate=self._tls_certificate,
                     certificate_authority=self._tls_certificate_authority,
                 )
+                if not self._upgrade.in_progress and isinstance(
+                    workload_, workload.AuthenticatedWorkload
+                ):
+                    self._reconcile_ports()
+
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload
             if not workload_.status or workload_.status == ops.WaitingStatus():

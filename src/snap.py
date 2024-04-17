@@ -182,18 +182,13 @@ class Snap(container.Container):
         else:
             _snap.unset("mysqlrouter.extra-options")
 
-        router_is_running = any(
-            [
-                properties.get("active")
-                for service, properties in _snap.services.items()
-                if service == self._SERVICE_NAME
-            ]
-        )
+        router_is_running = _snap.services[self._SERVICE_NAME]["active"]
 
-        if enabled and router_is_running:
-            _snap.restart([self._SERVICE_NAME])
-        elif enabled:
-            _snap.start([self._SERVICE_NAME], enable=True)
+        if enabled:
+            if router_is_running:
+                _snap.restart([self._SERVICE_NAME])
+            else:
+                _snap.start([self._SERVICE_NAME], enable=True)
         else:
             _snap.stop([self._SERVICE_NAME], disable=True)
 
@@ -222,7 +217,7 @@ class Snap(container.Container):
                     "mysqlrouter-exporter.user": config.username,
                     "mysqlrouter-exporter.password": config.password,
                     "mysqlrouter-exporter.url": config.url,
-                    "mysqlrouter-exporter.service-name": self.unit_name.replace("/", "-"),
+                    "mysqlrouter-exporter.service-name": self._unit_name.replace("/", "-"),
                 }
             )
             _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
