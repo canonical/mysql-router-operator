@@ -22,7 +22,7 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
-REVISION = "101"  # Keep in sync with `workload_version` file
+REVISION = "102"  # Keep in sync with `workload_version` file
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
 
