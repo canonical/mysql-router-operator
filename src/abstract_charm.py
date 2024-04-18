@@ -135,7 +135,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """Returns the substrate of the charm: vm or k8s"""
 
     @abc.abstractmethod
-    def is_exposed(self, relation=None) -> bool:
+    def is_exposed(self, relation=None) -> typing.Optional[bool]:
         """Whether router is exposed externally"""
 
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:

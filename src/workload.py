@@ -348,10 +348,7 @@ class AuthenticatedWorkload(Workload):
         # If the host or port changes, MySQL Router will receive topology change
         # notifications from MySQL.
         # Therefore, if the host or port changes, we do not need to restart MySQL Router.
-        is_charm_exposed = self._charm.is_exposed()
-        socket_file_exists = self._container.path("/run/mysqlrouter/mysql.sock").exists()
-        require_rebootstrap = is_charm_exposed == socket_file_exists
-        if not self._container.mysql_router_service_enabled or require_rebootstrap:
+        if not self._container.mysql_router_service_enabled:
             logger.debug("Enabling MySQL Router service")
             self._cleanup_after_upgrade_or_potential_container_restart()
             # create an empty credentials file, if the file does not exist

@@ -100,7 +100,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     def _tls_certificate_authority(self) -> typing.Optional[str]:
         return self.tls.certificate_authority
 
-    def is_exposed(self, relation=None) -> bool:
+    def is_exposed(self, relation=None) -> typing.Optional[bool]:
         return self._database_provides.is_exposed
 
     def _reconcile_node_port(self, event) -> None:
