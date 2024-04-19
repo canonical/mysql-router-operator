@@ -39,9 +39,9 @@ class RelationEndpoint:
         )
 
     @property
-    def is_exposed(self) -> bool:
+    def external_connectivity(self) -> bool:
         """Whether the relation is exposed"""
-        return self._database_provides.is_exposed
+        return self._database_provides.external_connectivity
 
     def reconcile_users(
         self,

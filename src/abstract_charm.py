@@ -5,11 +5,9 @@
 
 import abc
 import logging
-import socket
 import typing
 
 import ops
-import tenacity
 
 import container
 import lifecycle
@@ -31,6 +29,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     _READ_WRITE_PORT = 6446
     _READ_ONLY_PORT = 6447
+    _READ_WRITE_X_PORT = 6448
+    _READ_ONLY_X_PORT = 6449
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -111,32 +111,28 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @property
     @abc.abstractmethod
+    def is_exposed(self) -> typing.Optional[bool]:
+        """Whether router is exposed externally"""
+
+    @property
     def _tls_certificate_saved(self) -> bool:
         """Whether a TLS certificate is available to use"""
+        return self.tls.certificate_saved
 
     @property
-    @abc.abstractmethod
     def _tls_key(self) -> typing.Optional[str]:
         """Custom TLS key"""
+        return self.tls.key
 
     @property
-    @abc.abstractmethod
     def _tls_certificate_authority(self) -> typing.Optional[str]:
         """Custom TLS certificate authority"""
+        return self.tls.certificate_authority
 
     @property
-    @abc.abstractmethod
     def _tls_certificate(self) -> typing.Optional[str]:
         """Custom TLS certificate"""
-
-    @property
-    @abc.abstractmethod
-    def _substrate(self) -> str:
-        """Returns the substrate of the charm: vm or k8s"""
-
-    @abc.abstractmethod
-    def is_exposed(self, relation=None) -> typing.Optional[bool]:
-        """Whether router is exposed externally"""
+        return self.tls.certificate
 
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
@@ -212,37 +208,12 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             self.unit.status = self._determine_unit_status(event=event)
             logger.debug(f"Set unit status to {self.unit.status}")
 
+    @abc.abstractmethod
     def wait_until_mysql_router_ready(self) -> None:
         """Wait until a connection to MySQL Router is possible.
 
         Retry every 5 seconds for up to 30 seconds.
         """
-        logger.debug("Waiting until MySQL Router is ready")
-        self.unit.status = ops.MaintenanceStatus("MySQL Router starting")
-        try:
-            for attempt in tenacity.Retrying(
-                reraise=True,
-                stop=tenacity.stop_after_delay(30),
-                wait=tenacity.wait_fixed(5),
-            ):
-                with attempt:
-                    if self._substrate == "k8s" or self.is_exposed():
-                        for port in (6446, 6447):
-                            with socket.socket() as s:
-                                assert s.connect_ex(("localhost", port)) == 0
-                    else:
-                        for socket_file in (
-                            "/run/mysqlrouter/mysql.sock",
-                            "/run/mysqlrouter/mysqlro.sock",
-                        ):
-                            assert self._container.path(socket_file).exists()
-                            with socket.socket(socket.AF_UNIX) as s:
-                                assert s.connect_ex(str(self._container.path(socket_file))) == 0
-        except AssertionError:
-            logger.exception("Unable to connect to MySQL Router")
-            raise
-        else:
-            logger.debug("MySQL Router is ready")
 
     @abc.abstractmethod
     def _reconcile_node_port(self, event) -> None:

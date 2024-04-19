@@ -181,7 +181,6 @@ class RelationEndpoint:
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
         self._interface = data_interfaces.DatabaseProvides(charm_, relation_name=self._NAME)
-        self._charm = charm_
 
         charm_.framework.observe(charm_.on[self._NAME].relation_created, charm_.reconcile)
         charm_.framework.observe(self._interface.on.database_requested, charm_.reconcile)
@@ -201,7 +200,7 @@ class RelationEndpoint:
         return shared_users
 
     @property
-    def is_exposed(self) -> bool:
+    def external_connectivity(self) -> bool:
         """Whether the relation is exposed."""
         relation_data = self._interface.fetch_relation_data(fields=["external-node-connectivity"])
         return any(

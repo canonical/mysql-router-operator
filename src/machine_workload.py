@@ -20,7 +20,7 @@ class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(self, password: str) -> typing.List[str]:
         command = super()._get_bootstrap_command(password)
-        if self._charm.is_exposed():
+        if self._charm.is_exposed:
             command.extend(
                 [
                     "--conf-bind-address",
@@ -68,5 +68,5 @@ class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
 
     def _bootstrap_router(self, *, tls: bool) -> None:
         super()._bootstrap_router(tls=tls)
-        if not self._charm.is_exposed():
+        if not self._charm.is_exposed:
             self._update_configured_socket_file_locations_and_bind_address()

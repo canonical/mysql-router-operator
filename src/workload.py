@@ -101,9 +101,8 @@ class Workload:
     @property
     def _custom_certificate(self) -> typing.Optional[str]:
         """Whether custom TLS certs are enabled for MySQL Router"""
-        if not self._tls_key_file.exists() or not self._tls_certificate_file.exists():
-            return None
-        return self._tls_certificate_file.read_text()
+        if self._tls_key_file.exists() and self._tls_certificate_file.exists():
+            return self._tls_certificate_file.read_text()
 
     def cleanup_monitoring_user(self) -> None:
         """Clean up router REST API user for mysqlrouter exporter."""
@@ -333,6 +332,7 @@ class AuthenticatedWorkload(Workload):
                 "`key`, `certificate`, and `certificate_authority` arguments required when tls=True"
             )
 
+        # `self._custom_certificate` will change after we enable/disable TLS
         custom_certificate = self._custom_certificate
         if tls:
             self._enable_tls(
@@ -348,7 +348,10 @@ class AuthenticatedWorkload(Workload):
         # If the host or port changes, MySQL Router will receive topology change
         # notifications from MySQL.
         # Therefore, if the host or port changes, we do not need to restart MySQL Router.
-        if not self._container.mysql_router_service_enabled:
+        is_charm_exposed = self._charm.is_exposed
+        socket_file_exists = self._container.path("/run/mysqlrouter/mysql.sock").exists()
+        require_rebootstrap = is_charm_exposed == socket_file_exists
+        if not self._container.mysql_router_service_enabled or require_rebootstrap:
             logger.debug("Enabling MySQL Router service")
             self._cleanup_after_upgrade_or_potential_container_restart()
             # create an empty credentials file, if the file does not exist

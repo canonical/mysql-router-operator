@@ -114,7 +114,7 @@ class _Relation:
     def _generate_csr(self, key: bytes) -> bytes:
         """Generate certificate signing request (CSR)."""
         sans_ip = ["127.0.0.1"]  # needed for the HTTP server when related with COS
-        if self._charm.is_exposed():
+        if self._charm.is_exposed:
             sans_ip.append(self._charm.host_address)
 
         return tls_certificates.generate_csr(
