@@ -135,7 +135,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
 
-    time.sleep(30)
+    time.sleep(60)
 
     jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
     assert jmx_resp.status == 200, "❌ cannot connect to metrics endpoint with relation with cos"
@@ -148,7 +148,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
 
-    time.sleep(30)
+    time.sleep(60)
 
     try:
         http.request("GET", f"http://{unit_address}:49152/metrics")
@@ -184,7 +184,7 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
         f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{TLS_APP_NAME}:certificates"
     )
 
-    time.sleep(30)
+    time.sleep(60)
 
     mysql_test_app = ops_test.model.applications[APPLICATION_APP_NAME]
     unit_address = await mysql_test_app.units[0].get_public_address()
@@ -203,7 +203,7 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
 
-    time.sleep(30)
+    time.sleep(60)
 
     jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
     assert jmx_resp.status == 200, "❌ cannot connect to metrics endpoint with relation with cos"
@@ -216,7 +216,7 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
 
-    time.sleep(30)
+    time.sleep(60)
 
     try:
         http.request("GET", f"http://{unit_address}:49152/metrics")
