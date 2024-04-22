@@ -20,7 +20,7 @@ APPLICATION_APP_NAME = "mysql-test-app"
 GRAFANA_AGENT_APP_NAME = "grafana-agent"
 SLOW_TIMEOUT = 25 * 60
 
-if juju_.has_secrets:
+if juju_.is_3_or_higher:
     TLS_APP_NAME = "self-signed-certificates"
     TLS_CONFIG = {"ca-common-name": "Test CA"}
 else:
@@ -184,6 +184,7 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
         application_name=TLS_APP_NAME,
         channel="stable",
         config=TLS_CONFIG,
+        series="jammy",
     )
 
     await ops_test.model.wait_for_idle([TLS_APP_NAME], status="active", timeout=SLOW_TIMEOUT)

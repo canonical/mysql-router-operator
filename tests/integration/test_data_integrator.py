@@ -21,7 +21,7 @@ SLOW_TIMEOUT = 15 * 60
 TEST_DATABASE = "testdatabase"
 TEST_TABLE = "testtable"
 
-if juju_.has_secrets:
+if juju_.is_3_or_higher:
     TLS_APP_NAME = "self-signed-certificates"
     TLS_CONFIG = {"ca-common-name": "Test CA"}
 else:
@@ -34,7 +34,7 @@ async def get_data_integrator_credentials(ops_test: OpsTest) -> typing.Dict:
     data_integrator_unit = ops_test.model.applications[DATA_INTEGRATOR_APP_NAME].units[0]
     action = await data_integrator_unit.run_action(action_name="get-credentials")
     result = await action.wait()
-    if juju_.has_secrets:
+    if juju_.is_3_or_higher:
         assert result.results["return-code"] == 0
     else:
         assert result.results["Code"] == "0"
