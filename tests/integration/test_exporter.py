@@ -4,9 +4,9 @@
 
 import asyncio
 import logging
-import tenacity
 
 import pytest
+import tenacity
 import urllib3
 from pytest_operator.plugin import OpsTest
 
@@ -142,7 +142,9 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
     ):
         with attempt:
             jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
-            assert jmx_resp.status == 200, "❌ cannot connect to metrics endpoint with relation with cos"
+            assert (
+                jmx_resp.status == 200
+            ), "❌ cannot connect to metrics endpoint with relation with cos"
             assert "mysqlrouter_route_health" in str(
                 jmx_resp.data
             ), "❌ did not find expected metric in response"
@@ -222,7 +224,9 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
     ):
         with attempt:
             jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
-            assert jmx_resp.status == 200, "❌ cannot connect to metrics endpoint with relation with cos"
+            assert (
+                jmx_resp.status == 200
+            ), "❌ cannot connect to metrics endpoint with relation with cos"
             assert "mysqlrouter_route_health" in str(
                 jmx_resp.data
             ), "❌ did not find expected metric in response"
