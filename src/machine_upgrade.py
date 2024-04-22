@@ -52,10 +52,9 @@ class Upgrade(upgrade.Upgrade):
             return ops.WaitingStatus(
                 f'Router {self._unit_workload_version}; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
             )
-        message = f'Router {self._unit_workload_version} running; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
-        if self._unit_workload_container_version == self._app_workload_container_version:
-            return ops.ActiveStatus(message)
-        return ops.WaitingStatus(message)
+        return ops.ActiveStatus(
+            f'Router {self._unit_workload_version} running; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
+        )
 
     @property
     def app_status(self) -> typing.Optional[ops.StatusBase]:
