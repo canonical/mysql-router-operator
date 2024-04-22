@@ -48,12 +48,20 @@ class Upgrade(upgrade.Upgrade):
     def _get_unit_healthy_status(
         self, *, workload_status: typing.Optional[ops.StatusBase]
     ) -> ops.StatusBase:
+        if self._unit_workload_container_version == self._app_workload_container_version:
+            if isinstance(workload_status, ops.WaitingStatus):
+                return ops.WaitingStatus(
+                    f'Router {self._unit_workload_version}; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
+                )
+            return ops.ActiveStatus(
+                f'Router {self._unit_workload_version} running; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
+            )
         if isinstance(workload_status, ops.WaitingStatus):
             return ops.WaitingStatus(
-                f'Router {self._unit_workload_version}; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
+                f'Router {self._unit_workload_version}; Snap rev {self._unit_workload_container_version} (outdated); Charmed operator {self._current_versions["charm"]}'
             )
         return ops.ActiveStatus(
-            f'Router {self._unit_workload_version} running; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
+            f'Router {self._unit_workload_version} running; Snap rev {self._unit_workload_container_version} (outdated); Charmed operator {self._current_versions["charm"]}'
         )
 
     @property
