@@ -50,10 +50,10 @@ class Upgrade(upgrade.Upgrade):
     ) -> ops.StatusBase:
         if isinstance(workload_status, ops.WaitingStatus):
             return ops.WaitingStatus(
-                f'Router {self._unit_workload_version}. Snap rev {self._unit_workload_container_version}. Charmed operator {self._current_versions["charm"]}'
+                f'Router {self._unit_workload_version}; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
             )
         return ops.ActiveStatus(
-            f'Router {self._unit_workload_version} running. Snap rev {self._unit_workload_container_version}. Charmed operator {self._current_versions["charm"]}'
+            f'Router {self._unit_workload_version} running; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
         )
 
     @property
