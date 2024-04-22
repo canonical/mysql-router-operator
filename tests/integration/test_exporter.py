@@ -4,7 +4,7 @@
 
 import asyncio
 import logging
-import time
+import tenacity
 
 import pytest
 import urllib3
@@ -135,29 +135,37 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
 
-    time.sleep(60)
-
-    jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
-    assert jmx_resp.status == 200, "❌ cannot connect to metrics endpoint with relation with cos"
-    assert "mysqlrouter_route_health" in str(
-        jmx_resp.data
-    ), "❌ did not find expected metric in response"
+    for attempt in tenacity.Retrying(
+        reraise=True,
+        stop=tenacity.stop_after_delay(120),
+        wait=tenacity.wait_fixed(10),
+    ):
+        with attempt:
+            jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
+            assert jmx_resp.status == 200, "❌ cannot connect to metrics endpoint with relation with cos"
+            assert "mysqlrouter_route_health" in str(
+                jmx_resp.data
+            ), "❌ did not find expected metric in response"
 
     logger.info("Removing relation between mysqlrouter and grafana agent")
     await mysql_router_app.remove_relation(
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
 
-    time.sleep(60)
-
-    try:
-        http.request("GET", f"http://{unit_address}:49152/metrics")
-    except urllib3.exceptions.MaxRetryError as e:
-        assert (
-            "[Errno 111] Connection refused" in e.reason.args[0]
-        ), "❌ expected connection refused error"
-    else:
-        assert False, "❌ can connect to metrics endpoint without relation with cos"
+    for attempt in tenacity.Retrying(
+        reraise=True,
+        stop=tenacity.stop_after_delay(120),
+        wait=tenacity.wait_fixed(10),
+    ):
+        with attempt:
+            try:
+                http.request("GET", f"http://{unit_address}:49152/metrics")
+            except urllib3.exceptions.MaxRetryError as e:
+                assert (
+                    "[Errno 111] Connection refused" in e.reason.args[0]
+                ), "❌ expected connection refused error"
+            else:
+                assert False, "❌ can connect to metrics endpoint without relation with cos"
 
 
 @pytest.mark.group(1)
@@ -184,48 +192,60 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
         f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{TLS_APP_NAME}:certificates"
     )
 
-    time.sleep(60)
-
     mysql_test_app = ops_test.model.applications[APPLICATION_APP_NAME]
     unit_address = await mysql_test_app.units[0].get_public_address()
 
-    try:
-        http.request("GET", f"http://{unit_address}:49152/metrics")
-    except urllib3.exceptions.MaxRetryError as e:
-        assert (
-            "[Errno 111] Connection refused" in e.reason.args[0]
-        ), "❌ expected connection refused error"
-    else:
-        assert False, "❌ can connect to metrics endpoint without relation with cos"
+    for attempt in tenacity.Retrying(
+        reraise=True,
+        stop=tenacity.stop_after_delay(120),
+        wait=tenacity.wait_fixed(10),
+    ):
+        with attempt:
+            try:
+                http.request("GET", f"http://{unit_address}:49152/metrics")
+            except urllib3.exceptions.MaxRetryError as e:
+                assert (
+                    "[Errno 111] Connection refused" in e.reason.args[0]
+                ), "❌ expected connection refused error"
+            else:
+                assert False, "❌ can connect to metrics endpoint without relation with cos"
 
     logger.info("Relating mysqlrouter with grafana agent")
     await ops_test.model.relate(
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
 
-    time.sleep(60)
-
-    jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
-    assert jmx_resp.status == 200, "❌ cannot connect to metrics endpoint with relation with cos"
-    assert "mysqlrouter_route_health" in str(
-        jmx_resp.data
-    ), "❌ did not find expected metric in response"
+    for attempt in tenacity.Retrying(
+        reraise=True,
+        stop=tenacity.stop_after_delay(120),
+        wait=tenacity.wait_fixed(10),
+    ):
+        with attempt:
+            jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
+            assert jmx_resp.status == 200, "❌ cannot connect to metrics endpoint with relation with cos"
+            assert "mysqlrouter_route_health" in str(
+                jmx_resp.data
+            ), "❌ did not find expected metric in response"
 
     logger.info("Removing relation between mysqlrouter and grafana agent")
     await mysql_router_app.remove_relation(
         f"{GRAFANA_AGENT_APP_NAME}:cos-agent", f"{MYSQL_ROUTER_APP_NAME}:cos-agent"
     )
 
-    time.sleep(60)
-
-    try:
-        http.request("GET", f"http://{unit_address}:49152/metrics")
-    except urllib3.exceptions.MaxRetryError as e:
-        assert (
-            "[Errno 111] Connection refused" in e.reason.args[0]
-        ), "❌ expected connection refused error"
-    else:
-        assert False, "❌ can connect to metrics endpoint without relation with cos"
+    for attempt in tenacity.Retrying(
+        reraise=True,
+        stop=tenacity.stop_after_delay(120),
+        wait=tenacity.wait_fixed(10),
+    ):
+        with attempt:
+            try:
+                http.request("GET", f"http://{unit_address}:49152/metrics")
+            except urllib3.exceptions.MaxRetryError as e:
+                assert (
+                    "[Errno 111] Connection refused" in e.reason.args[0]
+                ), "❌ expected connection refused error"
+            else:
+                assert False, "❌ can connect to metrics endpoint without relation with cos"
 
     logger.info(f"Removing relation between mysqlrouter and {TLS_APP_NAME}")
     await mysql_router_app.remove_relation(
