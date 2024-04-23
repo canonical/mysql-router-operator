@@ -51,17 +51,17 @@ class Upgrade(upgrade.Upgrade):
         if self._unit_workload_container_version == self._app_workload_container_version:
             if isinstance(workload_status, ops.WaitingStatus):
                 return ops.WaitingStatus(
-                    f"Router {self._unit_workload_version} rev {self._unit_workload_container_version}"
+                    f'Router {self._unit_workload_version}; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
                 )
             return ops.ActiveStatus(
-                f"Router {self._unit_workload_version} rev {self._unit_workload_container_version} running"
+                f'Router {self._unit_workload_version} running; Snap rev {self._unit_workload_container_version}; Charmed operator {self._current_versions["charm"]}'
             )
         if isinstance(workload_status, ops.WaitingStatus):
             return ops.WaitingStatus(
-                f"Charmed operator upgraded. Router {self._unit_workload_version} rev {self._unit_workload_container_version}"
+                f'Router {self._unit_workload_version}; Snap rev {self._unit_workload_container_version} (outdated); Charmed operator {self._current_versions["charm"]}'
             )
-        return ops.WaitingStatus(
-            f"Charmed operator upgraded. Router {self._unit_workload_version} rev {self._unit_workload_container_version} running"
+        return ops.ActiveStatus(
+            f'Router {self._unit_workload_version} running; Snap rev {self._unit_workload_container_version} (outdated); Charmed operator {self._current_versions["charm"]}'
         )
 
     @property
