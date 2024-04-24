@@ -4,7 +4,14 @@
 resume-upgrade:
   description: Upgrade remaining units (after you manually verified that upgraded units are healthy).
 force-upgrade:
-  description: Force upgrade of this unit.
+  description: |
+    Potential of *data loss* and *downtime*
+        
+    Force upgrade of this unit.
+    
+    Use to
+    - force incompatible upgrade and/or
+    - continue upgrade if 1+ upgraded units have non-active status
 set-tls-private-key:
   description:
     Set the private key, which will be used for certificate signing requests (CSR). Run
