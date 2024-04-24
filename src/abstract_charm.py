@@ -111,7 +111,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @abc.abstractmethod
     def is_externally_accessible(self, event=None) -> typing.Optional[bool]:
-        """Whether router is externally accessible"""
+        """Whether endpoints should be externally accessible"""
 
     @property
     def _tls_certificate_saved(self) -> bool:
@@ -215,14 +215,14 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """
 
     @abc.abstractmethod
-    def _reconcile_node_port(self, event) -> None:
+    def _reconcile_node_port(self, *, event) -> None:
         """Reconcile node port.
 
         Only applies to Kubernetes charm
         """
 
     @abc.abstractmethod
-    def _reconcile_ports(self) -> None:
+    def _reconcile_ports(self, *, event) -> None:
         """Reconcile exposed ports.
 
         Only applies to Machine charm
@@ -320,7 +320,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 if not self._upgrade.in_progress and isinstance(
                     workload_, workload.AuthenticatedWorkload
                 ):
-                    self._reconcile_ports()
+                    self._reconcile_ports(event=event)
 
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload

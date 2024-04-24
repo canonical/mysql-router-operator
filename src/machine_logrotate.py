@@ -51,8 +51,6 @@ class LogRotate(logrotate.LogRotate):
 
     def disable(self) -> None:
         logger.debug("Removing cron job for log rotation of mysqlrouter")
-        if self._logrotate_config.exists():
-            self._logrotate_config.unlink()
-        if self._cron_file.exists():
-            self._cron_file.unlink()
+        self._logrotate_config.unlink(missing_ok=True)
+        self._cron_file.unlink(missing_ok=True)
         logger.debug("Removed cron job for log rotation of mysqlrouter")

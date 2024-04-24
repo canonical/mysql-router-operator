@@ -228,6 +228,10 @@ class Snap(container.Container):
                         "mysqlrouter.tls-key-path": key_filename,
                     }
                 )
+            else:
+                _snap.unset("mysqlrouter.tls-cacert-path")
+                _snap.unset("mysqlrouter.tls-cert-path")
+                _snap.unset("mysqlrouter.tls-key-path")
             _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
         else:
             _snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)

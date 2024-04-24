@@ -86,12 +86,12 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     def is_externally_accessible(self, event=None) -> typing.Optional[bool]:
         return self._database_provides.external_connectivity(event)
 
-    def _reconcile_node_port(self, event) -> None:
+    def _reconcile_node_port(self, *, event) -> None:
         """Only applies to Kubernetes charm, so no-op."""
         pass
 
-    def _reconcile_ports(self) -> None:
-        if self.is_externally_accessible():
+    def _reconcile_ports(self, *, event) -> None:
+        if self.is_externally_accessible(event):
             ports = [self._READ_WRITE_PORT, self._READ_ONLY_PORT]
         else:
             ports = []
