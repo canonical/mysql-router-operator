@@ -247,6 +247,10 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             logger.debug("Peer relation not ready")
             return
         workload_ = self.get_workload(event=event)
+        if self._unit_lifecycle.authorized_leader and not self._upgrade.in_progress:
+            # Run before checking `self._upgrade.is_compatible` in case incompatible upgrade was
+            # forced & completed on all units.
+            self._upgrade.set_versions_in_app_databag()
         if self._upgrade.unit_state == "restarting":  # Kubernetes only
             if not self._upgrade.is_compatible:
                 logger.info(
@@ -324,8 +328,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 self._upgrade.unit_state = "healthy"
             if self._unit_lifecycle.authorized_leader:
                 self._upgrade.reconcile_partition()
-                if not self._upgrade.in_progress:
-                    self._upgrade.set_versions_in_app_databag()
             self.set_status(event=event)
         except server_exceptions.Error as e:
             # If not for `unit=False`, another `server_exceptions.Error` could be thrown here
