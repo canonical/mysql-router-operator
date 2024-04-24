@@ -87,6 +87,11 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             # Only call `reconcile` on leader unit to avoid race conditions with `upgrade_resumed`
             self.reconcile()
 
+    def _on_resume_upgrade_action(self, event: ops.ActionEvent) -> None:
+        super()._on_resume_upgrade_action(event)
+        # If next to upgrade, upgrade leader unit
+        self.reconcile()
+
     def _on_force_upgrade_action(self, event: ops.ActionEvent) -> None:
         if not self._upgrade or not self._upgrade.in_progress:
             message = "No upgrade in progress"
