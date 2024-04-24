@@ -254,7 +254,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             # Run before checking `self._upgrade.is_compatible` in case incompatible upgrade was
             # forced & completed on all units.
             self._upgrade.set_versions_in_app_databag()
-        if self._upgrade.unit_state == "restarting":  # Kubernetes only
+        if self._upgrade.unit_state is upgrade.UnitState.RESTARTING:  # Kubernetes only
             if not self._upgrade.is_compatible:
                 logger.info(
                     "Upgrade incompatible. If you accept potential *data loss* and *downtime*, you can continue with `resume-upgrade force=true`"
@@ -268,7 +268,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             if not self._upgrade.is_compatible:
                 self.set_status(event=event)
                 return
-            if self._upgrade.unit_state == "outdated":
+            if self._upgrade.unit_state is upgrade.UnitState.OUTDATED:
                 if self._upgrade.authorized:
                     self._upgrade.upgrade_unit(
                         event=event,
@@ -330,7 +330,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload
             if not workload_.status or workload_.status == ops.WaitingStatus():
-                self._upgrade.unit_state = "healthy"
+                self._upgrade.unit_state = upgrade.UnitState.HEALTHY
             if self._unit_lifecycle.authorized_leader:
                 self._upgrade.reconcile_partition()
             self.set_status(event=event)

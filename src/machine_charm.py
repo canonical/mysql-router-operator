@@ -165,7 +165,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             logger.debug(f"Force upgrade event failed: {message}")
             event.fail(message)
             return
-        if self._upgrade.unit_state != "outdated":
+        if self._upgrade.unit_state is not upgrade.UnitState.OUTDATED:
             message = "Unit already upgraded"
             logger.debug(f"Force upgrade event failed: {message}")
             event.fail(message)
