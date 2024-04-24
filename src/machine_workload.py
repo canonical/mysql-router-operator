@@ -20,7 +20,7 @@ class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(self, password: str) -> typing.List[str]:
         command = super()._get_bootstrap_command(password)
-        if self._charm.is_exposed:
+        if self._charm.is_externally_accessible():
             command.extend(
                 [
                     "--conf-bind-address",
@@ -35,17 +35,18 @@ class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
                     # set. Workaround for https://bugs.mysql.com/bug.php?id=107291
                     "--conf-set-option",
                     "DEFAULT.server_ssl_mode=PREFERRED",
+                    "--conf-skip-tcp",
                 ]
             )
         return command
 
-    def _update_configured_socket_file_locations_and_bind_address(self) -> None:
+    def _update_configured_socket_file_locations(self) -> None:
         """Update configured socket file locations from `/tmp` to `/run/mysqlrouter`.
 
         Called after MySQL Router bootstrap & before MySQL Router service is enabled
 
         Change configured location of socket files before socket files are created by MySQL Router
-        service. Also remove bind_address and bind_port for all router services: rw, ro, x_rw, x_ro
+        service.
 
         Needed since `/tmp` inside a snap is not accessible to non-root users. The socket files
         must be accessible to applications related via database_provides endpoint.
@@ -59,8 +60,6 @@ class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
             section["socket"] = str(
                 self._container.path("/run/mysqlrouter") / pathlib.PurePath(section["socket"]).name
             )
-            del section["bind_address"]
-            del section["bind_port"]
         with io.StringIO() as output:
             config.write(output)
             self._container.router_config_file.write_text(output.getvalue())
@@ -68,5 +67,5 @@ class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
 
     def _bootstrap_router(self, *, tls: bool) -> None:
         super()._bootstrap_router(tls=tls)
-        if not self._charm.is_exposed:
-            self._update_configured_socket_file_locations_and_bind_address()
+        if not self._charm.is_externally_accessible():
+            self._update_configured_socket_file_locations()

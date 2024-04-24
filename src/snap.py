@@ -220,6 +220,14 @@ class Snap(container.Container):
                     "mysqlrouter-exporter.service-name": self._unit_name.replace("/", "-"),
                 }
             )
+            if tls:
+                _snap.set(
+                    {
+                        "mysqlrouter.tls-cacert-path": certificate_authority_filename,
+                        "mysqlrouter.tls-cert-path": certificate_filename,
+                        "mysqlrouter.tls-key-path": key_filename,
+                    }
+                )
             _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
         else:
             _snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)
@@ -227,6 +235,9 @@ class Snap(container.Container):
             _snap.unset("mysqlrouter-exporter.password")
             _snap.unset("mysqlrouter-exporter.url")
             _snap.unset("mysqlrouter-exporter.service-name")
+            _snap.unset("mysqlrouter.tls-cacert-path")
+            _snap.unset("mysqlrouter.tls-cert-path")
+            _snap.unset("mysqlrouter.tls-key-path")
 
     def upgrade(self, unit: ops.Unit) -> None:
         """Upgrade snap."""

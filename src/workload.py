@@ -76,7 +76,9 @@ class Workload:
                 return component
         return ""
 
-    def upgrade(self, *, unit: ops.Unit, tls: bool) -> None:
+    def upgrade(
+        self, *, unit: ops.Unit, tls: bool, exporter_config: "relations.cos.ExporterConfig"
+    ) -> None:
         """Upgrade MySQL Router.
 
         Only applies to machine charm
@@ -116,8 +118,6 @@ class Workload:
 
     def _disable_exporter(self) -> None:
         """Stop and disable MySQL Router exporter service, keeping router enabled."""
-        if not self._container.mysql_router_exporter_service_enabled:
-            return
         logger.debug("Disabling MySQL Router exporter service")
         self._container.update_mysql_router_exporter_service(enabled=False)
         self.cleanup_monitoring_user()
@@ -143,6 +143,17 @@ class Workload:
             file.unlink(missing_ok=True)
         logger.debug("Deleted TLS files")
 
+    def _disable_router(self) -> None:
+        """Disable router and clean up corresponding router files."""
+        logger.debug("Disabling MySQL Router service")
+        self._container.update_mysql_router_service(enabled=False)
+        self._logrotate.disable()
+        self._container.router_config_directory.rmtree()
+        self._container.router_config_directory.mkdir()
+        self._router_data_directory.rmtree()
+        self._router_data_directory.mkdir()
+        logger.debug("Disabled MySQL Router service")
+
     def reconcile(
         self,
         *,
@@ -158,16 +169,11 @@ class Workload:
             raise ValueError("`key` and `certificate` arguments required when tls=True")
 
         if self._container.mysql_router_service_enabled:
-            logger.debug("Disabling MySQL Router service")
-            self._container.update_mysql_router_service(enabled=False)
-            self._logrotate.disable()
-            self._container.router_config_directory.rmtree()
-            self._container.router_config_directory.mkdir()
-            self._router_data_directory.rmtree()
-            self._router_data_directory.mkdir()
-            logger.debug("Disabled MySQL Router service")
+            self._disable_router()
 
-        self._disable_exporter()
+        if self._container.mysql_router_exporter_service_enabled:
+            self._disable_exporter()
+
         self._disable_tls()
 
     @property
@@ -316,6 +322,37 @@ class AuthenticatedWorkload(Workload):
         # status
         self._charm.set_status(event=None)
 
+    def _enable_router(self, *, tls: bool, unit_name: str) -> None:
+        """Enable router after setting up all the necessary prerequisites."""
+        logger.debug("Enabling MySQL Router service")
+        self._cleanup_after_upgrade_or_potential_container_restart()
+        # create an empty credentials file, if the file does not exist
+        self._container.create_router_rest_api_credentials_file()
+        self._bootstrap_router(tls=tls)
+        self.shell.add_attributes_to_mysql_router_user(
+            username=self._router_username, router_id=self._router_id, unit_name=unit_name
+        )
+        self._container.update_mysql_router_service(enabled=True, tls=tls)
+        self._logrotate.enable()
+        logger.debug("Enabled MySQL Router service")
+        self._charm.wait_until_mysql_router_ready()
+
+    def _enable_exporter(
+        self, *, tls: bool, exporter_config: "relations.cos.ExporterConfig"
+    ) -> None:
+        """Enable the mysqlrouter exporter."""
+        logger.debug("Enabling MySQL Router exporter service")
+        self.setup_monitoring_user()
+        self._container.update_mysql_router_exporter_service(
+            enabled=True,
+            config=exporter_config,
+            tls=tls,
+            key_filename=str(self._tls_key_file),
+            certificate_filename=str(self._tls_certificate_file),
+            certificate_authority_filename=str(self._tls_certificate_authority_file),
+        )
+        logger.debug("Enabled MySQL Router exporter service")
+
     def reconcile(
         self,
         *,
@@ -348,38 +385,20 @@ class AuthenticatedWorkload(Workload):
         # If the host or port changes, MySQL Router will receive topology change
         # notifications from MySQL.
         # Therefore, if the host or port changes, we do not need to restart MySQL Router.
-        is_charm_exposed = self._charm.is_exposed
+        is_charm_exposed = self._charm.is_externally_accessible()
         socket_file_exists = self._container.path("/run/mysqlrouter/mysql.sock").exists()
         require_rebootstrap = is_charm_exposed == socket_file_exists
-        if not self._container.mysql_router_service_enabled or require_rebootstrap:
-            logger.debug("Enabling MySQL Router service")
-            self._cleanup_after_upgrade_or_potential_container_restart()
-            # create an empty credentials file, if the file does not exist
-            self._container.create_router_rest_api_credentials_file()
-            self._bootstrap_router(tls=tls)
-            self.shell.add_attributes_to_mysql_router_user(
-                username=self._router_username, router_id=self._router_id, unit_name=unit_name
-            )
-            self._container.update_mysql_router_service(enabled=True, tls=tls)
-            self._logrotate.enable()
-            logger.debug("Enabled MySQL Router service")
-            self._charm.wait_until_mysql_router_ready()
+        if require_rebootstrap:
+            self._disable_router()
+
+        if not self._container.mysql_router_service_enabled:
+            self._enable_router(tls=tls, unit_name=unit_name)
 
         if (not self._container.mysql_router_exporter_service_enabled and exporter_config) or (
             self._container.mysql_router_exporter_service_enabled
             and custom_certificate != certificate
         ):
-            logger.debug("Enabling MySQL Router exporter service")
-            self.setup_monitoring_user()
-            self._container.update_mysql_router_exporter_service(
-                enabled=True,
-                config=exporter_config,
-                tls=tls,
-                key_filename=str(self._tls_key_file),
-                certificate_filename=str(self._tls_certificate_file),
-                certificate_authority_filename=str(self._tls_certificate_authority_file),
-            )
-            logger.debug("Enabled MySQL Router exporter service")
+            self._enable_exporter(tls=tls, exporter_config=exporter_config)
         elif self._container.mysql_router_exporter_service_enabled and not exporter_config:
             self._disable_exporter()
 
@@ -397,15 +416,22 @@ class AuthenticatedWorkload(Workload):
                 "Router was manually removed from MySQL ClusterSet. Remove & re-deploy unit"
             )
 
-    def upgrade(self, *, unit: ops.Unit, tls: bool) -> None:
+    def upgrade(
+        self, *, unit: ops.Unit, tls: bool, exporter_config: "relations.cos.ExporterConfig"
+    ) -> None:
         enabled = self._container.mysql_router_service_enabled
+        exporter_enabled = self._container.mysql_router_exporter_service_enabled
+        if exporter_enabled:
+            self._disable_exporter()
         if enabled:
             logger.debug("Disabling MySQL Router service before upgrade")
-            self.disable()
-        super().upgrade(unit=unit, tls=tls)
+            self._disable_router()
+        super().upgrade(unit=unit, tls=tls, exporter_config=exporter_config)
         if enabled:
             logger.debug("Re-enabling MySQL Router service after upgrade")
-            self.enable(tls=tls, unit_name=unit.name)
+            self._enable_router(tls=tls, unit_name=unit.name)
+        if exporter_enabled:
+            self._enable_exporter(tls=tls, exporter_config=exporter_config)
 
     def _wait_until_http_server_authenticates(self) -> None:
         """Wait until active connection with router HTTP server using monitoring credentials."""

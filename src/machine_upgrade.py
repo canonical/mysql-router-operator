@@ -17,6 +17,9 @@ import snap
 import upgrade
 import workload
 
+if typing.TYPE_CHECKING:
+    import relations.cos
+
 logger = logging.getLogger(__name__)
 
 
@@ -135,9 +138,15 @@ class Upgrade(upgrade.Upgrade):
                 return False
         return False
 
-    def upgrade_unit(self, *, workload_: workload.Workload, tls: bool) -> None:
+    def upgrade_unit(
+        self,
+        *,
+        workload_: workload.Workload,
+        tls: bool,
+        exporter_config: "relations.cos.ExporterConfig",
+    ) -> None:
         logger.debug(f"Upgrading {self.authorized=}")
         self.unit_state = "upgrading"
-        workload_.upgrade(unit=self._unit, tls=tls)
+        workload_.upgrade(unit=self._unit, tls=tls, exporter_config=exporter_config)
         self._unit_databag["snap_revision"] = snap.REVISION
         logger.debug(f"Saved {snap.REVISION=} in unit databag after upgrade")

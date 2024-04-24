@@ -74,7 +74,7 @@ class _RelationThatRequestedUser(_Relation):
         # (e.g. when related to `data-integrator` charm)
         # Implements DA073 - Add Expose Flag to the Database Interface
         # https://docs.google.com/document/d/1Y7OZWwMdvF8eEMuVKrqEfuFV3JOjpqLHL7_GPqJpRHU
-        self._external_connectivity = databag.get("external-node-connectivity") == "true"
+        self.external_connectivity = databag.get("external-node-connectivity") == "true"
         if databag.get("extra-user-roles"):
             raise _UnsupportedExtraUserRole(
                 app_name=relation.app.name, endpoint_name=relation.name
@@ -125,13 +125,11 @@ class _RelationThatRequestedUser(_Relation):
 
         rw_endpoint = (
             exposed_read_write_endpoint
-            if self._external_connectivity
+            if self.external_connectivity
             else router_read_write_endpoint
         )
         ro_endpoint = (
-            exposed_read_only_endpoint
-            if self._external_connectivity
-            else router_read_only_endpoint
+            exposed_read_only_endpoint if self.external_connectivity else router_read_only_endpoint
         )
 
         self._set_databag(
@@ -199,13 +197,23 @@ class RelationEndpoint:
                 pass
         return shared_users
 
-    @property
-    def external_connectivity(self) -> bool:
-        """Whether the relation is exposed."""
-        relation_data = self._interface.fetch_relation_data(fields=["external-node-connectivity"])
-        return any(
-            [data.get("external-node-connectivity") == "true" for data in relation_data.values()]
-        )
+    def external_connectivity(self, event) -> bool:
+        """Whether any of the relations are marked as external."""
+        requested_users = []
+        for relation in self._interface.relations:
+            try:
+                requested_users.append(
+                    _RelationThatRequestedUser(
+                        relation=relation, interface=self._interface, event=event
+                    )
+                )
+            except (
+                _RelationBreaking,
+                remote_databag.IncompleteDatabag,
+                _UnsupportedExtraUserRole,
+            ):
+                pass
+        return any(relation.external_connectivity for relation in requested_users)
 
     def reconcile_users(
         self,

@@ -38,10 +38,9 @@ class RelationEndpoint:
             charm_
         )
 
-    @property
-    def external_connectivity(self) -> bool:
-        """Whether the relation is exposed"""
-        return self._database_provides.external_connectivity
+    def external_connectivity(self, event) -> bool:
+        """Whether any of the relations are marked as external."""
+        return self._database_provides.external_connectivity(event)
 
     def reconcile_users(
         self,

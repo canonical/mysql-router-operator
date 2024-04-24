@@ -109,10 +109,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def _exposed_read_only_endpoint(self) -> str:
         """The exposed read-only endpoint"""
 
-    @property
     @abc.abstractmethod
-    def is_exposed(self) -> typing.Optional[bool]:
-        """Whether router is exposed externally"""
+    def is_externally_accessible(self, event=None) -> typing.Optional[bool]:
+        """Whether router is externally accessible"""
 
     @property
     def _tls_certificate_saved(self) -> bool:
@@ -265,7 +264,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             if self._upgrade.unit_state == "outdated":
                 if self._upgrade.authorized:
                     self._upgrade.upgrade_unit(
-                        workload_=workload_, tls=self._tls_certificate_saved
+                        workload_=workload_,
+                        tls=self._tls_certificate_saved,
+                        exporter_config=self._cos_exporter_config(event),
                     )
                 else:
                     self.set_status(event=event)
