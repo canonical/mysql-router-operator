@@ -98,10 +98,12 @@ class Container(abc.ABC):
         mysql_router_command: str,
         mysql_shell_command: str,
         mysql_router_password_command: str,
+        unit_name: str,
     ) -> None:
         self._mysql_router_command = mysql_router_command
         self._mysql_shell_command = mysql_shell_command
         self._mysql_router_password_command = mysql_router_password_command
+        self._unit_name = unit_name
 
     @property
     @abc.abstractmethod

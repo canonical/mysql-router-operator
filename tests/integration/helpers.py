@@ -3,7 +3,7 @@
 
 import itertools
 import tempfile
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from juju.unit import Unit
 from pytest_operator.plugin import OpsTest
@@ -44,11 +44,12 @@ async def get_inserted_data_by_application(unit: Unit) -> str:
     return result.results.get("data")
 
 
-async def execute_queries_on_unit(
+async def execute_queries_against_unit(
     unit_address: str,
     username: str,
     password: str,
     queries: List[str],
+    port: int = 3306,
     commit: bool = False,
 ) -> List:
     """Execute given MySQL queries on a unit.
@@ -67,6 +68,7 @@ async def execute_queries_on_unit(
         "user": username,
         "password": password,
         "host": unit_address,
+        "port": port,
         "raise_on_warnings": False,
     }
 
@@ -222,3 +224,21 @@ async def stop_running_flush_mysqlrouter_cronjobs(ops_test: OpsTest, unit_name: 
         with attempt:
             if await get_process_pid(ops_test, unit_name, "logrotate"):
                 raise Exception("Failed to stop the flush_mysql_logs logrotate process")
+
+
+async def get_tls_certificate_issuer(
+    ops_test: OpsTest,
+    unit_name: str,
+    socket: Optional[str] = None,
+    host: Optional[str] = None,
+    port: Optional[int] = None,
+) -> str:
+    connect_args = f"-unix {socket}" if socket else f"-connect {host}:{port}"
+    get_tls_certificate_issuer_commands = [
+        "ssh",
+        unit_name,
+        f"openssl s_client -showcerts -starttls mysql {connect_args} < /dev/null | openssl x509 -text | grep Issuer",
+    ]
+    return_code, issuer, _ = await ops_test.juju(*get_tls_certificate_issuer_commands)
+    assert return_code == 0, f"failed to get TLS certificate issuer on {unit_name=}"
+    return issuer

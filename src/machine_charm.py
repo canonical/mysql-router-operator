@@ -7,16 +7,18 @@
 """MySQL Router machine charm"""
 
 import logging
+import socket
 import typing
 
 import ops
+import tenacity
 
 import abstract_charm
 import machine_logrotate
 import machine_upgrade
+import machine_workload
 import relations.database_providers_wrapper
 import snap
-import socket_workload
 import upgrade
 
 logger = logging.getLogger(__name__)
@@ -32,7 +34,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self._database_provides = relations.database_providers_wrapper.RelationEndpoint(
             self, self._database_provides
         )
-        self._authenticated_workload_type = socket_workload.AuthenticatedSocketWorkload
+        self._authenticated_workload_type = machine_workload.AuthenticatedMachineWorkload
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.remove, self._on_remove)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
@@ -47,7 +49,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
     @property
     def _container(self) -> snap.Snap:
-        return snap.Snap()
+        return snap.Snap(unit_name=self.unit.name)
 
     @property
     def _upgrade(self) -> typing.Optional[machine_upgrade.Upgrade]:
@@ -61,12 +63,72 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         return machine_logrotate.LogRotate(container_=self._container)
 
     @property
+    def host_address(self) -> str:
+        """The host address for the machine."""
+        return str(self.model.get_binding("juju-info").network.bind_address)
+
+    @property
     def _read_write_endpoint(self) -> str:
         return f'file://{self._container.path("/run/mysqlrouter/mysql.sock")}'
 
     @property
     def _read_only_endpoint(self) -> str:
         return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
+
+    @property
+    def _exposed_read_write_endpoint(self) -> str:
+        return f"{self.host_address}:{self._READ_WRITE_PORT}"
+
+    @property
+    def _exposed_read_only_endpoint(self) -> str:
+        return f"{self.host_address}:{self._READ_ONLY_PORT}"
+
+    def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
+        return self._database_provides.external_connectivity(event)
+
+    def _reconcile_node_port(self, *, event) -> None:
+        """Only applies to Kubernetes charm, so no-op."""
+        pass
+
+    def _reconcile_ports(self, *, event) -> None:
+        if self.is_externally_accessible(event=event):
+            ports = [self._READ_WRITE_PORT, self._READ_ONLY_PORT]
+        else:
+            ports = []
+        self.unit.set_ports(*ports)
+
+    def wait_until_mysql_router_ready(self, *, event) -> None:
+        logger.debug("Waiting until MySQL Router is ready")
+        self.unit.status = ops.MaintenanceStatus("MySQL Router starting")
+        try:
+            for attempt in tenacity.Retrying(
+                reraise=True,
+                stop=tenacity.stop_after_delay(30),
+                wait=tenacity.wait_fixed(5),
+            ):
+                with attempt:
+                    if self.is_externally_accessible(event=event):
+                        for port in (
+                            self._READ_WRITE_PORT,
+                            self._READ_ONLY_PORT,
+                            self._READ_WRITE_X_PORT,
+                            self._READ_ONLY_X_PORT,
+                        ):
+                            with socket.socket() as s:
+                                assert s.connect_ex(("localhost", port)) == 0
+                    else:
+                        for socket_file in (
+                            "/run/mysqlrouter/mysql.sock",
+                            "/run/mysqlrouter/mysqlro.sock",
+                        ):
+                            assert self._container.path(socket_file).exists()
+                            with socket.socket(socket.AF_UNIX) as s:
+                                assert s.connect_ex(str(self._container.path(socket_file))) == 0
+        except AssertionError:
+            logger.exception("Unable to connect to MySQL Router")
+            raise
+        else:
+            logger.debug("MySQL Router is ready")
 
     # =======================
     #  Handlers
@@ -111,7 +173,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         logger.debug("Forcing upgrade")
         event.log(f"Forcefully upgrading {self.unit.name}")
         self._upgrade.upgrade_unit(
-            workload_=self.get_workload(event=None), tls=self._tls_certificate_saved
+            event=event, workload_=self.get_workload(event=None), tls=self._tls_certificate_saved
         )
         self.reconcile()
         event.set_results({"result": f"Forcefully upgraded {self.unit.name}"})

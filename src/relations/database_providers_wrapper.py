@@ -38,12 +38,18 @@ class RelationEndpoint:
             charm_
         )
 
+    def external_connectivity(self, event) -> bool:
+        """Whether any of the relations are marked as external."""
+        return self._database_provides.external_connectivity(event)
+
     def reconcile_users(
         self,
         *,
         event,
         router_read_write_endpoint: str,
         router_read_only_endpoint: str,
+        exposed_read_write_endpoint: str,
+        exposed_read_only_endpoint: str,
         shell: mysql_shell.Shell,
     ) -> None:
         """Create requested users and delete inactive users.
@@ -56,6 +62,8 @@ class RelationEndpoint:
             event=event,
             router_read_write_endpoint=router_read_write_endpoint,
             router_read_only_endpoint=router_read_only_endpoint,
+            exposed_read_write_endpoint=exposed_read_write_endpoint,
+            exposed_read_only_endpoint=exposed_read_only_endpoint,
             shell=shell,
         )
         self._deprecated_shared_db.reconcile_users(event=event, shell=shell)

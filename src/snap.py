@@ -22,7 +22,7 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
-REVISION = "98"  # Keep in sync with `workload_version` file
+REVISION = "102"  # Keep in sync with `workload_version` file
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
 
@@ -154,11 +154,12 @@ class Snap(container.Container):
     _SERVICE_NAME = "mysqlrouter-service"
     _EXPORTER_SERVICE_NAME = "mysqlrouter-exporter"
 
-    def __init__(self) -> None:
+    def __init__(self, *, unit_name: str) -> None:
         super().__init__(
             mysql_router_command=f"{_SNAP_NAME}.mysqlrouter",
             mysql_shell_command=f"{_SNAP_NAME}.mysqlsh",
             mysql_router_password_command=f"{_SNAP_NAME}.mysqlrouter-passwd",
+            unit_name=unit_name,
         )
 
     @property
@@ -175,11 +176,19 @@ class Snap(container.Container):
 
     def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
         super().update_mysql_router_service(enabled=enabled, tls=tls)
+
         if tls:
-            raise NotImplementedError  # TODO VM TLS
+            _snap.set({"mysqlrouter.extra-options": f"--extra-config {self.tls_config_file}"})
+        else:
+            _snap.unset("mysqlrouter.extra-options")
+
+        router_is_running = _snap.services[self._SERVICE_NAME]["active"]
 
         if enabled:
-            _snap.start([self._SERVICE_NAME], enable=True)
+            if router_is_running:
+                _snap.restart([self._SERVICE_NAME])
+            else:
+                _snap.start([self._SERVICE_NAME], enable=True)
         else:
             _snap.stop([self._SERVICE_NAME], disable=True)
 
@@ -193,9 +202,6 @@ class Snap(container.Container):
         certificate_filename: str = None,
         certificate_authority_filename: str = None,
     ) -> None:
-        if tls:
-            raise NotImplementedError
-
         super().update_mysql_router_exporter_service(
             enabled=enabled,
             config=config,
@@ -211,14 +217,31 @@ class Snap(container.Container):
                     "mysqlrouter-exporter.user": config.username,
                     "mysqlrouter-exporter.password": config.password,
                     "mysqlrouter-exporter.url": config.url,
+                    "mysqlrouter-exporter.service-name": self._unit_name.replace("/", "-"),
                 }
             )
+            if tls:
+                _snap.set(
+                    {
+                        "mysqlrouter.tls-cacert-path": certificate_authority_filename,
+                        "mysqlrouter.tls-cert-path": certificate_filename,
+                        "mysqlrouter.tls-key-path": key_filename,
+                    }
+                )
+            else:
+                _snap.unset("mysqlrouter.tls-cacert-path")
+                _snap.unset("mysqlrouter.tls-cert-path")
+                _snap.unset("mysqlrouter.tls-key-path")
             _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
         else:
+            _snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)
             _snap.unset("mysqlrouter-exporter.user")
             _snap.unset("mysqlrouter-exporter.password")
             _snap.unset("mysqlrouter-exporter.url")
-            _snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)
+            _snap.unset("mysqlrouter-exporter.service-name")
+            _snap.unset("mysqlrouter.tls-cacert-path")
+            _snap.unset("mysqlrouter.tls-cert-path")
+            _snap.unset("mysqlrouter.tls-key-path")
 
     def upgrade(self, unit: ops.Unit) -> None:
         """Upgrade snap."""

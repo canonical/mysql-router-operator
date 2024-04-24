@@ -11,26 +11,38 @@ import typing
 
 import workload
 
+if typing.TYPE_CHECKING:
+    import relations.database_requires
+
 logger = logging.getLogger(__name__)
 
 
-class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload):
+class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
     """Workload with connection to MySQL cluster and with Unix sockets enabled"""
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _get_bootstrap_command(self, password: str) -> typing.List[str]:
-        command = super()._get_bootstrap_command(password)
-        command.extend(
-            [
-                "--conf-bind-address",
-                "127.0.0.1",
-                "--conf-use-sockets",
-                # For unix sockets, authentication fails on first connection if this option is not
-                # set. Workaround for https://bugs.mysql.com/bug.php?id=107291
-                "--conf-set-option",
-                "DEFAULT.server_ssl_mode=PREFERRED",
-            ]
-        )
+    def _get_bootstrap_command(
+        self, *, event, connection_info: "relations.database_requires.ConnectionInformation"
+    ) -> typing.List[str]:
+        command = super()._get_bootstrap_command(connection_info)
+        if self._charm.is_externally_accessible(event=event):
+            command.extend(
+                [
+                    "--conf-bind-address",
+                    "0.0.0.0",
+                ]
+            )
+        else:
+            command.extend(
+                [
+                    "--conf-use-sockets",
+                    # For unix sockets, authentication fails on first connection if this option is not
+                    # set. Workaround for https://bugs.mysql.com/bug.php?id=107291
+                    "--conf-set-option",
+                    "DEFAULT.server_ssl_mode=PREFERRED",
+                    "--conf-skip-tcp",
+                ]
+            )
         return command
 
     def _update_configured_socket_file_locations(self) -> None:
@@ -58,6 +70,7 @@ class AuthenticatedSocketWorkload(workload.AuthenticatedWorkload):
             self._container.router_config_file.write_text(output.getvalue())
         logger.debug("Updated configured socket file locations")
 
-    def _bootstrap_router(self, *, tls: bool) -> None:
-        super()._bootstrap_router(tls=tls)
-        self._update_configured_socket_file_locations()
+    def _bootstrap_router(self, *, event, tls: bool) -> None:
+        super()._bootstrap_router(event=event, tls=tls)
+        if not self._charm.is_externally_accessible(event=event):
+            self._update_configured_socket_file_locations()

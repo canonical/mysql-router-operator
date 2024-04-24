@@ -86,21 +86,21 @@ class COSRelation:
 
     def get_monitoring_password(self) -> str:
         """Gets the monitoring password from unit peer data, or generate and cache it."""
-        monitoring_password = self._secrets.get_secret(
+        monitoring_password = self._secrets.get_value(
             relations.secrets.UNIT_SCOPE, self._MONITORING_PASSWORD_KEY
         )
         if monitoring_password:
             return monitoring_password
 
         monitoring_password = utils.generate_password()
-        self._secrets.set_secret(
+        self._secrets.set_value(
             relations.secrets.UNIT_SCOPE, self._MONITORING_PASSWORD_KEY, monitoring_password
         )
         return monitoring_password
 
     def _reset_monitoring_password(self) -> None:
         """Reset the monitoring password from unit peer data."""
-        self._secrets.set_secret(relations.secrets.UNIT_SCOPE, self._MONITORING_PASSWORD_KEY, None)
+        self._secrets.set_value(relations.secrets.UNIT_SCOPE, self._MONITORING_PASSWORD_KEY, None)
 
     def is_relation_breaking(self, event) -> bool:
         """Whether relation will be broken after the current event is handled."""

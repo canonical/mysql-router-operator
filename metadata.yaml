@@ -38,7 +38,13 @@ requires:
   juju-info:
     interface: juju-info
     scope: container
+  certificates:
+    interface: tls-certificates
+    optional: true
+    limit: 1
 peers:
+  tls:
+    interface: tls
   cos:
     interface: cos
   upgrade-version-a:

@@ -9,7 +9,7 @@ import pytest
 from pytest_operator.plugin import OpsTest
 
 from .helpers import (
-    execute_queries_on_unit,
+    execute_queries_against_unit,
     get_inserted_data_by_application,
     get_server_config_credentials,
 )
@@ -118,7 +118,7 @@ async def test_database_relation(ops_test: OpsTest, mysql_router_charm_series: s
     select_inserted_data_sql = (
         f"SELECT data FROM `{TEST_DATABASE}`.{TEST_TABLE} WHERE data = '{inserted_data}'",
     )
-    selected_data = await execute_queries_on_unit(
+    selected_data = await execute_queries_against_unit(
         mysql_unit_address,
         server_config_credentials["username"],
         server_config_credentials["password"],
