@@ -320,7 +320,7 @@ class AuthenticatedWorkload(Workload):
         assert self._container.mysql_router_service_enabled is True
         self._container.update_mysql_router_service(enabled=True, tls=tls)
         logger.debug("Restarted MySQL Router")
-        self._charm.wait_until_mysql_router_ready(event)
+        self._charm.wait_until_mysql_router_ready(event=event)
         # wait_until_mysql_router_ready will set WaitingStatus—override it with current charm
         # status
         self._charm.set_status(event=None)
@@ -338,7 +338,7 @@ class AuthenticatedWorkload(Workload):
         self._container.update_mysql_router_service(enabled=True, tls=tls)
         self._logrotate.enable()
         logger.debug("Enabled MySQL Router service")
-        self._charm.wait_until_mysql_router_ready(event)
+        self._charm.wait_until_mysql_router_ready(event=event)
 
     def _enable_exporter(
         self, *, tls: bool, exporter_config: "relations.cos.ExporterConfig"

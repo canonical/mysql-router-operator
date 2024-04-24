@@ -263,7 +263,7 @@ class RelationEndpoint(ops.Object):
 
     def _on_tls_relation_created(self, event) -> None:
         """Request certificate when TLS relation created."""
-        self._relation.request_certificate_creation(event)
+        self._relation.request_certificate_creation(event=event)
 
     def _on_tls_relation_broken(self, _) -> None:
         """Delete TLS certificate."""
@@ -283,4 +283,4 @@ class RelationEndpoint(ops.Object):
             logger.warning("Unknown certificate expiring")
             return
 
-        self._relation.request_certificate_renewal(event)
+        self._relation.request_certificate_renewal(event=event)
