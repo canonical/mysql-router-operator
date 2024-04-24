@@ -111,10 +111,10 @@ class _Relation:
         logger.debug(f"Saved TLS certificate {event=}")
         self._charm.reconcile(event=None)
 
-    def _generate_csr(self, key: bytes) -> bytes:
+    def _generate_csr(self, *, event, key: bytes) -> bytes:
         """Generate certificate signing request (CSR)."""
         sans_ip = ["127.0.0.1"]  # needed for the HTTP server when related with COS
-        if self._charm.is_externally_accessible():
+        if self._charm.is_externally_accessible(event=event):
             sans_ip.append(self._charm.host_address)
 
         return tls_certificates.generate_csr(
@@ -124,23 +124,23 @@ class _Relation:
             sans_ip=sans_ip,
         )
 
-    def request_certificate_creation(self):
+    def request_certificate_creation(self, *, event):
         """Request new TLS certificate from related provider charm."""
         logger.debug("Requesting TLS certificate creation")
-        csr = self._generate_csr(self.key.encode("utf-8"))
+        csr = self._generate_csr(event=event, key=self.key.encode("utf-8"))
         self._interface.request_certificate_creation(certificate_signing_request=csr)
         self._secrets.set_value(
             relations.secrets.UNIT_SCOPE, _TLS_REQUESTED_CSR, csr.decode("utf-8")
         )
         logger.debug("Requested TLS certificate creation")
 
-    def request_certificate_renewal(self):
+    def request_certificate_renewal(self, *, event):
         """Request TLS certificate renewal from related provider charm."""
         logger.debug("Requesting TLS certificate renewal")
         old_csr = self._secrets.get_value(relations.secrets.UNIT_SCOPE, _TLS_ACTIVE_CSR).encode(
             "utf-8"
         )
-        new_csr = self._generate_csr(self.key.encode("utf-8"))
+        new_csr = self._generate_csr(event=event, key=self.key.encode("utf-8"))
         self._interface.request_certificate_renewal(
             old_certificate_signing_request=old_csr, new_certificate_signing_request=new_csr
         )
@@ -252,7 +252,7 @@ class RelationEndpoint(ops.Object):
             logger.debug("No TLS certificate relation active. Skipped certificate request")
         else:
             try:
-                self._relation.request_certificate_creation()
+                self._relation.request_certificate_creation(event=event)
             except Exception as e:
                 event.fail(f"Failed to request certificate: {e}")
                 logger.exception(
@@ -261,9 +261,9 @@ class RelationEndpoint(ops.Object):
                 raise
         logger.debug("Handled set TLS private key action")
 
-    def _on_tls_relation_created(self, _) -> None:
+    def _on_tls_relation_created(self, event) -> None:
         """Request certificate when TLS relation created."""
-        self._relation.request_certificate_creation()
+        self._relation.request_certificate_creation(event)
 
     def _on_tls_relation_broken(self, _) -> None:
         """Delete TLS certificate."""
@@ -283,4 +283,4 @@ class RelationEndpoint(ops.Object):
             logger.warning("Unknown certificate expiring")
             return
 
-        self._relation.request_certificate_renewal()
+        self._relation.request_certificate_renewal(event)

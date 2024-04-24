@@ -158,13 +158,14 @@ class Upgrade(upgrade.Upgrade):
     def upgrade_unit(
         self,
         *,
+        event,
         workload_: workload.Workload,
         tls: bool,
         exporter_config: "relations.cos.ExporterConfig",
     ) -> None:
         logger.debug(f"Upgrading {self.authorized=}")
         self.unit_state = "upgrading"
-        workload_.upgrade(unit=self._unit, tls=tls, exporter_config=exporter_config)
+        workload_.upgrade(event=event, unit=self._unit, tls=tls, exporter_config=exporter_config)
         self._unit_workload_container_version = snap.REVISION
         self._unit_workload_version = self._current_versions["workload"]
         logger.debug(

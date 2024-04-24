@@ -110,8 +110,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """The exposed read-only endpoint"""
 
     @abc.abstractmethod
-    def is_externally_accessible(self, event=None) -> typing.Optional[bool]:
-        """Whether endpoints should be externally accessible"""
+    def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
+        """Whether endpoints should be externally accessible.
+
+        Only defined in vm charm to return True/False. In k8s charm, returns None.
+        """
 
     @property
     def _tls_certificate_saved(self) -> bool:
@@ -208,7 +211,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             logger.debug(f"Set unit status to {self.unit.status}")
 
     @abc.abstractmethod
-    def wait_until_mysql_router_ready(self) -> None:
+    def wait_until_mysql_router_ready(self, *, event) -> None:
         """Wait until a connection to MySQL Router is possible.
 
         Retry every 5 seconds for up to 30 seconds.
@@ -268,6 +271,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             if self._upgrade.unit_state == "outdated":
                 if self._upgrade.authorized:
                     self._upgrade.upgrade_unit(
+                        event=event,
                         workload_=workload_,
                         tls=self._tls_certificate_saved,
                         exporter_config=self._cos_exporter_config(event),
@@ -310,6 +314,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     )
             if workload_.container_ready:
                 workload_.reconcile(
+                    event=event,
                     tls=self._tls_certificate_saved,
                     unit_name=self.unit.name,
                     exporter_config=self._cos_exporter_config(event),

@@ -83,7 +83,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     def _exposed_read_only_endpoint(self) -> str:
         return f"{self.host_address}:{self._READ_ONLY_PORT}"
 
-    def is_externally_accessible(self, event=None) -> typing.Optional[bool]:
+    def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
         return self._database_provides.external_connectivity(event)
 
     def _reconcile_node_port(self, *, event) -> None:
@@ -91,13 +91,13 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         pass
 
     def _reconcile_ports(self, *, event) -> None:
-        if self.is_externally_accessible(event):
+        if self.is_externally_accessible(event=event):
             ports = [self._READ_WRITE_PORT, self._READ_ONLY_PORT]
         else:
             ports = []
         self.unit.set_ports(*ports)
 
-    def wait_until_mysql_router_ready(self) -> None:
+    def wait_until_mysql_router_ready(self, *, event) -> None:
         logger.debug("Waiting until MySQL Router is ready")
         self.unit.status = ops.MaintenanceStatus("MySQL Router starting")
         try:
@@ -107,7 +107,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
                 wait=tenacity.wait_fixed(5),
             ):
                 with attempt:
-                    if self.is_externally_accessible():
+                    if self.is_externally_accessible(event=event):
                         for port in (
                             self._READ_WRITE_PORT,
                             self._READ_ONLY_PORT,
@@ -173,7 +173,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         logger.debug("Forcing upgrade")
         event.log(f"Forcefully upgrading {self.unit.name}")
         self._upgrade.upgrade_unit(
-            workload_=self.get_workload(event=None), tls=self._tls_certificate_saved
+            event=event, workload_=self.get_workload(event=None), tls=self._tls_certificate_saved
         )
         self.reconcile()
         event.set_results({"result": f"Forcefully upgraded {self.unit.name}"})
