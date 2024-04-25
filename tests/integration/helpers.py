@@ -2,14 +2,24 @@
 # See LICENSE file for licensing details.
 
 import itertools
+import logging
 import tempfile
 from typing import Dict, List, Optional
 
+import tenacity
 from juju.unit import Unit
 from pytest_operator.plugin import OpsTest
-from tenacity import Retrying, stop_after_attempt, wait_fixed
 
 from .connector import MySQLConnector
+from .juju_ import run_action
+
+logger = logging.getLogger(__name__)
+
+CONTINUOUS_WRITES_DATABASE_NAME = "continuous_writes_database"
+CONTINUOUS_WRITES_TABLE_NAME = "data"
+
+MYSQL_DEFAULT_APP_NAME = "mysql"
+APPLICATION_DEFAULT_APP_NAME = "mysql-test-app"
 
 
 async def get_server_config_credentials(unit: Unit) -> Dict:
@@ -23,10 +33,7 @@ async def get_server_config_credentials(unit: Unit) -> Dict:
     Returns:
         A dictionary with the server config username and password
     """
-    action = await unit.run_action(action_name="get-password", username="serverconfig")
-    result = await action.wait()
-
-    return result.results
+    return await run_action(unit, "get-password", username="serverconfig")
 
 
 async def get_inserted_data_by_application(unit: Unit) -> str:
@@ -38,10 +45,7 @@ async def get_inserted_data_by_application(unit: Unit) -> str:
     Returns:
         A string representing the inserted data
     """
-    action = await unit.run_action("get-inserted-data")
-    result = await action.wait()
-
-    return result.results.get("data")
+    return await run_action(unit, "get-inserted-data").get("data")
 
 
 async def execute_queries_against_unit(
@@ -220,7 +224,9 @@ async def stop_running_flush_mysqlrouter_cronjobs(ops_test: OpsTest, unit_name: 
     )
 
     # hold execution until process is stopped
-    for attempt in Retrying(reraise=True, stop=stop_after_attempt(45), wait=wait_fixed(2)):
+    for attempt in tenacity.Retrying(
+        reraise=True, stop=tenacity.stop_after_attempt(45), wait=tenacity.wait_fixed(2)
+    ):
         with attempt:
             if await get_process_pid(ops_test, unit_name, "logrotate"):
                 raise Exception("Failed to stop the flush_mysql_logs logrotate process")
@@ -242,3 +248,175 @@ async def get_tls_certificate_issuer(
     return_code, issuer, _ = await ops_test.juju(*get_tls_certificate_issuer_commands)
     assert return_code == 0, f"failed to get TLS certificate issuer on {unit_name=}"
     return issuer
+
+
+def get_application_name(ops_test: OpsTest, application_name_substring: str) -> str:
+    """Returns the name of the application with the provided application name.
+
+    This enables us to retrieve the name of the deployed application in an existing model.
+
+    Note: if multiple applications with the application name exist,
+    the first one found will be returned.
+    """
+    for application in ops_test.model.applications:
+        if application_name_substring == application:
+            return application
+
+    return ""
+
+
+@tenacity.retry(stop=tenacity.stop_after_attempt(30), wait=tenacity.wait_fixed(5), reraise=True)
+async def get_primary_unit(
+    ops_test: OpsTest,
+    unit: Unit,
+    app_name: str,
+) -> Unit:
+    """Helper to retrieve the primary unit.
+
+    Args:
+        ops_test: The ops test object passed into every test case
+        unit: A unit on which to run dba.get_cluster().status() on
+        app_name: The name of the test application
+        cluster_name: The name of the test cluster
+
+    Returns:
+        A juju unit that is a MySQL primary
+    """
+    units = ops_test.model.applications[app_name].units
+    results = await run_action(unit, "get-cluster-status")
+
+    primary_unit = None
+    for k, v in results["status"]["defaultreplicaset"]["topology"].items():
+        if v["memberrole"] == "primary":
+            unit_name = f"{app_name}/{k.split('-')[-1]}"
+            primary_unit = [unit for unit in units if unit.name == unit_name][0]
+            break
+
+    if not primary_unit:
+        raise ValueError("Unable to find primary unit")
+    return primary_unit
+
+
+async def get_primary_unit_wrapper(ops_test: OpsTest, app_name: str, unit_excluded=None) -> Unit:
+    """Wrapper for getting primary.
+
+    Args:
+        ops_test: The ops test object passed into every test case
+        app_name: The name of the application
+        unit_excluded: excluded unit to run command on
+    Returns:
+        The primary Unit object
+    """
+    logger.info("Retrieving primary unit")
+    units = ops_test.model.applications[app_name].units
+    if unit_excluded:
+        # if defined, exclude unit from available unit to run command on
+        # useful when the workload is stopped on unit
+        unit = ({unit for unit in units if unit.name != unit_excluded.name}).pop()
+    else:
+        unit = units[0]
+
+    primary_unit = await get_primary_unit(ops_test, unit, app_name)
+
+    return primary_unit
+
+
+async def get_max_written_value_in_database(
+    ops_test: OpsTest, unit: Unit, credentials: dict
+) -> int:
+    """Retrieve the max written value in the MySQL database.
+
+    Args:
+        ops_test: The ops test framework
+        unit: The MySQL unit on which to execute queries on
+        credentials: Database credentials to use
+    """
+    unit_address = await unit.get_public_address()
+
+    select_max_written_value_sql = [
+        f"SELECT MAX(number) FROM `{CONTINUOUS_WRITES_DATABASE_NAME}`.`{CONTINUOUS_WRITES_TABLE_NAME}`;"
+    ]
+
+    output = await execute_queries_against_unit(
+        unit_address,
+        credentials["username"],
+        credentials["password"],
+        select_max_written_value_sql,
+    )
+
+    return output[0]
+
+
+async def ensure_all_units_continuous_writes_incrementing(
+    ops_test: OpsTest, mysql_units: Optional[List[Unit]] = None
+) -> None:
+    """Ensure that continuous writes is incrementing on all units.
+
+    Also, ensure that all continuous writes up to the max written value is available
+    on all units (ensure that no committed data is lost).
+    """
+    logger.info("Ensure continuous writes are incrementing")
+
+    mysql_application_name = get_application_name(ops_test, MYSQL_DEFAULT_APP_NAME)
+
+    if not mysql_units:
+        mysql_units = ops_test.model.applications[mysql_application_name].units
+
+    primary = await get_primary_unit_wrapper(ops_test, mysql_application_name)
+
+    server_config_credentials = await get_server_config_credentials(mysql_units[0])
+
+    last_max_written_value = await get_max_written_value_in_database(
+        ops_test, primary, server_config_credentials
+    )
+
+    select_all_continuous_writes_sql = [
+        f"SELECT * FROM `{CONTINUOUS_WRITES_DATABASE_NAME}`.`{CONTINUOUS_WRITES_TABLE_NAME}`"
+    ]
+
+    async with ops_test.fast_forward():
+        for unit in mysql_units:
+            for attempt in tenacity.Retrying(
+                reraise=True, stop=tenacity.stop_after_delay(5 * 60), wait=tenacity.wait_fixed(10)
+            ):
+                with attempt:
+                    # ensure that all units are up to date (including the previous primary)
+                    unit_address = await unit.get_public_address()
+
+                    # ensure the max written value is incrementing (continuous writes is active)
+                    max_written_value = await get_max_written_value_in_database(
+                        ops_test, unit, server_config_credentials
+                    )
+                    assert (
+                        max_written_value > last_max_written_value
+                    ), "Continuous writes not incrementing"
+
+                    # ensure that the unit contains all values up to the max written value
+                    all_written_values = set(
+                        await execute_queries_against_unit(
+                            unit_address,
+                            server_config_credentials["username"],
+                            server_config_credentials["password"],
+                            select_all_continuous_writes_sql,
+                        )
+                    )
+                    numbers = {n for n in range(1, max_written_value)}
+                    assert (
+                        numbers <= all_written_values
+                    ), f"Missing numbers in database for unit {unit.name}"
+
+                    last_max_written_value = max_written_value
+
+
+async def get_workload_version(ops_test: OpsTest, unit_name: str) -> None:
+    """Get the workload version of the deployed router charm."""
+    return_code, output, _ = await ops_test.juju(
+        "ssh",
+        unit_name,
+        "sudo",
+        "cat",
+        f"/var/lib/juju/agents/unit-{unit_name.replace('/', '-')}/charm/workload_version",
+    )
+
+    assert return_code == 0
+    return output.strip()

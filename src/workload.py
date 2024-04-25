@@ -232,7 +232,7 @@ class AuthenticatedWorkload(Workload):
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(
-        self, connection_info: "relations.database_requires.ConnectionInformation"
+        self, *, event, connection_info: "relations.database_requires.ConnectionInformation"
     ) -> typing.List[str]:
         return [
             "--bootstrap",
