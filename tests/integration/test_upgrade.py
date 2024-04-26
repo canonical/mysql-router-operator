@@ -3,6 +3,11 @@
 
 import asyncio
 import logging
+import os
+import pathlib
+import shutil
+import typing
+import zipfile
 
 import pytest
 import tenacity
@@ -124,3 +129,66 @@ async def test_upgrade_from_edge(
     await ensure_all_units_continuous_writes_incrementing(ops_test)
 
     await ops_test.model.wait_for_idle([MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT)
+
+
+@pytest.mark.group(1)
+@pytest.mark.abort_on_fail
+async def test_fail_and_rollback(ops_test) -> None:
+    """Upgrade to an invalid version and test rollback."""
+    await ensure_all_units_continuous_writes_incrementing(ops_test)
+
+    mysql_router_application = ops_test.model.applications[MYSQL_ROUTER_APP_NAME]
+    mysql_router_unit = mysql_router_application.units[0]
+
+    fault_charm = f"/tmp/{charm.name}"
+    shutil.copy(charm, fault_charm)
+
+    logger.info("Injecting invalid workload_version")
+    await inject_invalid_charm_version(ops_test, fault_charm)
+
+    logger.info("Refreshing the charm with the invalid workload_version")
+    await mysql_router_application.refresh(path=fault_charm)
+
+    logger.info("Wait for upgrade to fail")
+    await ops_test.model.block_until(
+        lambda: mysql_router_unit.workload_status == "blocked", timeout=TIMEOUT
+    )
+
+    logger.info("Ensure continuous writes while in failure state")
+    await ensure_all_units_continuous_writes_incrementing(ops_test)
+
+    logger.info("Re-refresh the charm")
+    await mysql_router_application.refresh(path=charm)
+
+    for attempt in tenacity.Retrying(
+        reraise=True,
+        stop=tenacity.stop_after_delay(RETRY_TIMEOUT),
+        wait=tenacity.wait_fixed(10),
+    ):
+        with attempt:
+            charm_workload_version = await get_workload_version(ops_test, mysql_router_unit.name)
+
+            with open("workload_version", "r") as workload_version_file:
+                workload_version = workload_version_file.readline().strip()
+
+            assert charm_workload_version == f"{workload_version}+testupgrade"
+
+    await ops_test.model.wait_for_idle(
+        apps=[MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT
+    )
+
+    logger.info("Ensure continuous writes after rollback procedue")
+    await ensure_all_units_continuous_writes_incrementing(ops_test)
+
+    os.remove(fault_charm)
+
+
+async def inject_invalid_charm_version(
+    ops_test: OpsTest, charm_file: typing.Union[str, pathlib.Path]
+) -> None:
+    """Inject an invalid charm_version file into the mysqlrouter charm."""
+    with open("charm_version", "r") as charm_version_file:
+        old_charm_version = charm_version_file.readline().strip().split("+")[0]
+
+    with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
+        charm_zip.writestr("charm_version", f"{int(old_charm_version) - 1}+testupgrade\n")

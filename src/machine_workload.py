@@ -24,7 +24,7 @@ class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
     def _get_bootstrap_command(
         self, *, event, connection_info: "relations.database_requires.ConnectionInformation"
     ) -> typing.List[str]:
-        command = super()._get_bootstrap_command(connection_info)
+        command = super()._get_bootstrap_command(event=event, connection_info=connection_info)
         if self._charm.is_externally_accessible(event=event):
             command.extend(
                 [
