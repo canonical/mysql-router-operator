@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os
 import pathlib
+import re
 import shutil
 import typing
 import zipfile
@@ -144,14 +145,14 @@ async def test_fail_and_rollback(ops_test) -> None:
     shutil.copy(charm, fault_charm)
 
     logger.info("Injecting invalid workload_version")
-    await inject_invalid_charm_version(ops_test, fault_charm)
+    inject_invalid_workload_version(ops_test, fault_charm)
 
     logger.info("Refreshing the charm with the invalid workload_version")
     await mysql_router_application.refresh(path=fault_charm)
 
     logger.info("Wait for upgrade to fail")
     await ops_test.model.block_until(
-        lambda: mysql_router_unit.workload_status == "blocked", timeout=TIMEOUT
+        lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT
     )
 
     logger.info("Ensure continuous writes while in failure state")
@@ -183,12 +184,23 @@ async def test_fail_and_rollback(ops_test) -> None:
     os.remove(fault_charm)
 
 
-async def inject_invalid_charm_version(
+def inject_invalid_workload_version(
     ops_test: OpsTest, charm_file: typing.Union[str, pathlib.Path]
 ) -> None:
     """Inject an invalid charm_version file into the mysqlrouter charm."""
-    with open("charm_version", "r") as charm_version_file:
-        old_charm_version = charm_version_file.readline().strip().split("+")[0]
+    with open("workload_version", "r") as workload_version_file:
+        old_workload_version = workload_version_file.readline().strip().split("+")[0]
 
-    with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
-        charm_zip.writestr("charm_version", f"{int(old_charm_version) - 1}+testupgrade\n")
+        [major, minor, patch] = old_workload_version.split(".")
+
+    with zipfile.ZipFile("/tmp/mysql-router_ubuntu-22.04-amd64.charm", mode="a") as charm_zip:
+        charm_zip.writestr("workload_version", f"{int(major) - 1}.{minor}.{patch}+testupgrade\n")
+
+        for charm_zip_info in charm_zip.infolist():
+
+            if charm_zip_info.filename == "src/snap.py":
+                with open(charm_zip_info.filename, "r+") as snap_file:
+                    content = snap_file.read()
+                    new_snap_content = re.sub(r'REVISION = "\d+"', 'REVISION = "98"', str(content))
+
+        charm_zip.writestr("src/snap.py", new_snap_content)

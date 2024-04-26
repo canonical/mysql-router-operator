@@ -45,7 +45,7 @@ async def get_inserted_data_by_application(unit: Unit) -> str:
     Returns:
         A string representing the inserted data
     """
-    return await run_action(unit, "get-inserted-data").get("data")
+    return (await run_action(unit, "get-inserted-data")).get("data")
 
 
 async def execute_queries_against_unit(

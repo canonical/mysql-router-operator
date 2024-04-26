@@ -430,7 +430,7 @@ class AuthenticatedWorkload(Workload):
         if enabled:
             logger.debug("Disabling MySQL Router service before upgrade")
             self._disable_router()
-        super().upgrade(unit=unit, tls=tls, exporter_config=exporter_config)
+        super().upgrade(event=event, unit=unit, tls=tls, exporter_config=exporter_config)
         if enabled:
             logger.debug("Re-enabling MySQL Router service after upgrade")
             self._enable_router(event=event, tls=tls, unit_name=unit.name)
