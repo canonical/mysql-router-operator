@@ -22,6 +22,8 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+FORCE_ACTION_NAME = "force-upgrade"
+
 
 class Upgrade(upgrade.Upgrade):
     """In-place upgrades on machines"""
