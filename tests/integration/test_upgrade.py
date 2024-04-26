@@ -24,7 +24,7 @@ from .helpers import (
 logger = logging.getLogger(__name__)
 
 TIMEOUT = 20 * 60
-RETRY_TIMEOUT = 3 * 60
+RETRY_TIMEOUT = 5 * 60
 
 MYSQL_APP_NAME = MYSQL_DEFAULT_APP_NAME
 MYSQL_ROUTER_APP_NAME = "mysql-router"
@@ -199,4 +199,5 @@ def inject_invalid_workload_version(charm_file: typing.Union[str, pathlib.Path])
                 with open(charm_zip_info.filename, "r+") as snap_file:
                     content = snap_file.read()
                     new_snap_content = re.sub(r'REVISION = "\d+"', 'REVISION = "98"', str(content))
-                charm_zip.writestr("src/snap.py", new_snap_content)
+
+        charm_zip.writestr("src/snap.py", new_snap_content)
