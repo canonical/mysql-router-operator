@@ -197,7 +197,6 @@ def inject_invalid_workload_version(
         charm_zip.writestr("workload_version", f"{int(major) - 1}.{minor}.{patch}+testupgrade\n")
 
         for charm_zip_info in charm_zip.infolist():
-
             if charm_zip_info.filename == "src/snap.py":
                 with open(charm_zip_info.filename, "r+") as snap_file:
                     content = snap_file.read()
