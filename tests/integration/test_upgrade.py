@@ -52,7 +52,7 @@ def updated_workload_version_file():
 
 @pytest.mark.group(1)
 @pytest.mark.abort_on_fail
-async def test_deploy_latest(ops_test: OpsTest) -> None:
+async def test_deploy_latest(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
     """Simple test to ensure that mysql, mysqlrouter and application charms deploy."""
     logger.info("Deploying all applications")
     await asyncio.gather(
@@ -69,14 +69,14 @@ async def test_deploy_latest(ops_test: OpsTest) -> None:
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=1,
             channel="dpe/edge",
-            series="jammy",
+            series=mysql_router_charm_series,
         ),
         ops_test.model.deploy(
             TEST_APP_NAME,
             application_name=TEST_APP_NAME,
             num_units=1,
             channel="latest/edge",
-            series="jammy",
+            series=mysql_router_charm_series,
         ),
     )
 
@@ -145,7 +145,7 @@ async def test_fail_and_rollback(ops_test) -> None:
     shutil.copy(charm, fault_charm)
 
     logger.info("Injecting invalid workload_version")
-    inject_invalid_workload_version(ops_test, fault_charm)
+    inject_invalid_workload_version(fault_charm)
 
     logger.info("Refreshing the charm with the invalid workload_version")
     await mysql_router_application.refresh(path=fault_charm)
@@ -184,16 +184,14 @@ async def test_fail_and_rollback(ops_test) -> None:
     os.remove(fault_charm)
 
 
-def inject_invalid_workload_version(
-    ops_test: OpsTest, charm_file: typing.Union[str, pathlib.Path]
-) -> None:
+def inject_invalid_workload_version(charm_file: typing.Union[str, pathlib.Path]) -> None:
     """Inject an invalid charm_version file into the mysqlrouter charm."""
     with open("workload_version", "r") as workload_version_file:
         old_workload_version = workload_version_file.readline().strip().split("+")[0]
 
         [major, minor, patch] = old_workload_version.split(".")
 
-    with zipfile.ZipFile("/tmp/mysql-router_ubuntu-22.04-amd64.charm", mode="a") as charm_zip:
+    with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
         charm_zip.writestr("workload_version", f"{int(major) - 1}.{minor}.{patch}+testupgrade\n")
 
         for charm_zip_info in charm_zip.infolist():
@@ -201,5 +199,4 @@ def inject_invalid_workload_version(
                 with open(charm_zip_info.filename, "r+") as snap_file:
                     content = snap_file.read()
                     new_snap_content = re.sub(r'REVISION = "\d+"', 'REVISION = "98"', str(content))
-
-        charm_zip.writestr("src/snap.py", new_snap_content)
+                charm_zip.writestr("src/snap.py", new_snap_content)
