@@ -71,6 +71,8 @@ class Upgrade(upgrade.Upgrade):
 
     @property
     def app_status(self) -> typing.Optional[ops.StatusBase]:
+        if not self.in_progress:
+            return
         if not self.is_compatible:
             logger.info(
                 "Upgrade incompatible. If you accept potential *data loss* and *downtime*, you can continue by running `force-upgrade` action on each remaining unit"
