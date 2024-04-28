@@ -3,6 +3,7 @@
 
 """Relation to MySQL charm"""
 
+import json
 import logging
 import typing
 
@@ -87,6 +88,7 @@ class CompleteConnectionInformation(ConnectionInformation):
         self.port = endpoint.split(":")[1]
         self.username = databag["username"]
         self.password = databag["password"]
+        self.hostname_mapping = json.loads(databag["hostname-mapping"])
 
     @property
     def redacted(self):

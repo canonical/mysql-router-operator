@@ -109,6 +109,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def _exposed_read_only_endpoint(self) -> str:
         """The exposed read-only endpoint"""
 
+    @property
+    @abc.abstractmethod
+    def _hostname_mapping(self):
+        """Machine hostname mapping"""
+
     @abc.abstractmethod
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
         """Whether endpoints should be externally accessible.
@@ -326,6 +331,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     workload_, workload.AuthenticatedWorkload
                 ):
                     self._reconcile_ports(event=event)
+
+                    if connection_info := self._database_requires.get_connection_info(event=event):
+                        self._hostname_mapping.update_etc_hosts(connection_info)
 
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload
