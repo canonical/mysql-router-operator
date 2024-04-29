@@ -223,7 +223,7 @@ class Upgrade(abc.ABC):
         """
 
     @abc.abstractmethod
-    def upgrade_unit(self, *, workload_: workload.Workload, tls: bool) -> None:
+    def upgrade_unit(self, *, event, workload_: workload.Workload, tls: bool) -> None:
         """Upgrade this unit.
 
         Only applies to machine charm
