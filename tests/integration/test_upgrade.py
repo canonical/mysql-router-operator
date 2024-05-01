@@ -87,12 +87,13 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
     old_workload_version = await get_workload_version(ops_test, mysql_router_unit.name)
 
     logger.info("Build charm locally")
+    global charm
     charm = await ops_test.build_charm(".")
     temporary_charm = "./upgrade.charm"
     shutil.copy(charm, temporary_charm)
 
     logger.info("Update workload version and snap revision in the charm")
-    update_workload_version_in_charm_file(temporary_charm)
+    create_valid_upgrade_charm(temporary_charm)
 
     logger.info("Refresh the charm")
     await mysql_router_application.refresh(path=temporary_charm)
@@ -104,7 +105,7 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
 
     # wait until all units are active indicating that one of the units has been upgraded
     await ops_test.model.wait_for_idle(
-        [MYSQL_ROUTER_APP_NAME], status="active", idle_period=60, timeout=TIMEOUT
+        [MYSQL_ROUTER_APP_NAME], status="active", idle_period=30, timeout=TIMEOUT
     )
 
     mysql_router_leader_unit = await get_leader_unit(ops_test, MYSQL_ROUTER_APP_NAME)
@@ -135,19 +136,22 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
 # @pytest.mark.group(1)
 # @pytest.mark.abort_on_fail
 # async def test_fail_and_rollback(ops_test) -> None:
-#     """Upgrade to an invalid version and test rollback."""
+#     """Upgrade to an invalid version and test rollback.
+
+#     Relies on the charm built in the previous test (test_upgrade_from_edge).
+#     """
 #     await ensure_all_units_continuous_writes_incrementing(ops_test)
 
 #     mysql_router_application = ops_test.model.applications[MYSQL_ROUTER_APP_NAME]
 #     mysql_router_unit = mysql_router_application.units[0]
 
-#     fault_charm = f"/tmp/{charm.name}"
+#     fault_charm = f"./faulty.charm"
 #     shutil.copy(charm, fault_charm)
 
-#     logger.info("Injecting invalid workload_version")
-#     inject_invalid_workload_version(fault_charm)
+#     logger.info("Creating invalid upgrade charm")
+#     create_invalid_upgrade_charm(fault_charm)
 
-#     logger.info("Refreshing the charm with the invalid workload_version")
+#     logger.info("Refreshing mysql router with an invalid charm")
 #     await mysql_router_application.refresh(path=fault_charm)
 
 #     logger.info("Wait for upgrade to fail")
@@ -184,8 +188,11 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
 #     os.remove(fault_charm)
 
 
-def update_workload_version_in_charm_file(charm_file: typing.Union[str, pathlib.Path]) -> None:
-    """Update the workload_version file in a mysqlrouter charm file."""
+def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> None:
+    """Create a valid mysql router charm for upgrade.
+
+    Upgrades require a new snap revision to avoid no-oping.
+    """
     workload_version_file = pathlib.Path("workload_version")
     workload_version = workload_version_file.read_text().strip()
 
@@ -200,8 +207,8 @@ def update_workload_version_in_charm_file(charm_file: typing.Union[str, pathlib.
         charm_zip.writestr("src/snap.py", new_snap_content)
 
 
-# def inject_invalid_workload_version(charm_file: typing.Union[str, pathlib.Path]) -> None:
-#     """Inject an invalid workload_version file into the mysqlrouter charm."""
+# def create_invalid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> None:
+#     """Create an invalid mysql router charm for upgrade."""
 #     with open("workload_version", "r") as workload_version_file:
 #         old_workload_version = workload_version_file.readline().strip().split("+")[0]
 
@@ -209,4 +216,4 @@ def update_workload_version_in_charm_file(charm_file: typing.Union[str, pathlib.
 
 #     with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
 #         # an invalid charm version because the major workload_version is one less than the current workload_version
-#         charm_zip.writestr("workload_version", f"{int(major) - 1}.{minor}.{patch}+testupgrade\n")
+#         charm_zip.writestr("workload_version", f"{int(major) - 1}.{minor}.{patch}+testrollback\n")
