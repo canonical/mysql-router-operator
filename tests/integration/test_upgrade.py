@@ -11,10 +11,8 @@ import typing
 import zipfile
 
 import pytest
-import tenacity
 from pytest_operator.plugin import OpsTest
 
-from .juju_ import run_action
 from .helpers import (
     APPLICATION_DEFAULT_APP_NAME,
     MYSQL_DEFAULT_APP_NAME,
@@ -22,6 +20,7 @@ from .helpers import (
     get_leader_unit,
     get_workload_version,
 )
+from .juju_ import run_action
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +88,7 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
 
     logger.info("Build charm locally")
     charm = await ops_test.build_charm(".")
-    temporary_charm = f"./upgrade.charm"
+    temporary_charm = "./upgrade.charm"
     shutil.copy(charm, temporary_charm)
 
     logger.info("Update workload version and snap revision in the charm")
@@ -99,7 +98,9 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
     await mysql_router_application.refresh(path=temporary_charm)
 
     logger.info("Wait for the first unit to be refreshed and the app to move to blocked status")
-    await ops_test.model.block_until(lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT)
+    await ops_test.model.block_until(
+        lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT
+    )
 
     mysql_router_leader_unit = await get_leader_unit(ops_test, MYSQL_ROUTER_APP_NAME)
 
@@ -107,7 +108,9 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
     await run_action(mysql_router_leader_unit, "resume-upgrade")
 
     logger.info("Waiting for upgrade to complete on all units")
-    await ops_test.model.block_until(lambda: mysql_router_application.status == "active", timeout=UPGRADE_TIMEOUT)
+    await ops_test.model.block_until(
+        lambda: mysql_router_application.status == "active", timeout=UPGRADE_TIMEOUT
+    )
 
     workload_version_file = pathlib.Path("workload_version")
     repo_workload_version = workload_version_file.read_text().strip()
