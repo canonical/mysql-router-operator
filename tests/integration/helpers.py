@@ -7,6 +7,7 @@ import tempfile
 from typing import Dict, List, Optional
 
 import tenacity
+from juju.model import Model
 from juju.unit import Unit
 from pytest_operator.plugin import OpsTest
 
@@ -36,7 +37,7 @@ async def get_server_config_credentials(unit: Unit) -> Dict:
     return await run_action(unit, "get-password", username="serverconfig")
 
 
-async def get_inserted_data_by_application(unit: Unit) -> str:
+async def get_inserted_data_by_application(unit: Unit) -> Optional[str]:
     """Helper to run an action to retrieve inserted data by the application.
 
     Args:
@@ -420,3 +421,24 @@ async def get_workload_version(ops_test: OpsTest, unit_name: str) -> None:
 
     assert return_code == 0
     return output.strip()
+
+
+async def get_leader_unit(
+    ops_test: Optional[OpsTest], app_name: str, model: Optional[Model] = None
+) -> Optional[Unit]:
+    """Get the leader unit of a given application.
+
+    Args:
+        ops_test: The ops test framework instance
+        app_name: The name of the application
+        model: The model to use (overrides ops_test.model)
+    """
+    leader_unit = None
+    if not model:
+        model = ops_test.model
+    for unit in model.applications[app_name].units:
+        if await unit.is_leader_from_status():
+            leader_unit = unit
+            break
+
+    return leader_unit

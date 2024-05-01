@@ -63,7 +63,7 @@ def juju_has_secrets(mocker: MockerFixture, request):
         return True
 
 
-@pytest.fixture()
+@pytest.fixture
 async def continuous_writes(ops_test: OpsTest):
     """Starts continuous writes to the MySQL cluster for a test and clear the writes at the end."""
     application_name = get_application_name(ops_test, APPLICATION_DEFAULT_APP_NAME)
