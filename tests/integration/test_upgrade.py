@@ -7,6 +7,7 @@ import os
 import pathlib
 import re
 import shutil
+import time
 import typing
 import zipfile
 
@@ -101,6 +102,8 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
     await ops_test.model.block_until(
         lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT
     )
+
+    time.sleep(30)
 
     mysql_router_leader_unit = await get_leader_unit(ops_test, MYSQL_ROUTER_APP_NAME)
 
