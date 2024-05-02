@@ -1,37 +1,95 @@
-# Enable TLS for MySQL Router
+> This is part of the [Charmed MySQLRouter Tutorial](https://charmhub.io/mysql-router/docs/t-overview?channel=dpe/edge). Please refer to this page for more information and the overview of the content
 
-This is part of the [MySQL Router Tutorial](/t/12332). Please refer to this page for more information and the overview of the content.
+# Enable encryption with TLS
 
-## Transport Layer Security (TLS)
+[Transport Layer Security (TLS)](https://en.wikipedia.org/wiki/Transport_Layer_Security) is a protocol used to encrypt data exchanged between two applications. Essentially, it secures data transmitted over a network.
 
-[TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security) is used to encrypt data exchanged between two applications; it secures data transmitted over the network. Typically, enabling TLS within a highly available database, and between a highly available database and client/server applications, requires domain-specific knowledge and a high level of expertise. Fortunately, the domain-specific knowledge has been encoded into MySQL Router and Charmed MySQL. This means (re-)configuring TLS is readily available and requires minimal effort on your end.
+Typically, enabling TLS internally within a highly available database or between a highly available database and client/server applications requires a high level of expertise. This has all been encoded into Charmed MySQLRouter so that configuring TLS requires minimal effort on your end.
 
-Again, relations come in handy here as TLS is enabled via relations; i.e. by relating operators to the [TLS Certificates Charm](https://charmhub.io/tls-certificates-operator). The TLS Certificates Charm centralises TLS certificate management in a consistent manner and handles providing, requesting, and renewing TLS certificates.
+TLS is enabled by integrating Charmed MySQLRouter with the [Self Signed Certificates Charm](https://charmhub.io/self-signed-certificates). This charm centralises TLS certificate management consistently and handles operations like providing, requesting, and renewing TLS certificates.
 
-### Configure TLS
+In this section, you will learn how to enable security in your MySQLRouter deployment using TLS encryption.
 
-Before enabling TLS on Charmed MySQL we must first deploy the `tls-certificates-operator` charm:
-```shell
-juju deploy tls-certificates-operator --config generate-self-signed-certificates="true" --config ca-common-name="Tutorial CA" --channel "legacy/stable"
+[note type="caution"]
+**[Self-signed certificates](https://en.wikipedia.org/wiki/Self-signed_certificate) are not recommended for a production environment.**
+
+Check [this guide](https://discourse.charmhub.io/t/security-with-x-509-certificates/11664) for an overview of the TLS certificates charms available.
+[/note]
+
+---
+
+## Enable TLS
+
+Before enabling TLS on Charmed MySQLRouter, we must first deploy the `self-signed-certificates` charm:
+
+```
+juju deploy self-signed-certificates --config ca-common-name="Tutorial CA"
 ```
 
-Wait until the `tls-certificates-operator` is up and active, use `juju status --watch 1s` to monitor the progress:
-```shell
-TODO
+Wait until the `self-signed-certificates` is up and active, then use `juju status –watch 1s` to monitor the progress:
+
 ```
-*Note: this tutorial uses [self-signed certificates](https://en.wikipedia.org/wiki/Self-signed_certificate); self-signed certificates should not be used in a production cluster.*
+Model 	Controller  Cloud/Region     	Version  SLA      	Timestamp
+database  lxd     	localhost/localhost  3.1.8	unsupported  18:47:51Z
 
-### Add external TLS certificate
+App                   	Version      	Status  Scale  Charm                 	Channel 	Rev  Exposed  Message
+mysql                 	8.0.34-0ubun...  active  	1  mysql                 	8.0/stable  196  no  	 
+mysql-router          	8.0.36-0ubun...  active  	1  mysql-router                        	103  no  	 
+mysql-test-app        	0.0.2        	active  	1  mysql-test-app        	stable   	36  no  	 
+self-signed-certificates               	active  	1  self-signed-certificates  stable   	72  no  	 
 
-There is no need in TLS between the client application "data-integrator" and MySQL Router as the local unix socket connection is used. However to enable TLS between MySQL server and MySQL Router, relate the those two applications:
-```shell
-juju integrate mysql tls-certificates-operator
+Unit                     	Workload  Agent  Machine  Public address  Ports       	Message
+mysql-test-app/0*        	active	idle   1    	10.205.193.227             	 
+  mysql-router/0*        	active	idle        	10.205.193.227             	 
+mysql/0*                 	active	idle   0    	10.205.193.171  3306,33060/tcp  Primary
+self-signed-certificates/0*  active	idle   2    	10.205.193.175             	 
+
+Machine  State	Address     	Inst id    	Base      	AZ  Message
+0    	started  10.205.193.171  juju-3c2f36-0  ubuntu@22.04  	Running
+1    	started  10.205.193.227  juju-3c2f36-1  ubuntu@22.04  	Running
+2    	started  10.205.193.175  juju-3c2f36-2  ubuntu@22.04  	Running
 ```
-Congratulations! Your connection between MySQL Router and MySQL server is now using TLS certificate generated by the external application `tls-certificates-operator`.
 
-### Remove external TLS certificate
+To enable TLS on Charmed MySQLRouter, integrate the two applications:
 
-To remove the external TLS and return to the locally generate one, unrelate applications:
-```shell
-juju remove-relation mysql tls-certificates-operator
 ```
+juju integrate mysql-router self-signed-certificates
+```
+
+### Check the TLS certificate in use:
+
+Use `openssl` to connect to MySQLRouter in the juju machine, and check the TLS certificate in use:
+
+```
+ubuntu@localhost:~$ juju ssh mysql-router/0 "openssl s_client -showcerts -starttls mysql -unix /var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock < /dev/null  | openssl x509 -text | grep Issuer"
+...
+    	Issuer: C = US, CN = Tutorial CA
+...
+```
+
+Congratulations! MySQLRouter is now using a TLS certificate generated by the external application `self-signed-certificates`.
+
+## Disable TLS
+
+To remove the external TLS and return to the locally generated one, unrelate the applications:
+
+```
+juju remove-relation mysql-router self-signed-certificatese
+```
+
+### Check the TLS certificate in use:
+
+```
+ubuntu@localhost:~$ juju ssh mysql-router/0 "openssl s_client -showcerts -starttls mysql -unix /var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock < /dev/null  | openssl x509 -text | grep Issuer"
+```
+
+The output should be similar to:
+
+```
+...
+    	Issuer: CN = MySQL_Router_Auto_Generated_CA_Certificate
+...
+
+```
+
+The Charmed MySQLRouter application reverted to the placeholder certificate that was created locally during the MySQLRouter installation.
