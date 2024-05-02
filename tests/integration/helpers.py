@@ -3,6 +3,7 @@
 
 import itertools
 import logging
+import subprocess
 import tempfile
 from typing import Dict, List, Optional
 
@@ -442,3 +443,8 @@ async def get_leader_unit(
             break
 
     return leader_unit
+
+
+def get_juju_status() -> str:
+    """Return the juju status output."""
+    return subprocess.check_output(["juju", "status"]).decode("utf-8")
