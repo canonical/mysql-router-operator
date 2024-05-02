@@ -445,6 +445,10 @@ async def get_leader_unit(
     return leader_unit
 
 
-def get_juju_status() -> str:
-    """Return the juju status output."""
-    return subprocess.check_output(["juju", "status"]).decode("utf-8")
+def get_juju_status(model_name: str) -> str:
+    """Return the juju status output.
+
+    Args:
+        model_name: The model for which to retrieve juju status for
+    """
+    return subprocess.check_output(["juju", "status", "--model", model_name]).decode("utf-8")

@@ -116,7 +116,9 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
         wait=tenacity.wait_fixed(10),
     ):
         with attempt:
-            assert "+testupgrade" in get_juju_status(), "None of the units are upgraded"
+            assert "+testupgrade" in get_juju_status(
+                ops_test.model.name
+            ), "None of the units are upgraded"
 
     mysql_router_leader_unit = await get_leader_unit(ops_test, MYSQL_ROUTER_APP_NAME)
 
