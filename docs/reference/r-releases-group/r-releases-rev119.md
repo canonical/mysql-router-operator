@@ -2,7 +2,11 @@
 # Revision 118/119
 <sub>October 6, 2023</sub>
 
-Dear community, this is to inform you that new MySQL Router is published in `dpe/candidate` [charmhub](https://charmhub.io/mysql-router?channel=dpe/beta) channel for Kubernetes.
+Dear community, this is to inform you that new MySQL Router is published in `dpe/candidate` [charmhub](https://charmhub.io/mysql-router?channel=dpe/beta) channel for VMs:
+
+|   |AMD64|
+|---:|:---:|
+| Revisions: | 119 (`jammy`) / 118 (`focal`) | 
 
 ## The features you can start using today:
 
