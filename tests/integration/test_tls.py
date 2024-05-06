@@ -9,13 +9,17 @@ import tenacity
 from pytest_operator.plugin import OpsTest
 
 from . import juju_
-from .helpers import get_tls_certificate_issuer
+from .helpers import (
+    APPLICATION_DEFAULT_APP_NAME,
+    MYSQL_DEFAULT_APP_NAME,
+    get_tls_certificate_issuer,
+)
 
 logger = logging.getLogger(__name__)
 
-MYSQL_APP_NAME = "mysql"
+MYSQL_APP_NAME = MYSQL_DEFAULT_APP_NAME
 MYSQL_ROUTER_APP_NAME = "mysqlrouter"
-TEST_APP_NAME = "mysql-test-app"
+TEST_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 SLOW_TIMEOUT = 15 * 60
 RETRY_TIMEOUT = 60
 

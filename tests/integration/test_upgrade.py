@@ -37,7 +37,7 @@ TEST_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 
 @pytest.mark.group(1)
 @pytest.mark.abort_on_fail
-async def test_deploy_latest(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
+async def test_deploy_edge(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
     """Simple test to ensure that mysql, mysqlrouter and application charms deploy."""
     logger.info("Deploying all applications")
     await asyncio.gather(
@@ -73,8 +73,6 @@ async def test_deploy_latest(ops_test: OpsTest, mysql_router_charm_series: str) 
     await ops_test.model.relate(f"{TEST_APP_NAME}:database", f"{MYSQL_ROUTER_APP_NAME}:database")
 
     logger.info("Waiting for applications to become active")
-    # We can safely wait only for test application to be ready, given that it will
-    # only become active once all the other applications are ready.
     await ops_test.model.wait_for_idle(
         [MYSQL_APP_NAME, MYSQL_ROUTER_APP_NAME, TEST_APP_NAME], status="active", timeout=TIMEOUT
     )
@@ -135,19 +133,27 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
     workload_version_file = pathlib.Path("workload_version")
     repo_workload_version = workload_version_file.read_text().strip()
 
-    for unit in mysql_router_application.units:
-        workload_version = await get_workload_version(ops_test, unit.name)
-        assert workload_version == f"{repo_workload_version}+testupgrade"
-        assert old_workload_version != workload_version
+    for attempt in tenacity.Retrying(
+        reraise=True,
+        stop=tenacity.stop_after_delay(UPGRADE_TIMEOUT),
+        wait=tenacity.wait_fixed(10),
+    ):
+        with attempt:
+            for unit in mysql_router_application.units:
+                workload_version = await get_workload_version(ops_test, unit.name)
+                assert workload_version == f"{repo_workload_version}+testupgrade"
+                assert old_workload_version != workload_version
 
     await ensure_all_units_continuous_writes_incrementing(ops_test)
 
-    await ops_test.model.wait_for_idle([MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT)
+    await ops_test.model.wait_for_idle(
+        [MYSQL_ROUTER_APP_NAME], idle_period=30, status="active", timeout=TIMEOUT
+    )
 
 
 @pytest.mark.group(1)
 @pytest.mark.abort_on_fail
-async def test_fail_and_rollback(ops_test) -> None:
+async def test_fail_and_rollback(ops_test: OpsTest, continuous_writes) -> None:
     """Upgrade to an invalid version and test rollback.
 
     Relies on the charm built in the previous test (test_upgrade_from_edge).
@@ -158,7 +164,6 @@ async def test_fail_and_rollback(ops_test) -> None:
     await ensure_all_units_continuous_writes_incrementing(ops_test)
 
     mysql_router_application = ops_test.model.applications[MYSQL_ROUTER_APP_NAME]
-    mysql_router_unit = mysql_router_application.units[0]
 
     fault_charm = "./faulty.charm"
     shutil.copy(charm, fault_charm)
@@ -197,8 +202,9 @@ async def test_fail_and_rollback(ops_test) -> None:
         wait=tenacity.wait_fixed(10),
     ):
         with attempt:
-            charm_workload_version = await get_workload_version(ops_test, mysql_router_unit.name)
-            assert charm_workload_version == f"{repo_workload_version}+testupgrade"
+            for unit in mysql_router_application.units:
+                charm_workload_version = await get_workload_version(ops_test, unit.name)
+                assert charm_workload_version == f"{repo_workload_version}+testupgrade"
 
     await ops_test.model.wait_for_idle(
         apps=[MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT
@@ -232,10 +238,9 @@ def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> N
 
 def create_invalid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> None:
     """Create an invalid mysql router charm for upgrade."""
-    with open("workload_version", "r") as workload_version_file:
-        old_workload_version = workload_version_file.readline().strip().split("+")[0]
-
-        [major, minor, patch] = old_workload_version.split(".")
+    workload_version_file = pathlib.Path("workload_version")
+    old_workload_version = workload_version_file.read_text().strip()
+    [major, minor, patch] = old_workload_version.split(".")
 
     with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
         # an invalid charm version because the major workload_version is one less than the current workload_version
