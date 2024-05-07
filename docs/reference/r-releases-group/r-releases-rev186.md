@@ -1,5 +1,5 @@
 >Reference > Release Notes > [All revisions](/t/12318) > Revision 185/186
-# Revision 185/186 (`dpe/beta` only)
+# Revision 185/186 (`dpe/candidate` only)
 
 <sub>TODO: DD, MM, YYYY</sub>
 
