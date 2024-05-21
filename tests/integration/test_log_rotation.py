@@ -11,6 +11,7 @@ from pytest_operator.plugin import OpsTest
 from .helpers import (
     APPLICATION_DEFAULT_APP_NAME,
     MYSQL_DEFAULT_APP_NAME,
+    MYSQL_ROUTER_DEFAULT_APP_NAME,
     delete_file_or_directory_in_unit,
     ls_la_in_unit,
     read_contents_from_file_in_unit,
@@ -21,7 +22,7 @@ from .helpers import (
 logger = logging.getLogger(__name__)
 
 MYSQL_APP_NAME = MYSQL_DEFAULT_APP_NAME
-MYSQL_ROUTER_APP_NAME = "mysqlrouter"
+MYSQL_ROUTER_APP_NAME = MYSQL_ROUTER_DEFAULT_APP_NAME
 APPLICATION_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 CHARMED_MYSQL_COMMON_DIRECTORY = "/var/snap/charmed-mysql/common"
 SLOW_TIMEOUT = 15 * 60

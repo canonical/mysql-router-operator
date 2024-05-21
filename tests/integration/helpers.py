@@ -21,6 +21,7 @@ CONTINUOUS_WRITES_DATABASE_NAME = "continuous_writes_database"
 CONTINUOUS_WRITES_TABLE_NAME = "data"
 
 MYSQL_DEFAULT_APP_NAME = "mysql"
+MYSQL_ROUTER_DEFAULT_APP_NAME = "mysql-router"
 APPLICATION_DEFAULT_APP_NAME = "mysql-test-app"
 
 

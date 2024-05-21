@@ -14,13 +14,14 @@ from . import juju_
 from .helpers import (
     APPLICATION_DEFAULT_APP_NAME,
     MYSQL_DEFAULT_APP_NAME,
+    MYSQL_ROUTER_DEFAULT_APP_NAME,
     get_tls_certificate_issuer,
 )
 
 logger = logging.getLogger(__name__)
 
 MYSQL_APP_NAME = MYSQL_DEFAULT_APP_NAME
-MYSQL_ROUTER_APP_NAME = "mysql-router"
+MYSQL_ROUTER_APP_NAME = MYSQL_ROUTER_DEFAULT_APP_NAME
 APPLICATION_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 GRAFANA_AGENT_APP_NAME = "grafana-agent"
 SLOW_TIMEOUT = 25 * 60
