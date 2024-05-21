@@ -188,21 +188,15 @@ async def test_fail_and_rollback(ops_test: OpsTest, continuous_writes) -> None:
 
     logger.info("Wait for the charm to be rolled back")
     await ops_test.model.wait_for_idle(
-        apps=[MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT
+        apps=[MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT, idle_period=30
     )
 
     workload_version_file = pathlib.Path("workload_version")
     repo_workload_version = workload_version_file.read_text().strip()
 
-    for attempt in tenacity.Retrying(
-        reraise=True,
-        stop=tenacity.stop_after_delay(UPGRADE_TIMEOUT),
-        wait=tenacity.wait_fixed(10),
-    ):
-        with attempt:
-            for unit in mysql_router_application.units:
-                charm_workload_version = await get_workload_version(ops_test, unit.name)
-                assert charm_workload_version == f"{repo_workload_version}+testupgrade"
+    for unit in mysql_router_application.units:
+        charm_workload_version = await get_workload_version(ops_test, unit.name)
+        assert charm_workload_version == f"{repo_workload_version}+testupgrade"
 
     await ops_test.model.wait_for_idle(
         apps=[MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT
