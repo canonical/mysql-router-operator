@@ -1,7 +1,7 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Workload container (snap or ROCK/OCI)"""
+"""Workload container (snap or rock/OCI)"""
 
 import abc
 import pathlib
@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 
 
 class Path(pathlib.PurePosixPath, abc.ABC):
-    """Workload container (snap or ROCK) filesystem path"""
+    """Workload container (snap or rock) filesystem path"""
 
     @property
     @abc.abstractmethod
@@ -62,7 +62,7 @@ class CalledProcessError(subprocess.CalledProcessError):
 
 
 class Container(abc.ABC):
-    """Workload container (snap or ROCK)"""
+    """Workload container (snap or rock)"""
 
     @property
     def router_config_directory(self) -> Path:

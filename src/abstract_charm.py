@@ -77,7 +77,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     @property
     @abc.abstractmethod
     def _container(self) -> container.Container:
-        """Workload container (snap or ROCK)"""
+        """Workload container (snap or rock)"""
 
     @property
     @abc.abstractmethod
