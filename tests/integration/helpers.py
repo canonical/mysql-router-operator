@@ -411,7 +411,7 @@ async def ensure_all_units_continuous_writes_incrementing(
                     last_max_written_value = max_written_value
 
 
-async def get_workload_version(ops_test: OpsTest, unit_name: str) -> None:
+async def get_workload_version(ops_test: OpsTest, unit_name: str) -> str:
     """Get the workload version of the deployed router charm."""
     return_code, output, _ = await ops_test.juju(
         "ssh",
@@ -452,4 +452,4 @@ def get_juju_status(model_name: str) -> str:
     Args:
         model_name: The model for which to retrieve juju status for
     """
-    return subprocess.check_output(["juju", "status", "--model", model_name]).decode("utf-8")
+    return subprocess.check_output(["juju", "status", "--model", model_name], encoding="utf-8")
