@@ -14,6 +14,7 @@ import ops
 import tenacity
 
 import abstract_charm
+import machine_hostname_mapping
 import machine_logrotate
 import machine_upgrade
 import machine_workload
@@ -84,6 +85,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def _exposed_read_only_endpoint(self) -> str:
         return f"{self.host_address}:{self._READ_ONLY_PORT}"
+
+    @property
+    def _hostname_mapping(self) -> machine_hostname_mapping.MachineHostnameMapping:
+        return machine_hostname_mapping.MachineHostnameMapping()
 
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
         return self._database_provides.external_connectivity(event)
