@@ -5,7 +5,6 @@
 
 import abc
 import logging
-import socket
 import typing
 
 import ops

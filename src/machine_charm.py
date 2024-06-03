@@ -30,15 +30,15 @@ logger = logging.getLogger(__name__)
 @trace_charm(
     tracing_endpoint="tracing_endpoint",
     extra_types=(
-        workload.Workload,
-        machine_workload.AuthenticatedMachineWorkload,
-        relations.database_requires.RelationEndpoint,
-        relations.database_providers_wrapper.RelationEndpoint,
-        relations.cos.COSRelation,
-        relations.tls.RelationEndpoint,
-        machine_upgrade.Upgrade,
         logrotate.LogRotate,
+        machine_upgrade.Upgrade,
+        machine_workload.AuthenticatedMachineWorkload,
+        relations.cos.COSRelation,
+        relations.database_providers_wrapper.RelationEndpoint,
+        relations.database_requires.RelationEndpoint,
+        relations.tls.RelationEndpoint,
         snap.Snap,
+        workload.Workload,
     ),
 )
 class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):

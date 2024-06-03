@@ -44,6 +44,7 @@ requires:
     limit: 1
   tracing:
     interface: tracing
+    optional: true
     limit: 1
 peers:
   tls:
