@@ -12,19 +12,35 @@ import typing
 
 import ops
 import tenacity
+from charms.tempo_k8s.v1.charm_tracing import trace_charm
 
 import abstract_charm
+import logrotate
 import machine_logrotate
 import machine_upgrade
 import machine_workload
 import relations.database_providers_wrapper
 import snap
 import upgrade
+import workload
 
 logger = logging.getLogger(__name__)
-# TODO VM TLS: open ports for `juju expose`
 
 
+@trace_charm(
+    tracing_endpoint="tracing_endpoint",
+    extra_types=(
+        workload.Workload,
+        machine_workload.AuthenticatedMachineWorkload,
+        relations.database_requires.RelationEndpoint,
+        relations.database_providers_wrapper.RelationEndpoint,
+        relations.cos.COSRelation,
+        relations.tls.RelationEndpoint,
+        machine_upgrade.Upgrade,
+        logrotate.LogRotate,
+        snap.Snap,
+    ),
+)
 class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     """MySQL Router machine subordinate charm"""
 
