@@ -45,10 +45,6 @@ requires:
   tracing:
     interface: tracing
     limit: 1
-  tracing-certificates:
-    interface: tls-certificates
-    limit: 1
-    optional: true
 peers:
   tls:
     interface: tls

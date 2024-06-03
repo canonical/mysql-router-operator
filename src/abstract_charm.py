@@ -9,7 +9,6 @@ import socket
 import typing
 
 import ops
-from charms.observability_libs.v1.cert_handler import CertHandler
 from charms.tempo_k8s.v2.tracing import TracingEndpointRequirer
 
 import container
@@ -36,8 +35,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     _READ_ONLY_X_PORT = 6449
 
     _TRACING_RELATION_NAME = "tracing"
-    _TEMPO_SERVER_CERT_KEY = "tempo-server-cert"
-    _TRACING_CERTIFICATES_RELATION_NAME = "tracing-certificates"
+    _TRACING_PROTOCOL = "otlp_http"
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -74,17 +72,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self.tls = relations.tls.RelationEndpoint(self)
 
         self.tracing = TracingEndpointRequirer(
-            self, relation_name=self._TRACING_RELATION_NAME, protocols=["otlp_http"]
-        )
-        self._tracing_ca_cert = self._container.path("/var/run/tracing-ca.crt")
-        self.cert_handler = CertHandler(
-            self,
-            key=self._TEMPO_SERVER_CERT_KEY,
-            certificates_relation_name=self._TRACING_CERTIFICATES_RELATION_NAME,
-            sans=[socket.getfqdn()],
-        )
-        self.framework.observe(
-            self.cert_handler.on.cert_changed, self._update_tracing_server_ca_cert
+            self, relation_name=self._TRACING_RELATION_NAME, protocols=[self._TRACING_PROTOCOL]
         )
 
     @property
@@ -161,23 +149,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def tracing_endpoint(self) -> typing.Optional[str]:
         """Otlp http endpoint for charm instrumentation."""
         if self.tracing.is_ready():
-            return self.tracing.get_endpoint("otlp_http")
-
-    @property
-    def tracing_server_ca_cert(self) -> typing.Optional[str]:
-        """Tempo server ca cert for charm tracing."""
-        self._update_tracing_server_ca_cert(None)
-        return self._tracing_ca_cert
-
-    @property
-    def _tracing_tls_enabled(self) -> bool:
-        """Whether tracing TLS is enabled and corresponding certs are found."""
-        return (
-            self.cert_handler.enabled
-            and (self.cert_handler.server_cert is not None)
-            and (self.cert_handler.private_key is not None)
-            and (self.cert_handler.ca_cert is not None)
-        )
+            return self.tracing.get_endpoint(self._TRACING_PROTOCOL)
 
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
@@ -277,18 +249,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     # =======================
     #  Handlers
     # =======================
-
-    def _update_tracing_server_ca_cert(self, _) -> None:
-        """Retrieve and store tracing CA cert if TLS is enabled."""
-        if not self._tracing_tls_enabled:
-            self._tracing_ca_cert.unlink(missing_ok=True)
-
-        if self._tracing_ca_cert.exists():
-            return
-
-        self._tracing_ca_cert.parent.mkdir(parents=True, exist_ok=True)
-        if self.cert_handler.ca_cert:
-            self._tracing_ca_cert.write_text(self.cert_handler.ca_cert)
 
     def _upgrade_relation_created(self, _) -> None:
         if self._unit_lifecycle.authorized_leader:
