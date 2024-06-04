@@ -373,6 +373,15 @@ class AuthenticatedWorkload(Workload):
                 "`key`, `certificate`, and `certificate_authority` arguments required when tls=True"
             )
 
+        # If the host or port changes, MySQL Router will receive topology change
+        # notifications from MySQL.
+        # Therefore, if the host or port changes, we do not need to restart MySQL Router.
+        is_charm_exposed = self._charm.is_externally_accessible(event=event)
+        socket_file_exists = self._container.path("/run/mysqlrouter/mysql.sock").exists()
+        require_rebootstrap = is_charm_exposed == socket_file_exists
+        if require_rebootstrap:
+            self._disable_router()
+
         # `self._custom_certificate` will change after we enable/disable TLS
         custom_certificate = self._custom_certificate
         if tls:
@@ -385,15 +394,6 @@ class AuthenticatedWorkload(Workload):
             self._disable_tls()
             if custom_certificate and self._container.mysql_router_service_enabled:
                 self._restart(event=event, tls=tls)
-
-        # If the host or port changes, MySQL Router will receive topology change
-        # notifications from MySQL.
-        # Therefore, if the host or port changes, we do not need to restart MySQL Router.
-        is_charm_exposed = self._charm.is_externally_accessible(event=event)
-        socket_file_exists = self._container.path("/run/mysqlrouter/mysql.sock").exists()
-        require_rebootstrap = is_charm_exposed == socket_file_exists
-        if require_rebootstrap:
-            self._disable_router()
 
         if not self._container.mysql_router_service_enabled:
             self._enable_router(event=event, tls=tls, unit_name=unit_name)
