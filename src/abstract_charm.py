@@ -8,6 +8,7 @@ import logging
 import typing
 
 import ops
+from charms.tempo_k8s.v2.tracing import TracingEndpointRequirer
 
 import container
 import lifecycle
@@ -31,6 +32,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     _READ_ONLY_PORT = 6447
     _READ_WRITE_X_PORT = 6448
     _READ_ONLY_X_PORT = 6449
+
+    _TRACING_RELATION_NAME = "tracing"
+    _TRACING_PROTOCOL = "otlp_http"
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -65,6 +69,10 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             self._upgrade_relation_created,
         )
         self.tls = relations.tls.RelationEndpoint(self)
+
+        self.tracing = TracingEndpointRequirer(
+            self, relation_name=self._TRACING_RELATION_NAME, protocols=[self._TRACING_PROTOCOL]
+        )
 
     @property
     @abc.abstractmethod
@@ -135,6 +143,12 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def _tls_certificate(self) -> typing.Optional[str]:
         """Custom TLS certificate"""
         return self.tls.certificate
+
+    @property
+    def tracing_endpoint(self) -> typing.Optional[str]:
+        """Otlp http endpoint for charm instrumentation."""
+        if self.tracing.is_ready():
+            return self.tracing.get_endpoint(self._TRACING_PROTOCOL)
 
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""

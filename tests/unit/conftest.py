@@ -5,6 +5,7 @@ from unittest.mock import PropertyMock
 
 import ops
 import pytest
+from charms.tempo_k8s.v1.charm_tracing import charm_tracing_disabled
 from pytest_mock import MockerFixture
 
 import snap
@@ -150,3 +151,9 @@ def juju_has_secrets(mocker: MockerFixture, request):
             ops.JujuVersion, "has_secrets", new_callable=PropertyMock
         ).return_value = True
         return True
+
+
+@pytest.fixture(autouse=True)
+def disable_charm_tracing():
+    with charm_tracing_disabled():
+        yield

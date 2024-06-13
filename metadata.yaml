@@ -42,6 +42,10 @@ requires:
     interface: tls-certificates
     optional: true
     limit: 1
+  tracing:
+    interface: tracing
+    optional: true
+    limit: 1
 peers:
   tls:
     interface: tls
