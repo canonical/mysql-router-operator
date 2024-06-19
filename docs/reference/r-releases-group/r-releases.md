@@ -9,7 +9,7 @@ Here you will find release notes for the main revisions of this charm that are a
 
 |  Channel  | amd64 | arm64 |
 |:---------|:-----:|:-----:|
-| `dpe/candidate` | [186 (`jammy`) / 185 (`focal`)](/t/12319?channel=dpe/candidate) |   -   |
+| `dpe/candidate` | [198 (`jammy`) / 197 (`focal`)](/t/14073?channel=dpe/candidate) |   -   |
 | `dpe/beta` | [119 (`jammy`) / 118 (`focal`)](/t/12319?channel=dpe/candidate) |   -   |
 
 [note]

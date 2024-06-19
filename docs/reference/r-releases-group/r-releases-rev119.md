@@ -1,5 +1,5 @@
 >Reference > Release Notes > [All revisions](/t/12318) > Revision 118/119
-# Revision 118/119
+# Revision 118/119 (`dpe/beta` only)
 <sub>October 6, 2023</sub>
 
 Dear community, this is to inform you that new MySQL Router is published in `dpe/candidate` [charmhub](https://charmhub.io/mysql-router?channel=dpe/beta) channel for VMs:
