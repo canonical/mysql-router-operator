@@ -14,6 +14,7 @@ import pytest
 import tenacity
 from pytest_operator.plugin import OpsTest
 
+import snap
 from .helpers import (
     APPLICATION_DEFAULT_APP_NAME,
     MYSQL_DEFAULT_APP_NAME,
@@ -224,7 +225,8 @@ def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> N
         # set rev 102 (an old edge version of the snap)
         snap_file = pathlib.Path("src/snap.py")
         content = snap_file.read_text()
-        new_snap_content = re.sub(r'REVISION = "\d+"', 'REVISION = "102"', str(content))
+        # TODO: add arm64 support or mark as amd64 only
+        new_snap_content = re.sub(f'"x86_64": "{snap.revision}"', '"x86_64": "102"', str(content))
         charm_zip.writestr("src/snap.py", new_snap_content)
 
 
