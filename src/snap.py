@@ -6,6 +6,7 @@
 import enum
 import logging
 import pathlib
+import platform
 import shutil
 import subprocess
 import typing
@@ -22,7 +23,12 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _SNAP_NAME = "charmed-mysql"
-REVISION = "103"  # Keep in sync with `workload_version` file
+REVISIONS: typing.Dict[str, str] = {
+    # Keep in sync with `workload_version` file
+    "x86_64": "106",
+    "aarch64": "107",
+}
+revision = REVISIONS[platform.machine()]
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
 _UNIX_USERNAME = "snap_daemon"
 
@@ -34,7 +40,7 @@ class _RefreshVerb(str, enum.Enum):
 
 def _refresh(*, unit: ops.Unit, verb: _RefreshVerb) -> None:
     # TODO python3.10 min version: use `removesuffix` instead of `rstrip`
-    logger.debug(f'{verb.capitalize().rstrip("e")}ing {_SNAP_NAME=}, {REVISION=}')
+    logger.debug(f'{verb.capitalize().rstrip("e")}ing {_SNAP_NAME=}, {revision=}')
     unit.status = ops.MaintenanceStatus(f'{verb.capitalize().rstrip("e")}ing snap')
 
     def _set_retry_status(_) -> None:
@@ -50,9 +56,9 @@ def _refresh(*, unit: ops.Unit, verb: _RefreshVerb) -> None:
         reraise=True,
     ):
         with attempt:
-            _snap.ensure(state=snap_lib.SnapState.Present, revision=REVISION)
+            _snap.ensure(state=snap_lib.SnapState.Present, revision=revision)
     _snap.hold()
-    logger.debug(f'{verb.capitalize().rstrip("e")}ed {_SNAP_NAME=}, {REVISION=}')
+    logger.debug(f'{verb.capitalize().rstrip("e")}ed {_SNAP_NAME=}, {revision=}')
 
 
 def install(*, unit: ops.Unit, model_uuid: str):
