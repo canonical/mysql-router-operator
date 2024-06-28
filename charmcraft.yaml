@@ -24,13 +24,15 @@ parts:
           echo 'ERROR: Use "tox run -e build-dev" instead of calling "charmcraft pack" directly' >&2
           exit 1
       fi
+    # TODO: enable after https://github.com/canonical/charmcraft/issues/1456 fixed
+    charm-strict-dependencies: false
+    charm-entrypoint: src/machine_charm.py
+    prime:
+      - charm_version
+      - workload_version
     build-packages:
       - libffi-dev
       - libssl-dev
       - pkg-config
       - rustc
       - cargo
-    charm-entrypoint: src/machine_charm.py
-    prime:
-      - charm_version
-      - workload_version

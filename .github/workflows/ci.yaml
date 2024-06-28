@@ -68,7 +68,9 @@ jobs:
     name: Build charm
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v16.3.0
     with:
-      cache: true
+      # Use of cache blocked by https://github.com/canonical/charmcraft/issues/1456
+      # Details: https://github.com/canonical/charmcraftcache/issues/3
+      cache: false
 
   gh-hosted-collect-integration-tests:
     name: (GH hosted) Collect integration test groups
