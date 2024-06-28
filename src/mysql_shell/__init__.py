@@ -204,6 +204,24 @@ class Shell:
         )
         logger.debug(f"Removed {router_id=} from cluster metadata")
 
+    def does_user_exists(self, username: str, host: str = "%") -> bool:
+        """Check if user exists."""
+        logger.debug(f"Checking if {username=} exists")
+        output_file = self._container.path("/tmp/mysqlsh_output.json")
+        self._run_code(
+            _jinja_env.get_template("does_user_exist.py.jinja").render(
+                username=username,
+                host=host,
+                output_filepath=output_file.relative_to_container,
+            )
+        )
+        with output_file.open("r") as file:
+            rows = json.load(file)
+        output_file.unlink()
+        if not rows:
+            return False
+        return True
+
     def delete_user(self, username: str, *, must_exist=True) -> None:
         """Delete user."""
         logger.debug(f"Deleting {username=} {must_exist=}")

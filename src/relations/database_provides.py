@@ -48,13 +48,15 @@ class _Relation:
             return False
         return self._id == other._id
 
-    def _get_username(self, database_requires_username: str) -> str:
+    def _get_username(self, database_requires_username: str, *, legacy: bool = False) -> str:
         """Database username"""
         # Prefix username with username from database requires relation truncating to the
         # final 32 chars (MySQL username limit)
         # This ensures a unique username if MySQL Router is deployed in a different Juju model
         # from MySQL.
         # (Relation IDs are only unique within a Juju model.)
+        if legacy:
+            return f"{database_requires_username}-{self._id}"
         return f"{database_requires_username}-{self._id}"[-32:]
 
 
@@ -170,7 +172,12 @@ class _RelationWithSharedUser(_Relation):
         # Delete user if exists
         # (If the user was previously deleted by this charm—but the hook failed—the user will be
         # deleted in MySQL but will persist in the databag.)
-        shell.delete_user(self._get_username(shell.username), must_exist=False)
+        if shell.does_user_exists(self._get_username(shell.username)):
+            shell.delete_user(self._get_username(shell.username))
+        elif shell.does_user_exists(self._get_username(shell.username, legacy=True)):
+            shell.delete_user(self._get_username(shell.username))
+        else:
+            logger.debug("User does not exist")
 
 
 class RelationEndpoint:

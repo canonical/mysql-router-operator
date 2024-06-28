@@ -1,0 +1,12 @@
+import json
+
+result = session.run_sql(
+    "SELECT 1 FROM mysql.user WHERE user='{{ username }}' and host='{{ host }}'"
+)
+
+rows = result.fetch_all()
+rows = json.loads(str(rows))
+with open("{{ output_filepath }}", "w") as file:
+    json.dump(rows, file)
+
+# vim: set syntax=python:
