@@ -42,10 +42,10 @@ class Upgrade(upgrade.Upgrade):
     def unit_state(self, value: upgrade.UnitState) -> None:
         if value is upgrade.UnitState.HEALTHY:
             # Set snap revision on first install
-            self._unit_workload_container_version = snap.REVISION
+            self._unit_workload_container_version = snap.revision
             self._unit_workload_version = self._current_versions["workload"]
             logger.debug(
-                f'Saved {snap.REVISION=} and {self._current_versions["workload"]=} in unit databag while setting state healthy'
+                f'Saved {snap.revision=} and {self._current_versions["workload"]=} in unit databag while setting state healthy'
             )
         # Super call
         upgrade.Upgrade.unit_state.fset(self, value)
@@ -103,7 +103,7 @@ class Upgrade(upgrade.Upgrade):
     @property
     def _app_workload_container_version(self) -> str:
         """Snap revision for current charm code"""
-        return snap.REVISION
+        return snap.revision
 
     @property
     def _unit_workload_version(self) -> typing.Optional[str]:
@@ -190,8 +190,8 @@ class Upgrade(upgrade.Upgrade):
         logger.debug(f"Upgrading {self.authorized=}")
         self.unit_state = upgrade.UnitState.UPGRADING
         workload_.upgrade(event=event, unit=self._unit, tls=tls, exporter_config=exporter_config)
-        self._unit_workload_container_version = snap.REVISION
+        self._unit_workload_container_version = snap.revision
         self._unit_workload_version = self._current_versions["workload"]
         logger.debug(
-            f'Saved {snap.REVISION=} and {self._current_versions["workload"]=} in unit databag after upgrade'
+            f'Saved {snap.revision=} and {self._current_versions["workload"]=} in unit databag after upgrade'
         )
