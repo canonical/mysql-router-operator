@@ -84,7 +84,8 @@ def test_breaking_requires_and_complete_provides_secret(
 
 @pytest.mark.usefixtures("only_without_juju_secrets")
 @pytest.mark.parametrize("complete_provides_s", combinations.complete_provides(1, 3))
-def test_complete_requires_and_breaking_provides(complete_requires, complete_provides_s):
+def test_complete_requires_and_breaking_provides(complete_requires, complete_provides_s, mocker):
+    mocker.patch("mysql_shell.Shell.does_user_exists", return_value=True)
     complete_provides_s = [
         relation.replace(
             local_app_data={
@@ -123,8 +124,9 @@ def test_complete_requires_and_breaking_provides(complete_requires, complete_pro
     "complete_requires_s, secret", combinations.complete_requires_secret(1, 2, 4)
 )
 def test_complete_requires_and_breaking_provides_secret(
-    complete_requires_s, secret, complete_provides_s
+    complete_requires_s, secret, complete_provides_s, mocker
 ):
+    mocker.patch("mysql_shell.Shell.does_user_exists", return_value=True)
     complete_provides_s = [
         relation.replace(
             local_app_data={
