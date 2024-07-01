@@ -119,8 +119,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
     unit_address = await unit.get_public_address()
 
     try:
-        with requests.Session() as session:
-            session.get(f"http://{unit_address}:49152/metrics", stream=False)
+        requests.get(f"http://{unit_address}:49152/metrics", stream=False)
     except requests.exceptions.ConnectionError as e:
         assert "[Errno 111] Connection refused" in str(e), "❌ expected connection refused error"
     else:
@@ -137,14 +136,12 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
         wait=tenacity.wait_fixed(10),
     ):
         with attempt:
-            with requests.Session() as session:
-                response = session.get(f"http://{unit_address}:49152/metrics", stream=False)
-                assert (
-                    response.status_code == 200
-                ), "❌ cannot connect to metrics endpoint with relation with cos"
-                assert "mysqlrouter_route_health" in str(
-                    response.text
-                ), "❌ did not find expected metric in response"
+            response = requests.get(f"http://{unit_address}:49152/metrics", stream=False)
+            response.raise_for_status()
+            assert (
+                "mysqlrouter_route_health" in response.text
+            ), "❌ did not find expected metric in response"
+            response.close()
 
     logger.info("Removing relation between mysqlrouter and grafana agent")
     await mysql_router_app.remove_relation(
@@ -158,8 +155,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
     ):
         with attempt:
             try:
-                with requests.Session() as session:
-                    session.get(f"http://{unit_address}:49152/metrics", stream=False)
+                requests.get(f"http://{unit_address}:49152/metrics", stream=False)
             except requests.exceptions.ConnectionError as e:
                 assert "[Errno 111] Connection refused" in str(
                     e
