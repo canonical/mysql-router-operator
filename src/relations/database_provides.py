@@ -57,7 +57,10 @@ class _Relation:
         # (Relation IDs are only unique within a Juju model.)
         if legacy:
             return f"{database_requires_username}-{self._id}"
-        prefix, suffix = database_requires_username.split("_")
+        try:
+            prefix, suffix = database_requires_username.split("_")
+        except ValueError:
+            return self._get_username(database_requires_username, legacy=True)
         return f"{prefix}-{self._id}_{suffix}"[:32]
 
 
