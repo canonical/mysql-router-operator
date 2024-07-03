@@ -4,36 +4,35 @@
 type: charm
 bases:
   # Whenever "bases" is changed:
-  # - Update tests/integration/conftest.py::pytest_configure()
+  # - Update tests/conftest.py::pytest_configure()
   # - Update .github/workflow/ci.yaml integration-test matrix
-  - build-on:
-      - name: "ubuntu"
-        channel: "20.04"
-    run-on:
-      - name: "ubuntu"
-        channel: "20.04"
-  - build-on:
-      - name: "ubuntu"
-        channel: "22.04"
-    run-on:
-      - name: "ubuntu"
-        channel: "22.04"
+  - name: ubuntu
+    channel: "20.04"
+    architectures: [amd64]
+  - name: ubuntu
+    channel: "22.04"
+    architectures: [amd64]
+  - name: ubuntu
+    channel: "22.04"
+    architectures: [arm64]
 parts:
   charm:
     override-pull: |
       craftctl default
       if [[ ! -f requirements.txt ]]
       then
-          echo 'ERROR: Use "tox run -e build" instead of calling "charmcraft pack" directly' >&2
+          echo 'ERROR: Use "tox run -e build-dev" instead of calling "charmcraft pack" directly' >&2
           exit 1
       fi
+    # TODO: enable after https://github.com/canonical/charmcraft/issues/1456 fixed
+    charm-strict-dependencies: false
+    charm-entrypoint: src/machine_charm.py
+    prime:
+      - charm_version
+      - workload_version
     build-packages:
       - libffi-dev
       - libssl-dev
       - pkg-config
       - rustc
       - cargo
-    charm-entrypoint: src/machine_charm.py
-    prime:
-      - charm_version
-      - workload_version
