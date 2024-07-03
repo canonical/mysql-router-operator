@@ -50,14 +50,15 @@ class _Relation:
 
     def _get_username(self, database_requires_username: str, *, legacy: bool = False) -> str:
         """Database username"""
-        # Prefix username with username from database requires relation truncating to the
-        # final 32 chars (MySQL username limit)
+        # Prefix username with username from database requires relation truncating
+        # it to 32 chars (MySQL username limit)
         # This ensures a unique username if MySQL Router is deployed in a different Juju model
         # from MySQL.
         # (Relation IDs are only unique within a Juju model.)
         if legacy:
             return f"{database_requires_username}-{self._id}"
-        return f"{database_requires_username}-{self._id}"[-32:]
+        prefix, suffix = database_requires_username.split("_")
+        return f"{prefix}-{self._id}_{suffix}"[:32]
 
 
 class _RelationThatRequestedUser(_Relation):
