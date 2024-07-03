@@ -13,7 +13,7 @@ APP_NAMES = ["remote", "mysql-k8s"]
 SECRET_USER = scenario.Secret(
     id="myXID",  # Must be defined for obj instantiation, but we override it later
     owner="mysql-router",
-    contents={0: {"username": "relation-68", "password": "Dy0k2UTfyNt2B13cfe412K7YGs07S4U7"}},
+    contents={0: {"username": "relation-68_5f556913251f40098105", "password": "Dy0k2UTfyNt2B13cfe412K7YGs07S4U7"}},
     remote_grants="myappB",
 )
 
@@ -160,7 +160,7 @@ def incomplete_requires_secret(*relation_amounts: int) -> list[list[scenario.Rel
     )
 
     # Missing fields in the secret
-    secret_user_pw_missing = SECRET_USER.replace(contents={0: {"username": "relation-68"}})
+    secret_user_pw_missing = SECRET_USER.replace(contents={0: {"username": "relation-68_5f556913251f40098105"}})
 
     relations_broken_secret = [
         scenario.Relation(

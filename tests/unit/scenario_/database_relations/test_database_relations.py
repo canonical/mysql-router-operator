@@ -44,6 +44,12 @@ def output_states(
         yield output
 
 
+def get_username(backend_username: str, relation_id: int) -> str:
+    """Generate a username for a relation."""
+    prefix, suffix = backend_username.split("_")
+    return f"{prefix}-{relation_id}_{suffix}"[:32]
+
+
 # Tests are ordered by status priority.
 # For example, `ops.BlockedStatus("Missing relation: backend-database")` has priority over
 # `ops.BlockedStatus("Missing relation: database")`.
@@ -176,7 +182,9 @@ def test_complete_requires_and_provides_unsupported_extra_user_role(
                 "database": provides.remote_app_data["database"],
                 "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
                 "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
-                "username": f'{complete_requires.remote_app_data["username"]}-{provides.relation_id}',
+                "username": get_username(
+                    complete_requires.remote_app_data["username"], provides.relation_id
+                ),
             }
         for index, provides in enumerate(
             unsupported_extra_user_role_provides_s, 1 + len(complete_provides_s)
@@ -216,7 +224,7 @@ def test_complete_requires_and_provides_unsupported_extra_user_role_secret(
                 "database": provides.remote_app_data["database"],
                 "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
                 "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
-                "username": f'{secret.contents[0]["username"]}-{provides.relation_id}',
+                "username": get_username(secret.contents[0]["username"], provides.relation_id),
             }
         for index, provides in enumerate(
             unsupported_extra_user_role_provides_s, 1 + len(complete_provides_s)
@@ -261,7 +269,9 @@ def test_complete_provides(complete_requires, complete_provides_s):
                 "database": provides.remote_app_data["database"],
                 "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
                 "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
-                "username": f'{complete_requires.remote_app_data["username"]}-{provides.relation_id}',
+                "username": get_username(
+                    complete_requires.remote_app_data["username"], provides.relation_id
+                ),
             }
 
 
@@ -280,7 +290,7 @@ def test_complete_provides_secret(complete_requires_s, secret, complete_provides
                 "database": provides.remote_app_data["database"],
                 "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
                 "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
-                "username": f'{secret.contents[0]["username"]}-{provides.relation_id}',
+                "username": get_username(secret.contents[0]["username"], provides.relation_id),
             }
 
 
@@ -303,7 +313,9 @@ def test_complete_provides_and_incomplete_provides(
                 "database": provides.remote_app_data["database"],
                 "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
                 "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
-                "username": f'{complete_requires.remote_app_data["username"]}-{provides.relation_id}',
+                "username": get_username(
+                    complete_requires.remote_app_data["username"], provides.relation_id
+                ),
             }
         for index, provides in enumerate(incomplete_provides_s, 1 + len(complete_provides_s)):
             assert state.relations[index].local_app_data == {}
@@ -332,7 +344,7 @@ def test_complete_provides_and_incomplete_provides_secret(
                 "database": provides.remote_app_data["database"],
                 "endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysql.sock",
                 "read-only-endpoints": "file:///var/snap/charmed-mysql/common/run/mysqlrouter/mysqlro.sock",
-                "username": f'{secret.contents[0]["username"]}-{provides.relation_id}',
+                "username": get_username(secret.contents[0]["username"], provides.relation_id),
             }
         for index, provides in enumerate(incomplete_provides_s, 1 + len(complete_provides_s)):
             assert state.relations[index].local_app_data == {}

@@ -17,13 +17,13 @@ def app_name(request):
             "database": "myappB",
             "read-only-endpoints": "mysql-k8s-replicas:5432",
             "password": "Dy0k2UTfyNt2B13cfe412K7YGs07S4U7",
-            "username": "relation-68",
+            "username": "relation-68_5f556913251f40098105",
         },
         {
             "database": "myappB",
             "endpoints": "mysql-k8s-primary:5432",
             "read-only-endpoints": "mysql-k8s-replicas:5432",
-            "username": "relation-68",
+            "username": "relation-68_5f556913251f40098105",
         },
     ]
 )
@@ -40,6 +40,6 @@ def complete_requires() -> scenario.Relation:
         remote_app_data={
             "endpoints": "mysql-k8s-primary:5432",
             "password": "Dy0k2UTfyNt2B13cfe412K7YGs07S4U7",
-            "username": "relation-68",
+            "username": "relation-68_5f556913251f40098105",
         },
     )
