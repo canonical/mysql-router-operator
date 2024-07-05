@@ -129,7 +129,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
     unit_address = await unit.get_public_address()
 
     try:
-        http.request("GET", f"http://{unit_address}:49152/metrics")
+        http.request("GET", f"http://{unit_address}:9152/metrics")
     except urllib3.exceptions.MaxRetryError as e:
         assert (
             "[Errno 111] Connection refused" in e.reason.args[0]
@@ -151,7 +151,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
         wait=tenacity.wait_fixed(10),
     ):
         with attempt:
-            jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
+            jmx_resp = http.request("GET", f"http://{unit_address}:9152/metrics")
             assert (
                 jmx_resp.status == 200
             ), "❌ cannot connect to metrics endpoint with relation with cos"
@@ -171,7 +171,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
     ):
         with attempt:
             try:
-                http.request("GET", f"http://{unit_address}:49152/metrics")
+                http.request("GET", f"http://{unit_address}:9152/metrics")
             except urllib3.exceptions.MaxRetryError as e:
                 assert (
                     "[Errno 111] Connection refused" in e.reason.args[0]
@@ -226,7 +226,7 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
     ):
         with attempt:
             try:
-                http.request("GET", f"http://{unit_address}:49152/metrics")
+                http.request("GET", f"http://{unit_address}:9152/metrics")
             except urllib3.exceptions.MaxRetryError as e:
                 assert (
                     "[Errno 111] Connection refused" in e.reason.args[0]
@@ -248,7 +248,7 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
         wait=tenacity.wait_fixed(10),
     ):
         with attempt:
-            jmx_resp = http.request("GET", f"http://{unit_address}:49152/metrics")
+            jmx_resp = http.request("GET", f"http://{unit_address}:9152/metrics")
             assert (
                 jmx_resp.status == 200
             ), "❌ cannot connect to metrics endpoint with relation with cos"
@@ -275,7 +275,7 @@ async def test_exporter_endpoint_with_tls(ops_test: OpsTest) -> None:
     ):
         with attempt:
             try:
-                http.request("GET", f"http://{unit_address}:49152/metrics")
+                http.request("GET", f"http://{unit_address}:9152/metrics")
             except urllib3.exceptions.MaxRetryError as e:
                 assert (
                     "[Errno 111] Connection refused" in e.reason.args[0]

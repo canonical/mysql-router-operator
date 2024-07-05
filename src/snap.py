@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 _SNAP_NAME = "charmed-mysql"
 REVISIONS: typing.Dict[str, str] = {
     # Keep in sync with `workload_version` file
-    "x86_64": "106",
+    "x86_64": "108",
     "aarch64": "107",
 }
 revision = REVISIONS[platform.machine()]
@@ -220,6 +220,7 @@ class Snap(container.Container):
         if enabled:
             _snap.set(
                 {
+                    "mysqlrouter-exporter.listen-port": config.listen_port,
                     "mysqlrouter-exporter.user": config.username,
                     "mysqlrouter-exporter.password": config.password,
                     "mysqlrouter-exporter.url": config.url,
@@ -241,6 +242,7 @@ class Snap(container.Container):
             _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
         else:
             _snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)
+            _snap.unset("mysqlrouter-exporter.listen-port")
             _snap.unset("mysqlrouter-exporter.user")
             _snap.unset("mysqlrouter-exporter.password")
             _snap.unset("mysqlrouter-exporter.url")
