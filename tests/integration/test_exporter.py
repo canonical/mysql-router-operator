@@ -23,8 +23,7 @@ MYSQL_ROUTER_APP_NAME = MYSQL_ROUTER_DEFAULT_APP_NAME
 APPLICATION_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 GRAFANA_AGENT_APP_NAME = "grafana-agent"
 SLOW_TIMEOUT = 25 * 60
-# TODO: reduce to < 5 * 60, after https://github.com/rluisr/mysqlrouter_exporter/issues/67 is resolved
-RETRY_TIMEOUT = 7 * 60
+RETRY_TIMEOUT = 3 * 60
 
 
 @pytest.mark.group(1)
@@ -119,7 +118,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
     unit_address = await unit.get_public_address()
 
     try:
-        requests.get(f"http://{unit_address}:49152/metrics", stream=False)
+        requests.get(f"http://{unit_address}:9152/metrics", stream=False)
     except requests.exceptions.ConnectionError as e:
         assert "[Errno 111] Connection refused" in str(e), "❌ expected connection refused error"
     else:
@@ -136,7 +135,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
         wait=tenacity.wait_fixed(10),
     ):
         with attempt:
-            response = requests.get(f"http://{unit_address}:49152/metrics", stream=False)
+            response = requests.get(f"http://{unit_address}:9152/metrics", stream=False)
             response.raise_for_status()
             assert (
                 "mysqlrouter_route_health" in response.text
@@ -155,7 +154,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, mysql_router_charm_series: s
     ):
         with attempt:
             try:
-                requests.get(f"http://{unit_address}:49152/metrics", stream=False)
+                requests.get(f"http://{unit_address}:9152/metrics", stream=False)
             except requests.exceptions.ConnectionError as e:
                 assert "[Errno 111] Connection refused" in str(
                     e
