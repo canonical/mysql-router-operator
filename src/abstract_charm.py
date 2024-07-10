@@ -52,9 +52,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self.framework.observe(
             self.on[upgrade.PEER_RELATION_ENDPOINT_NAME].relation_changed, self.reconcile
         )
-        self.framework.observe(
-            self.on[upgrade.RESUME_ACTION_NAME].action, self._on_resume_upgrade_action
-        )
         # (For Kubernetes) Reset partition after scale down
         self.framework.observe(
             self.on[upgrade.PEER_RELATION_ENDPOINT_NAME].relation_departed, self.reconcile
@@ -360,16 +357,3 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             self.set_status(event=event, unit=False)
             self.unit.status = e.status
             logger.debug(f"Set unit status to {self.unit.status}")
-
-    def _on_resume_upgrade_action(self, event: ops.ActionEvent) -> None:
-        if not self._unit_lifecycle.authorized_leader:
-            message = f"Must run action on leader unit. (e.g. `juju run {self.app.name}/leader {upgrade.RESUME_ACTION_NAME}`)"
-            logger.debug(f"Resume upgrade event failed: {message}")
-            event.fail(message)
-            return
-        if not self._upgrade or not self._upgrade.in_progress:
-            message = "No upgrade in progress"
-            logger.debug(f"Resume upgrade event failed: {message}")
-            event.fail(message)
-            return
-        self._upgrade.reconcile_partition(action_event=event)

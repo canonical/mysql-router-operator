@@ -147,13 +147,6 @@ class Upgrade(abc.ABC):
     def app_status(self) -> typing.Optional[ops.StatusBase]:
         if not self.in_progress:
             return
-        if not self.upgrade_resumed:
-            # User confirmation needed to resume upgrade (i.e. upgrade second unit)
-            # Statuses over 120 characters are truncated in `juju status` as of juju 3.1.6 and
-            # 2.9.45
-            return ops.BlockedStatus(
-                f"Upgrading. Verify highest unit is healthy & run `{RESUME_ACTION_NAME}` action. To rollback, `juju refresh` to last revision"
-            )
         return ops.MaintenanceStatus(
             "Upgrading. To rollback, `juju refresh` to the previous revision"
         )
@@ -181,11 +174,6 @@ class Upgrade(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def upgrade_resumed(self) -> bool:
-        """Whether user has resumed upgrade with Juju action"""
-
-    @property
-    @abc.abstractmethod
     def _unit_workload_container_versions(self) -> typing.Dict[str, str]:
         """{Unit name: unique identifier for unit's workload container version}
 
@@ -209,10 +197,6 @@ class Upgrade(abc.ABC):
         This identifier should be comparable to `_unit_workload_container_versions` to determine if
         the app & unit are the same workload container version.
         """
-
-    @abc.abstractmethod
-    def reconcile_partition(self, *, action_event: ops.ActionEvent = None) -> None:
-        """If ready, allow next unit to upgrade."""
 
     @property
     @abc.abstractmethod

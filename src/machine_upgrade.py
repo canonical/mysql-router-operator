@@ -114,58 +114,12 @@ class Upgrade(upgrade.Upgrade):
     def _unit_workload_version(self, value: str):
         self._unit_databag["workload_version"] = value
 
-    def reconcile_partition(self, *, action_event: ops.ActionEvent = None) -> None:
-        """Handle Juju action to confirm first upgraded unit is healthy and resume upgrade."""
-        if action_event:
-            unit = self._sorted_units[0]  # First unit to upgrade
-            state = self._peer_relation.data[unit].get("state")
-            if state:
-                state = upgrade.UnitState(state)
-            outdated = (
-                self._unit_workload_container_versions.get(unit.name)
-                != self._app_workload_container_version
-            )
-            unhealthy = state is not upgrade.UnitState.HEALTHY
-            if outdated or unhealthy:
-                if outdated:
-                    message = "Highest number unit has not upgraded yet. Upgrade will not resume."
-                else:
-                    message = "Highest number unit is unhealthy. Upgrade will not resume."
-                logger.debug(f"Resume upgrade event failed: {message}")
-                action_event.fail(message)
-                return
-            self.upgrade_resumed = True
-            message = "Upgrade resumed."
-            action_event.set_results({"result": message})
-            logger.debug(f"Resume upgrade event succeeded: {message}")
-
-    @property
-    def upgrade_resumed(self) -> bool:
-        """Whether user has resumed upgrade with Juju action
-
-        Reset to `False` after each `juju refresh`
-        """
-        return json.loads(self._app_databag.get("upgrade-resumed", "false"))
-
-    @upgrade_resumed.setter
-    def upgrade_resumed(self, value: bool):
-        # Trigger peer relation_changed event even if value does not change
-        # (Needed when leader sets value to False during `ops.UpgradeCharmEvent`)
-        self._app_databag["-unused-timestamp-upgrade-resume-last-updated"] = str(time.time())
-
-        self._app_databag["upgrade-resumed"] = json.dumps(value)
-        logger.debug(f"Set upgrade-resumed to {value=}")
-
     @property
     def authorized(self) -> bool:
         assert self._unit_workload_container_version != self._app_workload_container_version
         for index, unit in enumerate(self._sorted_units):
             if unit.name == self._unit.name:
                 # Higher number units have already upgraded
-                if index == 1:
-                    # User confirmation needed to resume upgrade (i.e. upgrade second unit)
-                    logger.debug(f"Second unit authorized to upgrade if {self.upgrade_resumed=}")
-                    return self.upgrade_resumed
                 return True
             state = self._peer_relation.data[unit].get("state")
             if state:

@@ -163,23 +163,11 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         if self._unit_lifecycle.authorized_leader:
             if not self._upgrade.in_progress:
                 logger.info("Charm upgraded. MySQL Router version unchanged")
-            self._upgrade.upgrade_resumed = False
-            # Only call `reconcile` on leader unit to avoid race conditions with `upgrade_resumed`
-            self.reconcile()
-
-    def _on_resume_upgrade_action(self, event: ops.ActionEvent) -> None:
-        super()._on_resume_upgrade_action(event)
-        # If next to upgrade, upgrade leader unit
         self.reconcile()
 
     def _on_force_upgrade_action(self, event: ops.ActionEvent) -> None:
         if not self._upgrade or not self._upgrade.in_progress:
             message = "No upgrade in progress"
-            logger.debug(f"Force upgrade event failed: {message}")
-            event.fail(message)
-            return
-        if not self._upgrade.upgrade_resumed:
-            message = f"Run `juju run {self.app.name}/leader resume-upgrade` before trying to force upgrade"
             logger.debug(f"Force upgrade event failed: {message}")
             event.fail(message)
             return
