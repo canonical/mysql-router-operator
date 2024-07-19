@@ -26,6 +26,7 @@ class LogRotate(logrotate.LogRotate):
         self._cron_file = self._container.path("/etc/cron.d/flush_mysqlrouter_logs")
 
     def enable(self) -> None:
+        """Enable logrotation."""
         logger.debug("Creating logrotate config file")
 
         template = jinja2.Template(self._container.path("templates/logrotate.j2").read_text())
@@ -50,6 +51,7 @@ class LogRotate(logrotate.LogRotate):
         logger.debug("Added cron job for logrotate")
 
     def disable(self) -> None:
+        """Disable logrotation."""
         logger.debug("Removing cron job for log rotation of mysqlrouter")
         self._logrotate_config.unlink(missing_ok=True)
         self._cron_file.unlink(missing_ok=True)

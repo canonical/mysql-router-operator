@@ -14,7 +14,7 @@ import status_exception
 logger = logging.getLogger(__name__)
 
 
-class IncompleteDatabag(status_exception.StatusException):
+class IncompleteDatabag(status_exception.StatusExceptionError):
     """Databag is missing required key"""
 
     def __init__(self, *, app_name: str, endpoint_name: str) -> None:
@@ -39,6 +39,7 @@ class RemoteDatabag(dict):
         self._endpoint_name = relation.name
 
     def __getitem__(self, key):
+        """How to retrieve an item."""
         try:
             return super().__getitem__(key)
         except KeyError:

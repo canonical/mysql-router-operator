@@ -95,7 +95,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     @property
     @abc.abstractmethod
     def _logrotate(self) -> logrotate.LogRotate:
-        """logrotate"""
+        """Logrotate"""
 
     @property
     @abc.abstractmethod

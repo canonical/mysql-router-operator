@@ -6,6 +6,7 @@
 Derived from specification: DA058 - In-Place Upgrades - Kubernetes v2
 (https://docs.google.com/document/d/1tLjknwHudjcHs42nzPVBNkHs98XxAOT2BXGGpP7NyEU/)
 """
+
 import json
 import logging
 import time
@@ -30,6 +31,7 @@ class Upgrade(upgrade.Upgrade):
 
     @property
     def unit_state(self) -> typing.Optional[upgrade.UnitState]:
+        """Get the unit's state."""
         if (
             self._unit_workload_container_version is not None
             and self._unit_workload_container_version != self._app_workload_container_version
@@ -40,6 +42,7 @@ class Upgrade(upgrade.Upgrade):
 
     @unit_state.setter
     def unit_state(self, value: upgrade.UnitState) -> None:
+        """Set the unit's state."""
         if value is upgrade.UnitState.HEALTHY:
             # Set snap revision on first install
             self._unit_workload_container_version = snap.revision
@@ -71,6 +74,7 @@ class Upgrade(upgrade.Upgrade):
 
     @property
     def app_status(self) -> typing.Optional[ops.StatusBase]:
+        """Status to set for the app."""
         if not self.in_progress:
             return
         if not self.is_compatible:
@@ -158,6 +162,7 @@ class Upgrade(upgrade.Upgrade):
 
     @property
     def authorized(self) -> bool:
+        """If the upgrade action is authorized."""
         assert self._unit_workload_container_version != self._app_workload_container_version
         for index, unit in enumerate(self._sorted_units):
             if unit.name == self._unit.name:
@@ -187,6 +192,7 @@ class Upgrade(upgrade.Upgrade):
         tls: bool,
         exporter_config: "relations.cos.ExporterConfig",
     ) -> None:
+        """Upgrade the unit."""
         logger.debug(f"Upgrading {self.authorized=}")
         self.unit_state = upgrade.UnitState.UPGRADING
         workload_.upgrade(event=event, unit=self._unit, tls=tls, exporter_config=exporter_config)

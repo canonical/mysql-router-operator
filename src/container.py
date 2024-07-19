@@ -177,7 +177,7 @@ class Container(abc.ABC):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: str = None,
+        stdin: str = None,
     ) -> str:
         """Run command in container.
 

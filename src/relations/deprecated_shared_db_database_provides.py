@@ -22,7 +22,7 @@ if typing.TYPE_CHECKING:
 class LogPrefix(logging.LoggerAdapter):
     """Add prefix to all log messages"""
 
-    def process(self, msg, kwargs):
+    def process(self, msg, kwargs):  # noqa: D102
         return f"[DEPRECATED shared-db] {msg}", kwargs
 
 
@@ -46,7 +46,7 @@ class _RemoteUnitDatabag(remote_databag.RemoteDatabag):
         dict.__init__(self, relation.data[remote_unit])
 
 
-class _RelationBreaking(Exception):
+class _RelationBreakingError(Exception):
     """Relation will be broken for this unit after the current event is handled
 
     If this unit is tearing down, the relation could still exist for other units.
@@ -125,7 +125,7 @@ class _RelationThatRequestedUser(_UnitThatNeedsUser):
         event,
     ) -> None:
         if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == relation.id:
-            raise _RelationBreaking
+            raise _RelationBreakingError
         super().__init__(
             relation=relation, unit=unit, peer_relation_app_databag=peer_relation_app_databag
         )
@@ -155,7 +155,7 @@ class _RelationThatRequestedUser(_UnitThatNeedsUser):
         self.set_databag(password=password)
 
 
-class _UserNotShared(Exception):
+class _UserNotSharedError(Exception):
     """Database & user has not been provided to related application charm"""
 
 
@@ -171,7 +171,7 @@ class _RelationWithSharedUser(_Relation):
         super().__init__(relation=relation, peer_relation_app_databag=peer_relation_app_databag)
         for key in (self._peer_databag_username_key, self.peer_databag_password_key):
             if key not in self._peer_app_databag:
-                raise _UserNotShared
+                raise _UserNotSharedError
 
     def delete_databag(self) -> None:
         """Remove connection information from databag."""
@@ -262,7 +262,7 @@ class RelationEndpoint(ops.Object):
                         peer_relation_app_databag=self._peer_app_databag,
                     )
                 )
-            except _UserNotShared:
+            except _UserNotSharedError:
                 pass
         return shared_users
 
@@ -291,7 +291,7 @@ class RelationEndpoint(ops.Object):
                     )
                 )
             except (
-                _RelationBreaking,
+                _RelationBreakingError,
                 remote_databag.IncompleteDatabag,
             ):
                 pass
@@ -325,7 +325,7 @@ class RelationEndpoint(ops.Object):
         requested_users = []
         exception_reporting_priority = (remote_databag.IncompleteDatabag,)
         # TODO python3.10 min version: Use `list` instead of `typing.List`
-        exceptions: typing.List[status_exception.StatusException] = []
+        exceptions: typing.List[status_exception.StatusExceptionError] = []
         for relation in self._relations:
             try:
                 requested_users.append(
@@ -336,7 +336,7 @@ class RelationEndpoint(ops.Object):
                         event=event,
                     )
                 )
-            except _RelationBreaking:
+            except _RelationBreakingError:
                 pass
             except exception_reporting_priority as exception:
                 exceptions.append(exception)

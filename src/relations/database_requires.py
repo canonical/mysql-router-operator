@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class _MissingRelation(status_exception.StatusException):
+class _MissingRelation(status_exception.StatusExceptionError):
     """Relation to MySQL charm does (or will) not exist for this unit
 
     If this unit is tearing down, the relation could still exist for other units.
@@ -28,7 +28,7 @@ class _MissingRelation(status_exception.StatusException):
         super().__init__(ops.BlockedStatus(f"Missing relation: {endpoint_name}"))
 
 
-class _RelationBreaking(_MissingRelation):
+class _RelationBreakingError(_MissingRelation):
     """Relation to MySQL charm will be broken for this unit after the current event is handled
 
     Relation currently exists
@@ -77,7 +77,7 @@ class CompleteConnectionInformation(ConnectionInformation):
         relation = relations[0]
         if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == relation.id:
             # Relation will be broken after the current event is handled
-            raise _RelationBreaking(endpoint_name=endpoint_name)
+            raise _RelationBreakingError(endpoint_name=endpoint_name)
         # MySQL charm databag
         databag = remote_databag.RemoteDatabag(interface=interface, relation=relation)
         endpoints = databag["endpoints"].split(",")
@@ -125,7 +125,7 @@ class RelationEndpoint:
         """Whether relation will be broken after the current event is handled"""
         try:
             CompleteConnectionInformation(interface=self._interface, event=event)
-        except _RelationBreaking:
+        except _RelationBreakingError:
             return True
         except (_MissingRelation, remote_databag.IncompleteDatabag):
             pass

@@ -8,11 +8,11 @@ import ops
 import status_exception
 
 
-class Error(status_exception.StatusException):
+class Error(status_exception.StatusExceptionError):
     """MySQL Server unreachable or unhealthy"""
 
 
-class ConnectionError(Error):
+class MySQLConnectionError(Error):
     """MySQL Server unreachable
 
     MySQL client error 2003

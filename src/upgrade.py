@@ -31,7 +31,7 @@ def unit_number(unit_: ops.Unit) -> int:
     return int(unit_.name.split("/")[-1])
 
 
-class PeerRelationNotReady(Exception):
+class PeerRelationNotReadyError(Exception):
     """Upgrade peer relation not available (to this unit)"""
 
 
@@ -50,7 +50,7 @@ class Upgrade(abc.ABC):
     def __init__(self, charm_: ops.CharmBase) -> None:
         relations = charm_.model.relations[PEER_RELATION_ENDPOINT_NAME]
         if not relations:
-            raise PeerRelationNotReady
+            raise PeerRelationNotReadyError
         assert len(relations) == 1
         self._peer_relation = relations[0]
         self._unit: ops.Unit = charm_.unit
@@ -118,6 +118,7 @@ class Upgrade(abc.ABC):
 
     @property
     def in_progress(self) -> bool:
+        """Whether an upgrade is in progress."""
         logger.debug(
             f"{self._app_workload_container_version=} {self._unit_workload_container_versions=}"
         )
@@ -140,11 +141,13 @@ class Upgrade(abc.ABC):
     def get_unit_juju_status(
         self, *, workload_status: typing.Optional[ops.StatusBase]
     ) -> typing.Optional[ops.StatusBase]:
+        """Get unit's juju status based on the workload status."""
         if self.in_progress:
             return self._get_unit_healthy_status(workload_status=workload_status)
 
     @property
     def app_status(self) -> typing.Optional[ops.StatusBase]:
+        """Status to set for the app."""
         if not self.in_progress:
             return
         if not self.upgrade_resumed:

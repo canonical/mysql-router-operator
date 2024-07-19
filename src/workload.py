@@ -291,8 +291,8 @@ class AuthenticatedWorkload(Workload):
             elif match := re.fullmatch(r"Error:.*\((?P<code>2[0-9]{3})\)", stderr):
                 code = int(match.group("code"))
                 if code == 2003:
-                    logger.error(server_exceptions.ConnectionError.MESSAGE)
-                    raise server_exceptions.ConnectionError from None
+                    logger.error(server_exceptions.MySQLConnectionError.MESSAGE)
+                    raise server_exceptions.MySQLConnectionError from None
                 else:
                     logger.error(f"Bootstrap failed with MySQL client error {code}")
             raise Exception("Failed to bootstrap router") from None
@@ -423,6 +423,7 @@ class AuthenticatedWorkload(Workload):
     def upgrade(
         self, *, event, unit: ops.Unit, tls: bool, exporter_config: "relations.cos.ExporterConfig"
     ) -> None:
+        """Handle the upgrade of the workload."""
         enabled = self._container.mysql_router_service_enabled
         exporter_enabled = self._container.mysql_router_exporter_service_enabled
         if exporter_enabled:

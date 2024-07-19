@@ -73,7 +73,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     def _upgrade(self) -> typing.Optional[machine_upgrade.Upgrade]:
         try:
             return machine_upgrade.Upgrade(self)
-        except upgrade.PeerRelationNotReady:
+        except upgrade.PeerRelationNotReadyError:
             pass
 
     @property
@@ -102,6 +102,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         return f"{self.host_address}:{self._READ_ONLY_PORT}"
 
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
+        """Whether endpoints should be externally accessible."""
         return self._database_provides.external_connectivity(event)
 
     def _reconcile_node_port(self, *, event) -> None:
@@ -116,6 +117,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self.unit.set_ports(*ports)
 
     def wait_until_mysql_router_ready(self, *, event) -> None:
+        """Wait until a connection to MySQL Router is possible."""
         logger.debug("Waiting until MySQL Router is ready")
         self.unit.status = ops.MaintenanceStatus("MySQL Router starting")
         try:

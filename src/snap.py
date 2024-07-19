@@ -170,17 +170,21 @@ class Snap(container.Container):
 
     @property
     def ready(self) -> bool:
+        """Whether container is ready."""
         return True
 
     @property
     def mysql_router_service_enabled(self) -> bool:
+        """Whether mysql router service is enabled."""
         return _snap.services[self._SERVICE_NAME]["active"]
 
     @property
     def mysql_router_exporter_service_enabled(self) -> bool:
+        """Whether mysql router exporter service is enabled."""
         return _snap.services[self._EXPORTER_SERVICE_NAME]["active"]
 
     def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
+        """Update the mysql router service."""
         super().update_mysql_router_service(enabled=enabled, tls=tls)
 
         if tls:
@@ -208,6 +212,7 @@ class Snap(container.Container):
         certificate_filename: str = None,
         certificate_authority_filename: str = None,
     ) -> None:
+        """Update the mysql router exporter service."""
         super().update_mysql_router_exporter_service(
             enabled=enabled,
             config=config,
@@ -218,23 +223,19 @@ class Snap(container.Container):
         )
 
         if enabled:
-            _snap.set(
-                {
-                    "mysqlrouter-exporter.listen-port": config.listen_port,
-                    "mysqlrouter-exporter.user": config.username,
-                    "mysqlrouter-exporter.password": config.password,
-                    "mysqlrouter-exporter.url": config.url,
-                    "mysqlrouter-exporter.service-name": self._unit_name.replace("/", "-"),
-                }
-            )
+            _snap.set({
+                "mysqlrouter-exporter.listen-port": config.listen_port,
+                "mysqlrouter-exporter.user": config.username,
+                "mysqlrouter-exporter.password": config.password,
+                "mysqlrouter-exporter.url": config.url,
+                "mysqlrouter-exporter.service-name": self._unit_name.replace("/", "-"),
+            })
             if tls:
-                _snap.set(
-                    {
-                        "mysqlrouter.tls-cacert-path": certificate_authority_filename,
-                        "mysqlrouter.tls-cert-path": certificate_filename,
-                        "mysqlrouter.tls-key-path": key_filename,
-                    }
-                )
+                _snap.set({
+                    "mysqlrouter.tls-cacert-path": certificate_authority_filename,
+                    "mysqlrouter.tls-cert-path": certificate_filename,
+                    "mysqlrouter.tls-key-path": key_filename,
+                })
             else:
                 _snap.unset("mysqlrouter.tls-cacert-path")
                 _snap.unset("mysqlrouter.tls-cert-path")
@@ -261,8 +262,9 @@ class Snap(container.Container):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: str = None,
+        stdin: str = None,
     ) -> str:
+        """Run the provided command."""
         try:
             output = subprocess.run(
                 command,
@@ -279,4 +281,5 @@ class Snap(container.Container):
         return output
 
     def path(self, *args, **kwargs) -> _Path:
+        """Return a path."""
         return _Path(*args, **kwargs)

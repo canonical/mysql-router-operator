@@ -66,6 +66,7 @@ async def execute_queries_against_unit(
         username: The MySQL username
         password: The MySQL password
         queries: A list of queries to execute
+        port: Port of the connection
         commit: A keyword arg indicating whether there are any writes queries
 
     Returns:
@@ -120,9 +121,7 @@ async def delete_file_or_directory_in_unit(ops_test: OpsTest, unit_name: str, pa
     if path.strip() in ["/", "."]:
         return
 
-    return_code, _, _ = await ops_test.juju(
-        "ssh", unit_name, "sudo", "find", path, "-maxdepth", "1", "-delete"
-    )
+    await ops_test.juju("ssh", unit_name, "sudo", "find", path, "-maxdepth", "1", "-delete")
 
 
 async def write_content_to_file_in_unit(
@@ -192,7 +191,7 @@ async def ls_la_in_unit(ops_test: OpsTest, unit_name: str, directory: str) -> li
     Args:
         ops_test: The ops test framework
         unit_name: The name of unit in which to run ls -la
-        path: The path from which to run ls -la
+        directory: The directory from which to run ls -la
 
     Returns:
         a list of files returned by ls -la
@@ -403,7 +402,7 @@ async def ensure_all_units_continuous_writes_incrementing(
                             select_all_continuous_writes_sql,
                         )
                     )
-                    numbers = {n for n in range(1, max_written_value)}
+                    numbers = {range(1, max_written_value)}
                     assert (
                         numbers <= all_written_values
                     ), f"Missing numbers in database for unit {unit.name}"

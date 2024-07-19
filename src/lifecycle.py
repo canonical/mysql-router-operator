@@ -5,6 +5,7 @@
 
 https://juju.is/docs/sdk/a-charms-life
 """
+
 import enum
 import logging
 import typing

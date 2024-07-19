@@ -6,7 +6,7 @@
 import ops
 
 
-class StatusException(Exception):
+class StatusExceptionError(Exception):
     """Exception with ops status"""
 
     def __init__(self, status: ops.StatusBase) -> None:
