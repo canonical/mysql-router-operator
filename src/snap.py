@@ -218,23 +218,19 @@ class Snap(container.Container):
         )
 
         if enabled:
-            _snap.set(
-                {
-                    "mysqlrouter-exporter.listen-port": config.listen_port,
-                    "mysqlrouter-exporter.user": config.username,
-                    "mysqlrouter-exporter.password": config.password,
-                    "mysqlrouter-exporter.url": config.url,
-                    "mysqlrouter-exporter.service-name": self._unit_name.replace("/", "-"),
-                }
-            )
+            _snap.set({
+                "mysqlrouter-exporter.listen-port": config.listen_port,
+                "mysqlrouter-exporter.user": config.username,
+                "mysqlrouter-exporter.password": config.password,
+                "mysqlrouter-exporter.url": config.url,
+                "mysqlrouter-exporter.service-name": self._unit_name.replace("/", "-"),
+            })
             if tls:
-                _snap.set(
-                    {
-                        "mysqlrouter.tls-cacert-path": certificate_authority_filename,
-                        "mysqlrouter.tls-cert-path": certificate_filename,
-                        "mysqlrouter.tls-key-path": key_filename,
-                    }
-                )
+                _snap.set({
+                    "mysqlrouter.tls-cacert-path": certificate_authority_filename,
+                    "mysqlrouter.tls-cert-path": certificate_filename,
+                    "mysqlrouter.tls-key-path": key_filename,
+                })
             else:
                 _snap.unset("mysqlrouter.tls-cacert-path")
                 _snap.unset("mysqlrouter.tls-cert-path")
@@ -261,7 +257,7 @@ class Snap(container.Container):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: str = None, # noqa: A002
+        input: str = None,  # noqa: A002
     ) -> str:
         try:
             output = subprocess.run(

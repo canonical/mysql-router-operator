@@ -26,23 +26,19 @@ class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
     ) -> typing.List[str]:
         command = super()._get_bootstrap_command(event=event, connection_info=connection_info)
         if self._charm.is_externally_accessible(event=event):
-            command.extend(
-                [
-                    "--conf-bind-address",
-                    "0.0.0.0",
-                ]
-            )
+            command.extend([
+                "--conf-bind-address",
+                "0.0.0.0",
+            ])
         else:
-            command.extend(
-                [
-                    "--conf-use-sockets",
-                    # For unix sockets, authentication fails on first connection if this option is not
-                    # set. Workaround for https://bugs.mysql.com/bug.php?id=107291
-                    "--conf-set-option",
-                    "DEFAULT.server_ssl_mode=PREFERRED",
-                    "--conf-skip-tcp",
-                ]
-            )
+            command.extend([
+                "--conf-use-sockets",
+                # For unix sockets, authentication fails on first connection if this option is not
+                # set. Workaround for https://bugs.mysql.com/bug.php?id=107291
+                "--conf-set-option",
+                "DEFAULT.server_ssl_mode=PREFERRED",
+                "--conf-skip-tcp",
+            ])
         return command
 
     def _update_configured_socket_file_locations(self) -> None:

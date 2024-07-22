@@ -121,9 +121,7 @@ async def delete_file_or_directory_in_unit(ops_test: OpsTest, unit_name: str, pa
     if path.strip() in ["/", "."]:
         return
 
-    await ops_test.juju(
-        "ssh", unit_name, "sudo", "find", path, "-maxdepth", "1", "-delete"
-    )
+    await ops_test.juju("ssh", unit_name, "sudo", "find", path, "-maxdepth", "1", "-delete")
 
 
 async def write_content_to_file_in_unit(
