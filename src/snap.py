@@ -261,7 +261,7 @@ class Snap(container.Container):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: str = None,
+        input: str = None, # noqa: A002
     ) -> str:
         try:
             output = subprocess.run(
