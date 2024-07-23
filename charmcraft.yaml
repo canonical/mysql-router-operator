@@ -25,7 +25,7 @@ parts:
           exit 1
       fi
     # TODO: enable after https://github.com/canonical/charmcraft/issues/1456 fixed
-    charm-strict-dependencies: false
+    charm-strict-dependencies: true
     charm-entrypoint: src/machine_charm.py
     prime:
       - charm_version
