@@ -18,6 +18,7 @@ jobs:
     name: Build charm | cache ${{ matrix.cache }} | ${{ matrix.charmcraft }}
     strategy:
       matrix:
+        fail-fast: false
         cache: [true, false]
         charmcraft: [2.x/stable, 2.x/candidate]
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v16.3.0
