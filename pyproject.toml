@@ -87,35 +87,27 @@ line-length = 99
 [tool.ruff.lint]
 explicit-preview-rules = true
 select = ["A", "E", "W", "F", "C", "N", "D", "I", "CPY001"]
-# Ignore W503, E501 because using black creates errors with this
-# Ignore D107 Missing docstring in __init__
-# Ignore D105 Missing docstring in magic method
-# Ignore D415 Docstring first line punctuation (doesn't make sense for properties)
-# Ignore D403 First word of the first line should be properly capitalized (false positive on "MySQL")
-# Ignore N818 Exception should be named with an Error suffix
-# Ignore D102 Missing docstring in public method (pydocstyle doesn't look for docstrings in super class
-# Ignore W505 So that strings in comments aren't split across lines
-# Ignore D107 Missing docstring in __init__
 ignore = [
-    "D102",
-    "D105",
-    "D107",
-    "D203",
-    "D204",
-    "D213",
-    "D215",
-    "D400",
-    "D403",
-    "D404",
-    "D406",
-    "D407",
-    "D408",
-    "D409",
-    "D413",
-    "D415",
-    "E501",
-    "N818",
-    "W505",
+    "D102", # Ignore D102 Missing docstring in public method
+    "D105", # Ignore D105 Missing docstring in magic method
+    "D107", # Ignore D107 Missing docstring in __init__
+    "D203", # Ignore D203 1 blank line required before class docstring
+    "D204", # Ignore D204 1 blank line required after class docstring
+    "D213", # Ignore D213 Multi-line docstring summary should start at the second line
+    "D215", # Ignore D215 Section underline is over-indented
+    "D400", # Ignore D400 First line should end with a period
+    "D403", # Ignore D403 First word of the first line should be capitalized
+    "D404", # Ignore D404 First word of the docstring should not be "This"
+    "D406", # Ignore D406 Section name should end with a newline
+    "D407", # Ignore D407 Missing dashed underline after section
+    "D408", # Ignore D408 Section underline should be in the line following section's name
+    "D409", # Ignore D409 Section underline should match the length of its name
+    "D413", # Ignore D413 Missing blank line after last section
+    "D415", # Ignore D415 First line should end with a period, question mark, or exclamation point
+    "E501", # Ignore E501 Line too long
+    "N801", # Ignore N801 Class name should use CapWords convention
+    "N818", # Ignore N818 Exception name should be named with an Error suffix
+    "W505", # Ignore W505 Doc line too long
 ]
 
 [tool.ruff.lint.per-file-ignores]

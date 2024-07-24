@@ -103,8 +103,8 @@ class Shell:
                 raise ShellDBError(**exception)
         except ShellDBError as e:
             if e.code == 2003:
-                logger.exception(server_exceptions.ConnectionError.MESSAGE)
-                raise server_exceptions.ConnectionError
+                logger.exception(server_exceptions.ConnectionError_.MESSAGE)
+                raise server_exceptions.ConnectionError_
             else:
                 logger.exception(
                     f"Failed to run MySQL Shell script:\n{logged_script}\n\nMySQL client error {e.code}\nMySQL Shell traceback:\n{e.traceback_message}\n"

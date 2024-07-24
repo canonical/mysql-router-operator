@@ -12,7 +12,7 @@ class Error(status_exception.StatusException):
     """MySQL Server unreachable or unhealthy"""
 
 
-class ConnectionError(Error):  # noqa: A001
+class ConnectionError_(Error):
     """MySQL Server unreachable
 
     MySQL client error 2003
