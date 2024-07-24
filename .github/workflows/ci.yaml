@@ -15,12 +15,16 @@ on:
 
 jobs:
   build:
-    name: Build charm | cache ${{ matrix.cache }} | ${{ matrix.charmcraft }}
+    name: Build charm | cache ${{ matrix.cache }} | ${{ matrix.charmcraft.ch }}
     strategy:
       fail-fast: false
       matrix:
         cache: [true, false]
-        charmcraft: [2.x/stable, 2.x/candidate]
+        charmcraft:
+          - ch: 2.x/stable
+            name: stable
+          - ch: 2.x/candidate
+            name: candidate
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v16.3.0
     with:
       # Use of cache blocked by https://github.com/canonical/charmcraft/issues/1456
@@ -28,5 +32,5 @@ jobs:
       cache: ${{ matrix.cache }}
       # Remove prefix when cache enabled
       # Needed to avoid conflict with artifact name on release CI
-      artifact-prefix: ci-packed-charm-${{ matrix.cache }}-${{ matrix.charmcraft }}
-      charmcraft-snap-channel: ${{ matrix.charmcraft }}
+      artifact-prefix: ci-packed-charm-${{ matrix.cache }}-${{ matrix.charmcraft.name }}
+      charmcraft-snap-channel: ${{ matrix.charmcraft.ch }}
