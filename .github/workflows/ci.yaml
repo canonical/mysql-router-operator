@@ -28,5 +28,5 @@ jobs:
       cache: ${{ matrix.cache }}
       # Remove prefix when cache enabled
       # Needed to avoid conflict with artifact name on release CI
-      artifact-prefix: ci-packed-charm-cache-false-.
+      artifact-prefix: ci-packed-charm-${{ matrix.cache }}-${{ matrix.charmcraft }}
       charmcraft-snap-channel: ${{ matrix.charmcraft }}
