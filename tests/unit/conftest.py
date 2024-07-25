@@ -101,7 +101,8 @@ def machine_patch(monkeypatch):
     monkeypatch.setattr(snap, "_snap", Snap())
 
     monkeypatch.setattr(
-        "snap.Snap._run_command", lambda *args, **kwargs: "null"  # Use "null" for `json.loads()`
+        "snap.Snap._run_command",
+        lambda *args, **kwargs: "null",  # Use "null" for `json.loads()`
     )
     monkeypatch.setattr("snap._Path.read_text", lambda *args, **kwargs: "")
     monkeypatch.setattr("snap._Path.write_text", lambda *args, **kwargs: None)
@@ -116,20 +117,18 @@ def machine_patch(monkeypatch):
         self.model.get_binding(event.relation).network.bind_address
         Will always return '10.1.157.116'
         """
-        return ops.model.Network(
-            {
-                "bind-addresses": [
-                    {
-                        "mac-address": "",
-                        "interface-name": "",
-                        "addresses": [{"hostname": "", "value": "10.1.157.116", "cidr": ""}],
-                    }
-                ],
-                "bind-address": "10.1.157.116",
-                "egress-subnets": ["10.152.183.65/32"],
-                "ingress-addresses": ["10.152.183.65"],
-            }
-        )
+        return ops.model.Network({
+            "bind-addresses": [
+                {
+                    "mac-address": "",
+                    "interface-name": "",
+                    "addresses": [{"hostname": "", "value": "10.1.157.116", "cidr": ""}],
+                }
+            ],
+            "bind-address": "10.1.157.116",
+            "egress-subnets": ["10.152.183.65/32"],
+            "ingress-addresses": ["10.152.183.65"],
+        })
 
     monkeypatch.setattr("ops.model.Binding._network_get", _network_get)
 

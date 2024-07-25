@@ -177,7 +177,7 @@ class Container(abc.ABC):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: str = None,
+        input: str = None,  # noqa: A002 Match subprocess.run()
     ) -> str:
         """Run command in container.
 

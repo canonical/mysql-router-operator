@@ -82,14 +82,12 @@ class Shell:
         error_file = self._container.path("/tmp/mysqlsh_error.json")
         temporary_script_file.write_text(script)
         try:
-            self._container.run_mysql_shell(
-                [
-                    "--no-wizard",
-                    "--python",
-                    "--file",
-                    str(temporary_script_file.relative_to_container),
-                ]
-            )
+            self._container.run_mysql_shell([
+                "--no-wizard",
+                "--python",
+                "--file",
+                str(temporary_script_file.relative_to_container),
+            ])
         except container.CalledProcessError as e:
             logger.exception(
                 f"Failed to run MySQL Shell script:\n{logged_script}\n\nstderr:\n{e.stderr}\n"
@@ -105,8 +103,8 @@ class Shell:
                 raise ShellDBError(**exception)
         except ShellDBError as e:
             if e.code == 2003:
-                logger.exception(server_exceptions.ConnectionError.MESSAGE)
-                raise server_exceptions.ConnectionError
+                logger.exception(server_exceptions.ConnectionError_.MESSAGE)
+                raise server_exceptions.ConnectionError_
             else:
                 logger.exception(
                     f"Failed to run MySQL Shell script:\n{logged_script}\n\nMySQL client error {e.code}\nMySQL Shell traceback:\n{e.traceback_message}\n"
@@ -136,13 +134,11 @@ class Shell:
         attributes = self._get_attributes()
         logger.debug(f"Creating {database=} and {username=} with {attributes=}")
         password = utils.generate_password()
-        self._run_sql(
-            [
-                f"CREATE DATABASE IF NOT EXISTS `{database}`",
-                f"CREATE USER `{username}` IDENTIFIED BY '{password}' ATTRIBUTE '{attributes}'",
-                f"GRANT ALL PRIVILEGES ON `{database}`.* TO `{username}`",
-            ]
-        )
+        self._run_sql([
+            f"CREATE DATABASE IF NOT EXISTS `{database}`",
+            f"CREATE USER `{username}` IDENTIFIED BY '{password}' ATTRIBUTE '{attributes}'",
+            f"GRANT ALL PRIVILEGES ON `{database}`.* TO `{username}`",
+        ])
         logger.debug(f"Created {database=} and {username=} with {attributes=}")
         return password
 
@@ -150,9 +146,10 @@ class Shell:
         self, *, username: str, router_id: str, unit_name: str
     ) -> None:
         """Add attributes to user created during MySQL Router bootstrap."""
-        attributes = self._get_attributes(
-            {"router_id": router_id, "created_by_juju_unit": unit_name}
-        )
+        attributes = self._get_attributes({
+            "router_id": router_id,
+            "created_by_juju_unit": unit_name,
+        })
         logger.debug(f"Adding {attributes=} to {username=}")
         self._run_sql([f"ALTER USER `{username}` ATTRIBUTE '{attributes}'"])
         logger.debug(f"Added {attributes=} to {username=}")

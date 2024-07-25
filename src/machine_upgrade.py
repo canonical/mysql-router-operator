@@ -6,6 +6,7 @@
 Derived from specification: DA058 - In-Place Upgrades - Kubernetes v2
 (https://docs.google.com/document/d/1tLjknwHudjcHs42nzPVBNkHs98XxAOT2BXGGpP7NyEU/)
 """
+
 import json
 import logging
 import time
