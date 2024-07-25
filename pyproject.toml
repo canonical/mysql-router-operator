@@ -90,7 +90,7 @@ select = ["A", "E", "W", "F", "C", "N", "D", "I", "CPY001"]
 ignore = [
     # Missing docstring in public method (pydocstyle doesn't look for docstrings in super class
     # https://github.com/PyCQA/pydocstyle/issues/309) TODO: add pylint check? https://github.com/PyCQA/pydocstyle/issues/309#issuecomment-1284142716
-    "D102", # Missing docstring in public method
+    "D102",
     "D105", # Missing docstring in magic method
     "D107", # Missing docstring in __init__
     "D403", # First word of the first line should be capitalized (false positive on "MySQL")
