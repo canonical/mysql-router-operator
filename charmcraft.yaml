@@ -23,8 +23,8 @@ bases:
     channel: "24.04"
     architectures: [arm64]
 platforms:
-  - amd64
-  - arm64
+  amd64:
+  arm64:
 parts:
   charm:
     override-pull: |
