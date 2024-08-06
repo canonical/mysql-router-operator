@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 type: charm
+base: ubuntu@24.04
 bases:
   # Whenever "bases" is changed:
   # - Update tests/conftest.py::pytest_configure()
@@ -21,6 +22,9 @@ bases:
   - name: ubuntu
     channel: "24.04"
     architectures: [arm64]
+platforms:
+  - amd64
+  - arm64
 parts:
   charm:
     override-pull: |
