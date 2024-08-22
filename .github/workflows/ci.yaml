@@ -7,8 +7,7 @@ concurrency:
   cancel-in-progress: true
 
 on:
-# TODO: uncomment below before merging
-  # pull_request:
+  pull_request:
   schedule:
     - cron: '53 0 * * *' # Daily at 00:53 UTC
   # Triggered on push to branch "main" by .github/workflows/release.yaml
@@ -117,11 +116,14 @@ jobs:
             bases-index: 0
           - series: jammy
             bases-index: 1
-        juju-snap-channel:  ["2.9/stable", "3.4/stable"]
+        juju-snap-channel:  ["2.9/stable", "3.4/stable", "3.6/beta"]
         include:
+          - juju-snap-channel: "3.6/beta"
+            agent-version: "3.6-beta2"
+            libjuju-version: "3.5.2.0"
           - juju-snap-channel: "3.4/stable"
             agent-version: "3.4.3"
-            libjuju-version:  "3.4.0.0"
+            libjuju-version:  "3.5.2.0"
           - juju-snap-channel: "2.9/stable"
             agent-version: "2.9.45"
             libjuju-version:  "2.9.44.1"
