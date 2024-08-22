@@ -68,7 +68,7 @@ async def test_ubuntu_pro(ops_test, mysql_router_charm_series, github_secrets):
 
 
 @pytest.mark.group(1)
-async def test_landscape_client(ops_test, github_secrets):
+async def test_landscape_client(ops_test, github_secrets, mysql_router_charm_series):
     await ops_test.model.deploy(
         LANDSCAPE_CLIENT_APP_NAME,
         application_name=LANDSCAPE_CLIENT_APP_NAME,
@@ -78,6 +78,7 @@ async def test_landscape_client(ops_test, github_secrets):
             "registration-key": github_secrets["LANDSCAPE_REGISTRATION_KEY"],
             "ppa": "ppa:landscape/self-hosted-beta",
         },
+        series=mysql_router_charm_series,
     )
     await ops_test.model.relate(APPLICATION_APP_NAME, LANDSCAPE_CLIENT_APP_NAME)
     async with ops_test.fast_forward("60s"):
