@@ -131,7 +131,6 @@ jobs:
           - groups: {path_to_test_file: tests/integration/test_data_integrator.py}
             ubuntu-versions: {series: focal}
     name: ${{ matrix.juju-snap-channel }} - (GH hosted) ${{ matrix.groups.job_name }} | ${{ matrix.ubuntu-versions.series }}
-    if: ${{ !startsWith(matrix.juju-snap-channel, '3.6/') || github.event_name == 'schedule'}}
     needs:
       - lint
       - unit-test
@@ -172,6 +171,7 @@ jobs:
             echo "mark_expression=not unstable" >> "$GITHUB_OUTPUT"
           fi
       - name: Run integration tests
+        if: ${{ !startsWith(matrix.juju-snap-channel, '3.6/') || github.event_name == 'schedule' }}
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }}
         env:
           LIBJUJU_VERSION_SPECIFIER: ${{ matrix.libjuju-version }}
