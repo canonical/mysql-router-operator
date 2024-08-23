@@ -77,6 +77,7 @@ jobs:
 
   gh-hosted-collect-integration-tests:
     name: (GH hosted) Collect integration test groups
+    if: ${{ !startsWith(inputs.juju-snap-channel, '3.6/') || github.event_name == 'schedule'}}
     needs:
       - lint
       - unit-test
