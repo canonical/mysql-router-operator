@@ -77,7 +77,6 @@ jobs:
 
   gh-hosted-collect-integration-tests:
     name: (GH hosted) Collect integration test groups
-    if: ${{ !startsWith(inputs.juju-snap-channel, '3.6/') || github.event_name == 'schedule'}}
     needs:
       - lint
       - unit-test
@@ -132,6 +131,7 @@ jobs:
           - groups: {path_to_test_file: tests/integration/test_data_integrator.py}
             ubuntu-versions: {series: focal}
     name: ${{ matrix.juju-snap-channel }} - (GH hosted) ${{ matrix.groups.job_name }} | ${{ matrix.ubuntu-versions.series }}
+    if: ${{ !startsWith(matrix.juju-snap-channel, '3.6/') || github.event_name == 'schedule'}}
     needs:
       - lint
       - unit-test
