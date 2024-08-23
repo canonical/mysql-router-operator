@@ -33,6 +33,7 @@ async def test_ubuntu_pro(ops_test, mysql_router_charm_series, github_secrets):
             application_name=MYSQL_ROUTER_APP_NAME,
             # deploy mysqlrouter with num_units=None since it's a subordinate charm
             num_units=None,
+            series=mysql_router_charm_series,
         ),
         ops_test.model.deploy(
             APPLICATION_APP_NAME,
@@ -46,6 +47,7 @@ async def test_ubuntu_pro(ops_test, mysql_router_charm_series, github_secrets):
             application_name=UBUNTU_PRO_APP_NAME,
             channel="latest/edge",
             config={"token": github_secrets["UBUNTU_PRO_TOKEN"]},
+            series=mysql_router_charm_series,
         ),
     )
     await ops_test.model.relate(f"{MYSQL_APP_NAME}", f"{MYSQL_ROUTER_APP_NAME}")
