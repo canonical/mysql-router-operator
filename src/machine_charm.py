@@ -20,6 +20,7 @@ import machine_logrotate
 import machine_upgrade
 import machine_workload
 import relations.database_providers_wrapper
+import relations.hacluster
 import snap
 import upgrade
 import workload
@@ -51,12 +52,14 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             self, self._database_provides
         )
         self._authenticated_workload_type = machine_workload.AuthenticatedMachineWorkload
+        self._ha_cluster = relations.hacluster(self)
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.remove, self._on_remove)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
         self.framework.observe(
             self.on[machine_upgrade.FORCE_ACTION_NAME].action, self._on_force_upgrade_action
         )
+        self.framework.observe(self.on.config_changed, self.reconcile)
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
@@ -83,6 +86,8 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def host_address(self) -> str:
         """The host address for the machine."""
+        if self._ha_cluster.relation and self.config.get("vip"):
+            return self.config["vip"]
         return str(self.model.get_binding("juju-info").network.bind_address)
 
     @property

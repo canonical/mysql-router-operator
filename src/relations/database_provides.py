@@ -89,16 +89,20 @@ class _RelationThatRequestedUser(_Relation):
         router_read_only_endpoint: str,
     ) -> None:
         """Share connection information with application charm."""
-        logger.debug(
-            f"Setting databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
-        )
+        logger.debug(f"Setting databag {self._id} {self._database}")
         self._interface.set_database(self._id, self._database)
-        self._interface.set_credentials(self._id, username, password)
-        self._interface.set_endpoints(self._id, router_read_write_endpoint)
-        self._interface.set_read_only_endpoints(self._id, router_read_only_endpoint)
-        logger.debug(
-            f"Set databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
-        )
+
+        if username and password:
+            logger.debug(f"Setting databag {self._id=} {username=} {password=}")
+            self._interface.set_credentials(self._id, username, password)
+
+        if router_read_write_endpoint:
+            logger.debug(f"Setting databag {self._id} {router_read_write_endpoint=}")
+            self._interface.set_endpoints(self._id, router_read_write_endpoint)
+
+        if router_read_only_endpoint:
+            logger.debug(f"Setting databag {router_read_only_endpoint=}")
+            self._interface.set_read_only_endpoints(self._id, router_read_only_endpoint)
 
     def create_database_and_user(
         self,
@@ -123,6 +127,24 @@ class _RelationThatRequestedUser(_Relation):
             username=username, database=self._database
         )
 
+        self.update_endpoints(
+            router_read_write_endpoint=router_read_write_endpoint,
+            router_read_only_endpoint=router_read_only_endpoint,
+            exposed_read_write_endpoint=exposed_read_write_endpoint,
+            exposed_read_only_endpoint=exposed_read_only_endpoint,
+        )
+
+        self._set_databag(username=username, password=password)
+
+    def update_endpoints(
+        self,
+        *,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+        exposed_read_write_endpoint: str,
+        exposed_read_only_endpoint: str,
+    ) -> None:
+        """Update the endpoints in the databag."""
         rw_endpoint = (
             exposed_read_write_endpoint
             if self.external_connectivity
@@ -133,8 +155,6 @@ class _RelationThatRequestedUser(_Relation):
         )
 
         self._set_databag(
-            username=username,
-            password=password,
             router_read_write_endpoint=rw_endpoint,
             router_read_only_endpoint=ro_endpoint,
         )
@@ -214,6 +234,42 @@ class RelationEndpoint:
             ):
                 pass
         return any(relation.external_connectivity for relation in requested_users)
+
+    def update_endpoints(
+        self,
+        *,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+        exposed_read_write_endpoint: str,
+        exposed_read_only_endpoint: str,
+    ) -> None:
+        """Update the endpoints in the provides relationship databags."""
+        logger.debug(
+            f"Update endpoints {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+        )
+        requested_users = []
+        for relation in self._interface.relations:
+            try:
+                requested_users.append(
+                    _RelationThatRequestedUser(
+                        relation=relation, interface=self._interface, event=None
+                    )
+                )
+            except (
+                _RelationBreaking,
+                remote_databag.IncompleteDatabag,
+                _UnsupportedExtraUserRole,
+            ):
+                pass
+        logger.debug(f"State of update_endpoints {requested_users=}, {self._shared_users=}")
+        for relation in requested_users:
+            if relation not in self._shared_users:
+                self._database_provides.update_endpoints(
+                    router_read_write_endpoint=router_read_write_endpoint,
+                    router_read_only_endpoint=router_read_only_endpoint,
+                    exposed_read_write_endpoint=exposed_read_write_endpoint,
+                    exposed_read_only_endpoint=exposed_read_only_endpoint,
+                )
 
     def reconcile_users(
         self,

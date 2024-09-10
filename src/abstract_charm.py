@@ -48,6 +48,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self._database_requires = relations.database_requires.RelationEndpoint(self)
         self._database_provides = relations.database_provides.RelationEndpoint(self)
         self._cos_relation = relations.cos.COSRelation(self, self._container)
+        self._ha_cluster = None
         self.framework.observe(self.on.update_status, self.reconcile)
         self.framework.observe(
             self.on[upgrade.PEER_RELATION_ENDPOINT_NAME].relation_changed, self.reconcile
@@ -123,6 +124,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
         Only defined in vm charm to return True/False. In k8s charm, returns None.
         """
+
+    @property
+    def is_workload_authenticated(self) -> bool:
+        """Whether the workload is authenticated."""
+        return isinstance(self.get_workload(event=None), self._authenticated_workload_type)
 
     @property
     def _tls_certificate_saved(self) -> bool:
@@ -212,6 +218,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         workload_status = self.get_workload(event=event).status
         if self._upgrade:
             statuses.append(self._upgrade.get_unit_juju_status(workload_status=workload_status))
+        if self._ha_cluster:
+            statuses.append(self._ha_cluster.get_unit_juju_status())
         statuses.append(workload_status)
         return self._prioritize_statuses(statuses)
 
@@ -332,6 +340,13 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                         exposed_read_write_endpoint=self._exposed_read_write_endpoint,
                         exposed_read_only_endpoint=self._exposed_read_only_endpoint,
                         shell=workload_.shell,
+                    )
+                if self._ha_cluster and self._ha_cluster.vip_changed():
+                    self._database_provides.update_endpoints(
+                        router_read_write_endpoint=self._read_write_endpoint,
+                        router_read_only_endpoint=self._read_only_endpoint,
+                        exposed_read_write_endpoint=self._exposed_read_write_endpoint,
+                        exposed_read_only_endpoint=self._exposed_read_only_endpoint,
                     )
             if workload_.container_ready:
                 workload_.reconcile(

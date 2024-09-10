@@ -42,6 +42,22 @@ class RelationEndpoint:
         """Whether any of the relations are marked as external."""
         return self._database_provides.external_connectivity(event)
 
+    def update_endpoints(
+        self,
+        *,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+        exposed_read_write_endpoint: str,
+        exposed_read_only_endpoint: str,
+    ) -> None:
+        """Update the endpoints in the provides relationship databags."""
+        self._database_provides.update_endpoints(
+            router_read_write_endpoint=router_read_write_endpoint,
+            router_read_only_endpoint=router_read_only_endpoint,
+            exposed_read_write_endpoint=exposed_read_write_endpoint,
+            exposed_read_only_endpoint=exposed_read_only_endpoint,
+        )
+
     def reconcile_users(
         self,
         *,

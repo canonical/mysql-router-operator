@@ -46,11 +46,17 @@ requires:
     interface: tracing
     optional: true
     limit: 1
+  hacluster:
+    interface: hacluster
+    limit: 1
+    optional: true
 peers:
   tls:
     interface: tls
   cos:
     interface: cos
+  ha:
+    interface: ha
   upgrade-version-a:
     # Relation versioning scheme:
     # DA056 - Upgrading in-place upgrade protocol
