@@ -16,6 +16,12 @@ bases:
     channel: "22.04"
     architectures: [arm64]
 parts:
+  files:
+    plugin: dump
+    source: .
+    prime:
+      - charm_version
+      - workload_version
   charm:
     override-pull: |
       craftctl default
@@ -27,9 +33,6 @@ parts:
     # TODO: enable after https://github.com/canonical/charmcraft/issues/1456 fixed
     charm-strict-dependencies: false
     charm-entrypoint: src/machine_charm.py
-    prime:
-      - charm_version
-      - workload_version
     build-packages:
       - libffi-dev
       - libssl-dev

@@ -27,6 +27,7 @@ class HACluster(ops.Object):
         self.framework.observe(
             charm.on[HACLUSTER_RELATION_NAME].relation_changed, self._on_changed
         )
+        self.framework.observe(charm.on.config_changed, self._on_changed)
 
     @property
     def relation(self) -> ops.Relation:
@@ -38,6 +39,9 @@ class HACluster(ops.Object):
         """The HA peer relation app databag."""
         return self.charm.model.get_relation(HA_PEER_RELATION_NAME).data[self.charm.app]
 
+    def is_set_up(self) -> bool:
+        return self.relation and self.charm.config.get("vip")
+
     def _is_clustered(self) -> bool:
         for key, value in self.relation.data.items():
             if isinstance(key, ops.Unit) and key != self.charm.unit:
@@ -46,28 +50,19 @@ class HACluster(ops.Object):
                 break
         return False
 
-    def _on_changed(self, event: ops.RelationChangedEvent) -> None:
+    def _on_changed(self, event: ops.RelationChangedEvent | ops.RelationBrokenEvent) -> None:
         self.set_vip(self.charm.config.get("vip"))
-
-    def vip_changed(self) -> bool:
-        """Indicate whether the VIP config changed."""
-        old_vip = self.app_peer_relation.get("vip")
-        if old_vip and old_vip != self.charm.config.get("vip"):
-            self.app_peer_relation["vip"] = self.charm.config.get("vip")
-            return True
-
-        return False
 
     def get_unit_juju_status(self) -> ops.StatusBase:
         """Returns the status of the hacluster if relation exists."""
-        if self.relation and not self.charm.is_externally_accessible():
+        if self.relation and not self.charm.is_externally_accessible(event=None):
             return ops.BlockedStatus("ha integration used without data-integrator")
 
         vip = self.charm.config.get("vip")
         if self.relation and not vip:
             return ops.BlockedStatus("ha integration used without vip configuration")
 
-        if vip and not self.charm.is_externally_accessible():
+        if vip and not self.charm.is_externally_accessible(event=None):
             return ops.BlockedStatus("vip configuration without data-integrator")
 
         if self.charm.is_workload_authenticated and self.charm.unit.is_leader() and vip:
@@ -110,4 +105,4 @@ class HACluster(ops.Object):
                 "json_resource_params": json_resource_params,
             }
         )
-        self.charm.update_status()
+        self.charm.reconcile()

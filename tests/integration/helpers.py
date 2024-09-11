@@ -13,7 +13,7 @@ from juju.unit import Unit
 from pytest_operator.plugin import OpsTest
 
 from .connector import MySQLConnector
-from .juju_ import run_action
+from .juju_ import is_3_or_higher, run_action
 
 logger = logging.getLogger(__name__)
 
@@ -453,3 +453,27 @@ def get_juju_status(model_name: str) -> str:
         model_name: The model for which to retrieve juju status for
     """
     return subprocess.check_output(["juju", "status", "--model", model_name], encoding="utf-8")
+
+
+async def get_data_integrator_credentials(ops_test: OpsTest, data_integrator_app_name) -> Dict:
+    """Helper to get the credentials from the deployed data integrator"""
+    data_integrator_unit = ops_test.model.applications[data_integrator_app_name].units[0]
+    action = await data_integrator_unit.run_action(action_name="get-credentials")
+    result = await action.wait()
+    if is_3_or_higher:
+        assert result.results["return-code"] == 0
+    else:
+        assert result.results["Code"] == "0"
+    assert result.results["ok"] == "True"
+    return result.results["mysql"]
+
+
+async def get_machine_address(ops_test: OpsTest, unit: Unit) -> str:
+    """Get the unit's machine's address."""
+    _, output, _ = await ops_test.juju("machines")
+
+    for line in output.splitlines():
+        if unit.machine.hostname in line:
+            return line.split()[2]
+
+    assert False, "Unable to find the unit's machine"

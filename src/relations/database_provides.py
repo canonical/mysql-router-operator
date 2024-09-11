@@ -83,10 +83,10 @@ class _RelationThatRequestedUser(_Relation):
     def _set_databag(
         self,
         *,
-        username: str,
-        password: str,
-        router_read_write_endpoint: str,
-        router_read_only_endpoint: str,
+        username: str = None,
+        password: str = None,
+        router_read_write_endpoint: str = None,
+        router_read_only_endpoint: str = None,
     ) -> None:
         """Share connection information with application charm."""
         logger.debug(f"Setting databag {self._id} {self._database}")
@@ -245,7 +245,7 @@ class RelationEndpoint:
     ) -> None:
         """Update the endpoints in the provides relationship databags."""
         logger.debug(
-            f"Update endpoints {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+            f"Update endpoints {router_read_write_endpoint=}, {router_read_only_endpoint=} {exposed_read_write_endpoint=} {exposed_read_only_endpoint=}"
         )
         requested_users = []
         for relation in self._interface.relations:
@@ -261,15 +261,14 @@ class RelationEndpoint:
                 _UnsupportedExtraUserRole,
             ):
                 pass
-        logger.debug(f"State of update_endpoints {requested_users=}, {self._shared_users=}")
+        logger.debug(f"State of update_endpoints {requested_users=}")
         for relation in requested_users:
-            if relation not in self._shared_users:
-                self._database_provides.update_endpoints(
-                    router_read_write_endpoint=router_read_write_endpoint,
-                    router_read_only_endpoint=router_read_only_endpoint,
-                    exposed_read_write_endpoint=exposed_read_write_endpoint,
-                    exposed_read_only_endpoint=exposed_read_only_endpoint,
-                )
+            relation.update_endpoints(
+                router_read_write_endpoint=router_read_write_endpoint,
+                router_read_only_endpoint=router_read_only_endpoint,
+                exposed_read_write_endpoint=exposed_read_write_endpoint,
+                exposed_read_only_endpoint=exposed_read_only_endpoint,
+            )
 
     def reconcile_users(
         self,
