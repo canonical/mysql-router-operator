@@ -164,9 +164,7 @@ async def test_external_connectivity_vip_with_hacluster(
         await ops_test.model.relate(
             f"{DATA_INTEGRATOR_APP_NAME}:juju-info", f"{HA_CLUSTER_APP_NAME}:juju-info"
         )
-        await ops_test.model.relate(
-            f"{MYSQL_ROUTER_APP_NAME}:hacluster", f"{HA_CLUSTER_APP_NAME}:ha"
-        )
+        await ops_test.model.relate(f"{MYSQL_ROUTER_APP_NAME}:ha", f"{HA_CLUSTER_APP_NAME}:ha")
 
         logger.info("Configure the VIP on mysqlrouter")
         global vip
@@ -364,7 +362,7 @@ async def test_remove_vip(ops_test: OpsTest) -> None:
 
         logger.info("Removing the relation between hacluster and mysqlrouter")
         await ops_test.model.applications[MYSQL_ROUTER_APP_NAME].remove_relation(
-            f"{MYSQL_ROUTER_APP_NAME}:hacluster", f"{HA_CLUSTER_APP_NAME}:ha"
+            f"{MYSQL_ROUTER_APP_NAME}:ha", f"{HA_CLUSTER_APP_NAME}:ha"
         )
         await ops_test.model.wait_for_idle(
             [MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT

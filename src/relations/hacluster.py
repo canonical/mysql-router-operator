@@ -10,8 +10,7 @@ from typing import Optional
 
 import ops
 
-HACLUSTER_RELATION_NAME = "hacluster"
-HA_PEER_RELATION_NAME = "ha"
+HACLUSTER_RELATION_NAME = "ha"
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +32,6 @@ class HACluster(ops.Object):
     def relation(self) -> ops.Relation:
         """Returns the relations in this model, or None if hacluster is not initialised."""
         return self.charm.model.get_relation(HACLUSTER_RELATION_NAME)
-
-    @property
-    def app_peer_relation(self) -> ops.RelationDataContent:
-        """The HA peer relation app databag."""
-        return self.charm.model.get_relation(HA_PEER_RELATION_NAME).data[self.charm.app]
 
     def _is_clustered(self) -> bool:
         for key, value in self.relation.data.items():

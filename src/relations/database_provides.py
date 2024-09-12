@@ -89,11 +89,9 @@ class _RelationThatRequestedUser(_Relation):
         router_read_only_endpoint: str = None,
     ) -> None:
         """Share connection information with application charm."""
-        logger.debug(f"Setting databag {self._id} {self._database}")
-        self._interface.set_database(self._id, self._database)
-
         if username and password:
-            logger.debug(f"Setting databag {self._id=} {username=} {password=}")
+            logger.debug(f"Setting databag {self._id=} {self._database} {username=}")
+            self._interface.set_database(self._id, self._database)
             self._interface.set_credentials(self._id, username, password)
 
         if router_read_write_endpoint:
@@ -263,12 +261,13 @@ class RelationEndpoint:
                 pass
         logger.debug(f"State of update_endpoints {requested_users=}")
         for relation in requested_users:
-            relation.update_endpoints(
-                router_read_write_endpoint=router_read_write_endpoint,
-                router_read_only_endpoint=router_read_only_endpoint,
-                exposed_read_write_endpoint=exposed_read_write_endpoint,
-                exposed_read_only_endpoint=exposed_read_only_endpoint,
-            )
+            if relation in self._shared_users:
+                relation.update_endpoints(
+                    router_read_write_endpoint=router_read_write_endpoint,
+                    router_read_only_endpoint=router_read_only_endpoint,
+                    exposed_read_write_endpoint=exposed_read_write_endpoint,
+                    exposed_read_only_endpoint=exposed_read_only_endpoint,
+                )
 
     def reconcile_users(
         self,

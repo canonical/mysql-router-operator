@@ -341,14 +341,14 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                         exposed_read_only_endpoint=self._exposed_read_only_endpoint,
                         shell=workload_.shell,
                     )
-                # _ha_cluster only assigned a value in machine charms
-                if self._ha_cluster:
-                    self._database_provides.update_endpoints(
-                        router_read_write_endpoint=self._read_write_endpoint,
-                        router_read_only_endpoint=self._read_only_endpoint,
-                        exposed_read_write_endpoint=self._exposed_read_write_endpoint,
-                        exposed_read_only_endpoint=self._exposed_read_only_endpoint,
-                    )
+                    # _ha_cluster only assigned a value in machine charms
+                    if self._ha_cluster:
+                        self._database_provides.update_endpoints(
+                            router_read_write_endpoint=self._read_write_endpoint,
+                            router_read_only_endpoint=self._read_only_endpoint,
+                            exposed_read_write_endpoint=self._exposed_read_write_endpoint,
+                            exposed_read_only_endpoint=self._exposed_read_only_endpoint,
+                        )
             if workload_.container_ready:
                 workload_.reconcile(
                     event=event,
