@@ -6,7 +6,7 @@ import json
 import logging
 from hashlib import shake_128
 from ipaddress import IPv4Address, ip_address
-from typing import Optional
+from typing import Optional, Union
 
 import ops
 
@@ -41,7 +41,7 @@ class HACluster(ops.Object):
                 break
         return False
 
-    def _on_changed(self, event: ops.RelationChangedEvent | ops.RelationBrokenEvent) -> None:
+    def _on_changed(self, event: Union[ops.RelationChangedEvent, ops.RelationBrokenEvent]) -> None:
         self.set_vip(self.charm.config.get("vip"))
 
     def get_unit_juju_status(self) -> ops.StatusBase:
