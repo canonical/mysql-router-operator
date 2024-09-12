@@ -105,10 +105,6 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     def _exposed_read_only_endpoint(self) -> str:
         return f"{self.host_address}:{self._READ_ONLY_PORT}"
 
-    @property
-    def _is_hacluster_setup(self) -> typing.Optional[bool]:
-        return self._ha_cluster and self._ha_cluster.is_set_up()
-
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
         return self._database_provides.external_connectivity(event)
 

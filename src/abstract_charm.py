@@ -118,14 +118,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def _exposed_read_only_endpoint(self) -> str:
         """The exposed read-only endpoint"""
 
-    @property
-    @abc.abstractmethod
-    def _is_hacluster_setup(self) -> typing.Optional[bool]:
-        """Whether the hacluster integration is set up correctly.
-
-        Only defined in vm charm to return True/False. In k8s charm, return None.
-        """
-
     @abc.abstractmethod
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
         """Whether endpoints should be externally accessible.
@@ -350,7 +342,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                         shell=workload_.shell,
                     )
                 # _ha_cluster only assigned a value in machine charms
-                if self._ha_cluster and self._is_hacluster_setup:
+                if self._ha_cluster:
                     self._database_provides.update_endpoints(
                         router_read_write_endpoint=self._read_write_endpoint,
                         router_read_only_endpoint=self._read_only_endpoint,

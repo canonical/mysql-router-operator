@@ -39,9 +39,6 @@ class HACluster(ops.Object):
         """The HA peer relation app databag."""
         return self.charm.model.get_relation(HA_PEER_RELATION_NAME).data[self.charm.app]
 
-    def is_set_up(self) -> bool:
-        return self.relation and self.charm.config.get("vip")
-
     def _is_clustered(self) -> bool:
         for key, value in self.relation.data.items():
             if isinstance(key, ops.Unit) and key != self.charm.unit:

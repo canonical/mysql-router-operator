@@ -455,9 +455,19 @@ def get_juju_status(model_name: str) -> str:
     return subprocess.check_output(["juju", "status", "--model", model_name], encoding="utf-8")
 
 
-async def get_data_integrator_credentials(ops_test: OpsTest, data_integrator_app_name) -> Dict:
+async def get_data_integrator_credentials(
+    ops_test: OpsTest, data_integrator_app_name: str, avoid_unit: Optional[str] = None
+) -> Dict:
     """Helper to get the credentials from the deployed data integrator"""
-    data_integrator_unit = ops_test.model.applications[data_integrator_app_name].units[0]
+    for unit in ops_test.model.applications[data_integrator_app_name].units:
+        if unit.name != avoid_unit:
+            data_integrator_unit = unit
+            break
+
+    assert data_integrator_unit, "No valid data integrator units found to query creds"
+
+    logger.info(f"Running get-credentials on {data_integrator_unit.name}")
+
     action = await data_integrator_unit.run_action(action_name="get-credentials")
     result = await action.wait()
     if is_3_or_higher:
