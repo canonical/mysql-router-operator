@@ -1,0 +1,9 @@
+# Copyright 2024 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+options:
+
+  vip:
+    description: |
+      Virtual IP to use to front mysql router units. Used only in case of external node connection.
+    type: string
