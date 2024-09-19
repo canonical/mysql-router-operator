@@ -59,6 +59,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self.framework.observe(
             self.on[machine_upgrade.FORCE_ACTION_NAME].action, self._on_force_upgrade_action
         )
+        self.framework.observe(
+            self.on[relations.hacluster.HACLUSTER_RELATION_NAME].relation_changed, self.reconcile
+        )
+        self.framework.observe(self.on.config_changed, self.reconcile)
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:

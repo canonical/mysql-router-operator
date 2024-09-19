@@ -6,9 +6,11 @@ import json
 import logging
 from hashlib import shake_128
 from ipaddress import IPv4Address, ip_address
-from typing import Optional, Union
+from typing import Optional
 
 import ops
+
+import workload
 
 HACLUSTER_RELATION_NAME = "ha"
 
@@ -16,33 +18,26 @@ logger = logging.getLogger(__name__)
 
 
 class HACluster(ops.Object):
-    """Defines hacluster functunality."""
+    """Defines hacluster functionality."""
 
     def __init__(self, charm: ops.CharmBase):
         super().__init__(charm, HACLUSTER_RELATION_NAME)
 
         self.charm = charm
 
-        self.framework.observe(
-            charm.on[HACLUSTER_RELATION_NAME].relation_changed, self._on_changed
-        )
-        self.framework.observe(charm.on.config_changed, self._on_changed)
-
     @property
-    def relation(self) -> ops.Relation:
+    def relation(self) -> Optional[ops.Relation]:
         """Returns the relations in this model, or None if hacluster is not initialised."""
         return self.charm.model.get_relation(HACLUSTER_RELATION_NAME)
 
     def _is_clustered(self) -> bool:
+        """Check if the related hacluster charm is clustered."""
         for key, value in self.relation.data.items():
             if isinstance(key, ops.Unit) and key != self.charm.unit:
                 if value.get("clustered") in ("yes", "true"):
                     return True
                 break
         return False
-
-    def _on_changed(self, event: Union[ops.RelationChangedEvent, ops.RelationBrokenEvent]) -> None:
-        self.set_vip(self.charm.config.get("vip"))
 
     def get_unit_juju_status(self) -> ops.StatusBase:
         """Returns the status of the hacluster if relation exists."""
@@ -56,7 +51,11 @@ class HACluster(ops.Object):
         if vip and not self.charm.is_externally_accessible(event=None):
             return ops.BlockedStatus("vip configuration without data-integrator")
 
-        if self.charm.is_workload_authenticated and self.charm.unit.is_leader() and vip:
+        if (
+            isinstance(self.charm.get_workload(event=None), workload.AuthenticatedWorkload)
+            and self.charm.unit.is_leader()
+            and vip
+        ):
             return ops.ActiveStatus(f"VIP: {vip}")
 
     def set_vip(self, vip: Optional[str]) -> None:
@@ -69,7 +68,6 @@ class HACluster(ops.Object):
             return
 
         if vip:
-            # TODO Add nic support
             ipaddr = ip_address(vip)
             vip_key = f"res_{self.charm.app.name}_{shake_128(vip.encode()).hexdigest(7)}_vip"
             vip_params = " params"
@@ -96,4 +94,3 @@ class HACluster(ops.Object):
                 "json_resource_params": json_resource_params,
             }
         )
-        self.charm.reconcile()

@@ -319,6 +319,10 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             f"{self._cos_relation.is_relation_breaking(event)=}"
         )
 
+        # only in machine charms
+        if self._ha_cluster:
+            self._ha_cluster.set_vip(self.config.get("vip"))
+
         try:
             if self._unit_lifecycle.authorized_leader:
                 if self._database_requires.is_relation_breaking(event):
