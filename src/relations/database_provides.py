@@ -245,29 +245,13 @@ class RelationEndpoint:
         logger.debug(
             f"Update endpoints {router_read_write_endpoint=}, {router_read_only_endpoint=} {exposed_read_write_endpoint=} {exposed_read_only_endpoint=}"
         )
-        requested_users = []
-        for relation in self._interface.relations:
-            try:
-                requested_users.append(
-                    _RelationThatRequestedUser(
-                        relation=relation, interface=self._interface, event=None
-                    )
-                )
-            except (
-                _RelationBreaking,
-                remote_databag.IncompleteDatabag,
-                _UnsupportedExtraUserRole,
-            ):
-                pass
-        logger.debug(f"State of update_endpoints {requested_users=}")
-        for relation in requested_users:
-            if relation in self._shared_users:
-                relation.update_endpoints(
-                    router_read_write_endpoint=router_read_write_endpoint,
-                    router_read_only_endpoint=router_read_only_endpoint,
-                    exposed_read_write_endpoint=exposed_read_write_endpoint,
-                    exposed_read_only_endpoint=exposed_read_only_endpoint,
-                )
+        for relation in self._shared_users:
+            relation.update_endpoints(
+                router_read_write_endpoint=router_read_write_endpoint,
+                router_read_only_endpoint=router_read_only_endpoint,
+                exposed_read_write_endpoint=exposed_read_write_endpoint,
+                exposed_read_only_endpoint=exposed_read_only_endpoint,
+            )
 
     def reconcile_users(
         self,
