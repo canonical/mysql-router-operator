@@ -87,14 +87,14 @@ class _RelationThatRequestedUser(_Relation):
     def _set_databag(
         self,
         *,
-        username: str = None,
-        password: str = None,
-        router_read_write_endpoint: str = None,
-        router_read_only_endpoint: str = None,
+        username: str,
+        password: str,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
     ) -> None:
         """Share connection information with application charm."""
         logger.debug(
-            f"Setting databag {self._id=} {self._database} {username=} {router_read_write_endpoint=} {router_read_only_endpoint=}"
+            f"Setting databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
         )
         self._interface.set_database(self._id, self._database)
         self._interface.set_credentials(self._id, username, password)

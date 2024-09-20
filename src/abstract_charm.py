@@ -126,11 +126,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """
 
     @property
-    def is_workload_authenticated(self) -> bool:
-        """Whether the workload is authenticated."""
-        return isinstance(self.get_workload(event=None), self._authenticated_workload_type)
-
-    @property
     def _tls_certificate_saved(self) -> bool:
         """Whether a TLS certificate is available to use"""
         return self.tls.certificate_saved
@@ -218,6 +213,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         workload_status = self.get_workload(event=event).status
         if self._upgrade:
             statuses.append(self._upgrade.get_unit_juju_status(workload_status=workload_status))
+        # only in machine charms
         if self._ha_cluster:
             statuses.append(self._ha_cluster.get_unit_juju_status())
         statuses.append(workload_status)
