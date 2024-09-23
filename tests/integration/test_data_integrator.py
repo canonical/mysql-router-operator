@@ -3,7 +3,6 @@
 
 import asyncio
 import logging
-import typing
 
 import pytest
 import tenacity
@@ -14,6 +13,7 @@ from .helpers import (
     MYSQL_DEFAULT_APP_NAME,
     MYSQL_ROUTER_DEFAULT_APP_NAME,
     execute_queries_against_unit,
+    get_data_integrator_credentials,
     get_tls_certificate_issuer,
 )
 
@@ -33,19 +33,6 @@ if juju_.is_3_or_higher:
 else:
     TLS_APP_NAME = "tls-certificates-operator"
     TLS_CONFIG = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
-
-
-async def get_data_integrator_credentials(ops_test: OpsTest) -> typing.Dict:
-    """Helper to get the credentials from the deployed data integrator"""
-    data_integrator_unit = ops_test.model.applications[DATA_INTEGRATOR_APP_NAME].units[0]
-    action = await data_integrator_unit.run_action(action_name="get-credentials")
-    result = await action.wait()
-    if juju_.is_3_or_higher:
-        assert result.results["return-code"] == 0
-    else:
-        assert result.results["Code"] == "0"
-    assert result.results["ok"] == "True"
-    return result.results["mysql"]
 
 
 @pytest.mark.group(1)
@@ -93,13 +80,14 @@ async def test_external_connectivity_with_data_integrator(
         )
 
         logger.info("Waiting for applications to become active")
-        # We can safely wait only for test application to be ready, given that it will
-        # only become active once all the other applications are ready.
+        # We can safely wait only for data-integrator to be ready,
+        # given that it will only become active once all the other
+        # applications are ready.
         await ops_test.model.wait_for_idle(
             [DATA_INTEGRATOR_APP_NAME], status="active", timeout=SLOW_TIMEOUT
         )
 
-        credentials = await get_data_integrator_credentials(ops_test)
+        credentials = await get_data_integrator_credentials(ops_test, DATA_INTEGRATOR_APP_NAME)
         databases = await execute_queries_against_unit(
             credentials["endpoints"].split(",")[0].split(":")[0],
             credentials["username"],
@@ -116,7 +104,7 @@ async def test_external_connectivity_with_data_integrator_and_tls(ops_test: OpsT
     """Test data integrator along with TLS operator"""
     logger.info("Ensuring no data exists in the test database")
 
-    credentials = await get_data_integrator_credentials(ops_test)
+    credentials = await get_data_integrator_credentials(ops_test, DATA_INTEGRATOR_APP_NAME)
     [database_host, database_port] = credentials["endpoints"].split(",")[0].split(":")
     mysqlrouter_unit = ops_test.model.applications[MYSQL_ROUTER_APP_NAME].units[0]
 

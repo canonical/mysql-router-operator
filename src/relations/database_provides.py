@@ -40,8 +40,19 @@ class _UnsupportedExtraUserRole(status_exception.StatusException):
 class _Relation:
     """Relation to one application charm"""
 
-    def __init__(self, *, relation: ops.Relation) -> None:
+    def __init__(
+        self, *, relation: ops.Relation, interface: data_interfaces.DatabaseProvides
+    ) -> None:
         self._id = relation.id
+
+        # Application charm databag
+        self._databag = remote_databag.RemoteDatabag(interface=interface, relation=relation)
+
+        # Whether endpoints should be externally accessible
+        # (e.g. when related to `data-integrator` charm)
+        # Implements DA073 - Add Expose Flag to the Database Interface
+        # https://docs.google.com/document/d/1Y7OZWwMdvF8eEMuVKrqEfuFV3JOjpqLHL7_GPqJpRHU
+        self.external_connectivity = self._databag.get("external-node-connectivity") == "true"
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, _Relation):
@@ -63,19 +74,12 @@ class _RelationThatRequestedUser(_Relation):
     def __init__(
         self, *, relation: ops.Relation, interface: data_interfaces.DatabaseProvides, event
     ) -> None:
-        super().__init__(relation=relation)
+        super().__init__(relation=relation, interface=interface)
         self._interface = interface
         if isinstance(event, ops.RelationBrokenEvent) and event.relation.id == self._id:
             raise _RelationBreaking
-        # Application charm databag
-        databag = remote_databag.RemoteDatabag(interface=interface, relation=relation)
-        self._database: str = databag["database"]
-        # Whether endpoints should be externally accessible
-        # (e.g. when related to `data-integrator` charm)
-        # Implements DA073 - Add Expose Flag to the Database Interface
-        # https://docs.google.com/document/d/1Y7OZWwMdvF8eEMuVKrqEfuFV3JOjpqLHL7_GPqJpRHU
-        self.external_connectivity = databag.get("external-node-connectivity") == "true"
-        if databag.get("extra-user-roles"):
+        self._database: str = self._databag["database"]
+        if self._databag.get("extra-user-roles"):
             raise _UnsupportedExtraUserRole(
                 app_name=relation.app.name, endpoint_name=relation.name
             )
@@ -150,12 +154,39 @@ class _RelationWithSharedUser(_Relation):
     def __init__(
         self, *, relation: ops.Relation, interface: data_interfaces.DatabaseProvides
     ) -> None:
-        super().__init__(relation=relation)
+        super().__init__(relation=relation, interface=interface)
         self._interface = interface
         self._local_databag = self._interface.fetch_my_relation_data([relation.id])[relation.id]
         for key in ("database", "username", "password", "endpoints", "read-only-endpoints"):
             if key not in self._local_databag:
                 raise _UserNotShared
+
+    def update_endpoints(
+        self,
+        *,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+        exposed_read_write_endpoint: str,
+        exposed_read_only_endpoint: str,
+    ) -> None:
+        """Update the endpoints in the databag."""
+        logger.debug(
+            f"Updating endpoints {self._id} {router_read_write_endpoint=}, {router_read_only_endpoint=} {exposed_read_write_endpoint=} {exposed_read_only_endpoint=}"
+        )
+        rw_endpoint = (
+            exposed_read_write_endpoint
+            if self.external_connectivity
+            else router_read_write_endpoint
+        )
+        ro_endpoint = (
+            exposed_read_only_endpoint if self.external_connectivity else router_read_only_endpoint
+        )
+
+        self._interface.set_endpoints(self._id, rw_endpoint)
+        self._interface.set_read_only_endpoints(self._id, ro_endpoint)
+        logger.debug(
+            f"Updated endpoints {self._id} {router_read_write_endpoint=}, {router_read_only_endpoint=} {exposed_read_write_endpoint=} {exposed_read_only_endpoint=}"
+        )
 
     def delete_databag(self) -> None:
         """Remove connection information from databag."""
@@ -214,6 +245,23 @@ class RelationEndpoint:
             ):
                 pass
         return any(relation.external_connectivity for relation in requested_users)
+
+    def update_endpoints(
+        self,
+        *,
+        router_read_write_endpoint: str,
+        router_read_only_endpoint: str,
+        exposed_read_write_endpoint: str,
+        exposed_read_only_endpoint: str,
+    ) -> None:
+        """Update endpoints in the databags."""
+        for relation in self._shared_users:
+            relation.update_endpoints(
+                router_read_write_endpoint=router_read_write_endpoint,
+                router_read_only_endpoint=router_read_only_endpoint,
+                exposed_read_write_endpoint=exposed_read_write_endpoint,
+                exposed_read_only_endpoint=exposed_read_only_endpoint,
+            )
 
     def reconcile_users(
         self,
