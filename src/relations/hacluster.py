@@ -34,7 +34,7 @@ class HACluster(ops.Object):
         """Returns the relations in this model, or None if hacluster is not initialised."""
         return self.charm.model.get_relation(HACLUSTER_RELATION_NAME)
 
-    def _is_clustered(self) -> bool:
+    def is_clustered(self) -> bool:
         """Check if the related hacluster charm is clustered."""
         for key, value in self.relation.data.items():
             if (
@@ -69,7 +69,7 @@ class HACluster(ops.Object):
         if not self.relation:
             return
 
-        if not self._is_clustered():
+        if not self.is_clustered():
             logger.debug("early exit set_vip: ha relation not yet clustered")
             return
 

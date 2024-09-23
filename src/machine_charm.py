@@ -88,7 +88,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         """The host address for the machine."""
         if (
             self._ha_cluster.relation
-            and self._ha_cluster._is_clustered()
+            and self._ha_cluster.is_clustered()
             and self.config.get("vip")
         ):
             return self.config["vip"]
