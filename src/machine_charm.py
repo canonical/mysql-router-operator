@@ -59,9 +59,6 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         self.framework.observe(
             self.on[machine_upgrade.FORCE_ACTION_NAME].action, self._on_force_upgrade_action
         )
-        self.framework.observe(
-            self.on[relations.hacluster.HACLUSTER_RELATION_NAME].relation_changed, self.reconcile
-        )
         self.framework.observe(self.on.config_changed, self.reconcile)
 
     @property
@@ -89,7 +86,11 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def host_address(self) -> str:
         """The host address for the machine."""
-        if self._ha_cluster.relation and self.config.get("vip"):
+        if (
+            self._ha_cluster.relation
+            and self._ha_cluster._is_clustered()
+            and self.config.get("vip")
+        ):
             return self.config["vip"]
         return str(self.model.get_binding("juju-info").network.bind_address)
 

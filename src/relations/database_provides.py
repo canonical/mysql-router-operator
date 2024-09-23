@@ -170,6 +170,9 @@ class _RelationWithSharedUser(_Relation):
         exposed_read_only_endpoint: str,
     ) -> None:
         """Update the endpoints in the databag."""
+        logger.debug(
+            f"Updating endpoints {self._id} {router_read_write_endpoint=}, {router_read_only_endpoint=} {exposed_read_write_endpoint=} {exposed_read_only_endpoint=}"
+        )
         rw_endpoint = (
             exposed_read_write_endpoint
             if self.external_connectivity
@@ -181,6 +184,9 @@ class _RelationWithSharedUser(_Relation):
 
         self._interface.set_endpoints(self._id, rw_endpoint)
         self._interface.set_read_only_endpoints(self._id, ro_endpoint)
+        logger.debug(
+            f"Updated endpoints {self._id} {router_read_write_endpoint=}, {router_read_only_endpoint=} {exposed_read_write_endpoint=} {exposed_read_only_endpoint=}"
+        )
 
     def delete_databag(self) -> None:
         """Remove connection information from databag."""
@@ -248,10 +254,7 @@ class RelationEndpoint:
         exposed_read_write_endpoint: str,
         exposed_read_only_endpoint: str,
     ) -> None:
-        """Update the endpoints in the provides relationship databags."""
-        logger.debug(
-            f"Update endpoints {router_read_write_endpoint=}, {router_read_only_endpoint=} {exposed_read_write_endpoint=} {exposed_read_only_endpoint=}"
-        )
+        """Update endpoints in the databags."""
         for relation in self._shared_users:
             relation.update_endpoints(
                 router_read_write_endpoint=router_read_write_endpoint,

@@ -25,6 +25,10 @@ class HACluster(ops.Object):
 
         self.charm = charm
 
+        self.framework.observe(
+            self.charm.on[HACLUSTER_RELATION_NAME].relation_changed, self.charm.reconcile
+        )
+
     @property
     def relation(self) -> Optional[ops.Relation]:
         """Returns the relations in this model, or None if hacluster is not initialised."""
@@ -33,10 +37,12 @@ class HACluster(ops.Object):
     def _is_clustered(self) -> bool:
         """Check if the related hacluster charm is clustered."""
         for key, value in self.relation.data.items():
-            if isinstance(key, ops.Unit) and key != self.charm.unit:
-                if value.get("clustered") in ("yes", "true"):
-                    return True
-                break
+            if (
+                isinstance(key, ops.Unit)
+                and key != self.charm.unit
+                and value.get("clustered") in ("yes", "true")
+            ):
+                return True
         return False
 
     def get_unit_juju_status(self) -> ops.StatusBase:
