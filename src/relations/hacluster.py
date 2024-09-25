@@ -94,9 +94,7 @@ class HACluster(ops.Object):
             json_resources = "{}"
             json_resource_params = "{}"
 
-        self.relation.data[self.charm.unit].update(
-            {
-                "json_resources": json_resources,
-                "json_resource_params": json_resource_params,
-            }
-        )
+        self.relation.data[self.charm.unit].update({
+            "json_resources": json_resources,
+            "json_resource_params": json_resource_params,
+        })
