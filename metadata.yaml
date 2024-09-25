@@ -46,6 +46,10 @@ requires:
     interface: tracing
     optional: true
     limit: 1
+  ha:
+    interface: hacluster
+    limit: 1
+    optional: true
 peers:
   tls:
     interface: tls
