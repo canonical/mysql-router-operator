@@ -291,8 +291,8 @@ class AuthenticatedWorkload(Workload):
             elif match := re.fullmatch(r"Error:.*\((?P<code>2[0-9]{3})\)", stderr):
                 code = int(match.group("code"))
                 if code == 2003:
-                    logger.error(server_exceptions.ConnectionError.MESSAGE)
-                    raise server_exceptions.ConnectionError from None
+                    logger.error(server_exceptions.ConnectionError_.MESSAGE)
+                    raise server_exceptions.ConnectionError_ from None
                 else:
                     logger.error(f"Bootstrap failed with MySQL client error {code}")
             raise Exception("Failed to bootstrap router") from None
