@@ -86,7 +86,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def host_address(self) -> str:
         """The host address for the machine."""
-        if self.config.get("vip"):
+        if self.is_externally_accessible(event=None) and self.config.get("vip"):
             return self.config["vip"]
         return str(self.model.get_binding("juju-info").network.bind_address)
 
