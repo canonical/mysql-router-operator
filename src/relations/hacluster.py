@@ -10,8 +10,6 @@ from typing import Optional
 
 import ops
 
-import workload
-
 HACLUSTER_RELATION_NAME = "ha"
 
 logger = logging.getLogger(__name__)
@@ -57,11 +55,7 @@ class HACluster(ops.Object):
         if vip and not self.charm.is_externally_accessible(event=None):
             return ops.BlockedStatus("vip configuration without data-integrator")
 
-        if (
-            isinstance(self.charm.get_workload(event=None), workload.AuthenticatedWorkload)
-            and self.charm.unit.is_leader()
-            and vip
-        ):
+        if self.charm.unit.is_leader() and vip:
             return ops.ActiveStatus(f"VIP: {vip}")
 
     def set_vip(self, vip: Optional[str]) -> None:
