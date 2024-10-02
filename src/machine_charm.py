@@ -86,9 +86,14 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def host_address(self) -> str:
         """The host address for the machine."""
-        if self.is_externally_accessible(event=None) and self.config.get("vip"):
-            return self.config["vip"]
-        return str(self.model.get_binding("juju-info").network.bind_address)
+        if (
+            not self.is_externally_accessible(event=None)
+            or not self.config.get("vip")
+            or (self._ha_cluster and not self._ha_cluster.is_clustered())
+        ):
+            return str(self.model.get_binding("juju-info").network.bind_address)
+
+        return self.config["vip"]
 
     @property
     def _read_write_endpoint(self) -> str:
