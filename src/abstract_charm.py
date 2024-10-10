@@ -8,7 +8,7 @@ import logging
 import typing
 
 import ops
-from charms.tempo_k8s.v2.tracing import TracingEndpointRequirer
+from charms.tempo_coordinator_k8s.v0.tracing import TracingEndpointRequirer
 
 import container
 import lifecycle
