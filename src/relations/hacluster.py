@@ -34,6 +34,9 @@ class HACluster(ops.Object):
 
     def is_clustered(self) -> bool:
         """Check if the related hacluster charm is clustered."""
+        if not self.relation:
+            return False
+
         for key, value in self.relation.data.items():
             if (
                 isinstance(key, ops.Unit)
@@ -54,9 +57,6 @@ class HACluster(ops.Object):
 
         if vip and not self.charm.is_externally_accessible(event=None):
             return ops.BlockedStatus("vip configuration without data-integrator")
-
-        if self.charm.unit.is_leader() and vip:
-            return ops.ActiveStatus(f"VIP: {vip}")
 
     def set_vip(self, vip: Optional[str]) -> None:
         """Adds the requested virtual IP to the integration."""
