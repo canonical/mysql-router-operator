@@ -110,13 +110,19 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @property
     @abc.abstractmethod
-    def _exposed_read_write_endpoint(self) -> str:
-        """The exposed read-write endpoint"""
+    def _exposed_read_write_endpoint(self) -> typing.Optional[str]:
+        """The exposed read-write endpoint.
+
+        Only defined in vm charm.
+        """
 
     @property
     @abc.abstractmethod
-    def _exposed_read_only_endpoint(self) -> str:
-        """The exposed read-only endpoint"""
+    def _exposed_read_only_endpoint(self) -> typing.Optional[str]:
+        """The exposed read-only endpoint.
+
+        Only defined in vm charm.
+        """
 
     @abc.abstractmethod
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
@@ -236,11 +242,15 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """
 
     @abc.abstractmethod
-    def _reconcile_node_port(self, *, event) -> None:
-        """Reconcile node port.
+    def _reconcile_service(self) -> None:
+        """Reconcile service.
 
         Only applies to Kubernetes charm
         """
+
+    @abc.abstractmethod
+    def _wait_until_service_reconciled(self) -> None:
+        """Waits until the service is reconciled (connectable with a socket)"""
 
     @abc.abstractmethod
     def _reconcile_ports(self, *, event) -> None:
@@ -332,7 +342,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     and isinstance(workload_, workload.AuthenticatedWorkload)
                     and workload_.container_ready
                 ):
-                    self._reconcile_node_port(event=event)
+                    self._reconcile_service()
                     self._database_provides.reconcile_users(
                         event=event,
                         router_read_write_endpoint=self._read_write_endpoint,
@@ -341,14 +351,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                         exposed_read_only_endpoint=self._exposed_read_only_endpoint,
                         shell=workload_.shell,
                     )
-                    # _ha_cluster only assigned a value in machine charms
-                    if self._ha_cluster:
-                        self._database_provides.update_endpoints(
-                            router_read_write_endpoint=self._read_write_endpoint,
-                            router_read_only_endpoint=self._read_only_endpoint,
-                            exposed_read_write_endpoint=self._exposed_read_write_endpoint,
-                            exposed_read_only_endpoint=self._exposed_read_only_endpoint,
-                        )
+
             if workload_.container_ready:
                 workload_.reconcile(
                     event=event,
@@ -363,6 +366,27 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     workload_, workload.AuthenticatedWorkload
                 ):
                     self._reconcile_ports(event=event)
+
+            if (
+                self._unit_lifecycle.authorized_leader
+                and not self._upgrade.in_progress
+                and isinstance(workload_, workload.AuthenticatedWorkload)
+                and workload_.container_ready
+            ):
+                # _ha_cluster only assigned a value in machine charms
+                if self._ha_cluster:
+                    self._database_provides.update_endpoints(
+                        router_read_write_endpoint=self._read_write_endpoint,
+                        router_read_only_endpoint=self._read_only_endpoint,
+                        exposed_read_write_endpoint=self._exposed_read_write_endpoint,
+                        exposed_read_only_endpoint=self._exposed_read_only_endpoint,
+                    )
+                else:
+                    self._wait_until_service_reconciled()
+                    self._database_provides.update_endpoints(
+                        router_read_write_endpoint=self._read_write_endpoint,
+                        router_read_only_endpoint=self._read_only_endpoint,
+                    )
 
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload

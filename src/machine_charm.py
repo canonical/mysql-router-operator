@@ -103,17 +103,17 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
 
     @property
-    def _exposed_read_write_endpoint(self) -> str:
+    def _exposed_read_write_endpoint(self) -> typing.Optional[str]:
         return f"{self.host_address}:{self._READ_WRITE_PORT}"
 
     @property
-    def _exposed_read_only_endpoint(self) -> str:
+    def _exposed_read_only_endpoint(self) -> typing.Optional[str]:
         return f"{self.host_address}:{self._READ_ONLY_PORT}"
 
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
         return self._database_provides.external_connectivity(event)
 
-    def _reconcile_node_port(self, *, event) -> None:
+    def _reconcile_service(self) -> None:
         """Only applies to Kubernetes charm, so no-op."""
         pass
 
@@ -123,6 +123,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         else:
             ports = []
         self.unit.set_ports(*ports)
+
+    def _wait_until_service_reconciled(self) -> None:
+        """Only applies to Kubernetes charm, so no-op."""
+        pass
 
     def wait_until_mysql_router_ready(self, *, event) -> None:
         logger.debug("Waiting until MySQL Router is ready")
