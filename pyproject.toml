@@ -25,7 +25,6 @@ ops = ">=2.0.0"
 cryptography = ">=42.0.5"
 jsonschema = "*"
 # grafana_agent/v0/cos_agent.py
-# tempo_coordinator_k8s/v/tracing.py supports both pydantic v1 and v2
 pydantic = "<2"
 cosl = "*"
 # tempo_coordinator_k8s/v0/charm_tracing.py
