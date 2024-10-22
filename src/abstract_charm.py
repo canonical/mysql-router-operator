@@ -140,7 +140,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     @property
     def tracing_endpoint(self) -> typing.Optional[str]:
         """Otlp http endpoint for charm instrumentation."""
-        self._cos_relation.tracing_endpoint
+        return self._cos_relation.tracing_endpoint
 
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
