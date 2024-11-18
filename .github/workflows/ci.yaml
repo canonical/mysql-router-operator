@@ -116,10 +116,10 @@ jobs:
             bases-index: 0
           - series: jammy
             bases-index: 1
-        juju-snap-channel:  ["2.9/stable", "3.4/stable", "3.6/beta"]
+        juju-snap-channel:  ["2.9/stable", "3.4/stable", "3.6/candidate"]
         include:
-          - juju-snap-channel: "3.6/beta"
-            agent-version: "3.6-beta2"
+          - juju-snap-channel: "3.6/candidate"
+            agent-version: "3.6-rc2"
             libjuju-version: "3.5.2.0"
           - juju-snap-channel: "3.4/stable"
             agent-version: "3.4.3"
