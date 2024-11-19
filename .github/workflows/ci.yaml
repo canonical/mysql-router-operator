@@ -125,7 +125,7 @@ jobs:
             agent-version: "3.4.3"
             libjuju-version:  "3.5.2.0"
           - juju-snap-channel: "2.9/stable"
-            agent-version: "2.9.45"
+            agent-version: "2.9.51"
             libjuju-version:  "2.9.49.0"
         exclude:
           - groups: {path_to_test_file: tests/integration/test_data_integrator.py}
