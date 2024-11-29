@@ -8,10 +8,12 @@
 
 import logging
 import socket
+import sys
 import typing
 
 import ops
 import tenacity
+from charms.mysql.v0.architecture import WrongArchitectureWarningCharm, is_wrong_architecture
 from charms.tempo_coordinator_k8s.v0.charm_tracing import trace_charm
 
 import abstract_charm
@@ -209,4 +211,8 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
 
 if __name__ == "__main__":
+    if is_wrong_architecture():
+        ops.main.main(WrongArchitectureWarningCharm)
+        sys.exit(1)
+
     ops.main.main(MachineSubordinateRouterCharm)
