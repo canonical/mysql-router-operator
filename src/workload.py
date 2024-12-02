@@ -145,14 +145,14 @@ class Workload:
 
     def _disable_router(self) -> None:
         """Disable router and clean up corresponding router files."""
-        logger.debug("Disabling MySQL Router service")
+        logger.info("Disabling MySQL Router service")
         self._container.update_mysql_router_service(enabled=False)
         self._logrotate.disable()
         self._container.router_config_directory.rmtree()
         self._container.router_config_directory.mkdir()
         self._router_data_directory.rmtree()
         self._router_data_directory.mkdir()
-        logger.debug("Disabled MySQL Router service")
+        logger.info("Disabled MySQL Router service")
 
     def reconcile(
         self,
@@ -291,8 +291,8 @@ class AuthenticatedWorkload(Workload):
             elif match := re.fullmatch(r"Error:.*\((?P<code>2[0-9]{3})\)", stderr):
                 code = int(match.group("code"))
                 if code == 2003:
-                    logger.error(server_exceptions.ConnectionError.MESSAGE)
-                    raise server_exceptions.ConnectionError from None
+                    logger.error(server_exceptions.ConnectionError_.MESSAGE)
+                    raise server_exceptions.ConnectionError_ from None
                 else:
                     logger.error(f"Bootstrap failed with MySQL client error {code}")
             raise Exception("Failed to bootstrap router") from None

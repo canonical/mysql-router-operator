@@ -13,7 +13,7 @@ from juju.unit import Unit
 from pytest_operator.plugin import OpsTest
 
 from .connector import MySQLConnector
-from .juju_ import run_action
+from .juju_ import is_3_or_higher, run_action
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +66,7 @@ async def execute_queries_against_unit(
         username: The MySQL username
         password: The MySQL password
         queries: A list of queries to execute
+        port: The port to connect to in order to execute queries
         commit: A keyword arg indicating whether there are any writes queries
 
     Returns:
@@ -120,9 +121,7 @@ async def delete_file_or_directory_in_unit(ops_test: OpsTest, unit_name: str, pa
     if path.strip() in ["/", "."]:
         return
 
-    return_code, _, _ = await ops_test.juju(
-        "ssh", unit_name, "sudo", "find", path, "-maxdepth", "1", "-delete"
-    )
+    await ops_test.juju("ssh", unit_name, "sudo", "find", path, "-maxdepth", "1", "-delete")
 
 
 async def write_content_to_file_in_unit(
@@ -192,7 +191,7 @@ async def ls_la_in_unit(ops_test: OpsTest, unit_name: str, directory: str) -> li
     Args:
         ops_test: The ops test framework
         unit_name: The name of unit in which to run ls -la
-        path: The path from which to run ls -la
+        directory: The directory from which to run ls -la
 
     Returns:
         a list of files returned by ls -la
@@ -403,7 +402,7 @@ async def ensure_all_units_continuous_writes_incrementing(
                             select_all_continuous_writes_sql,
                         )
                     )
-                    numbers = {n for n in range(1, max_written_value)}
+                    numbers = set(range(1, max_written_value))
                     assert (
                         numbers <= all_written_values
                     ), f"Missing numbers in database for unit {unit.name}"
@@ -453,3 +452,37 @@ def get_juju_status(model_name: str) -> str:
         model_name: The model for which to retrieve juju status for
     """
     return subprocess.check_output(["juju", "status", "--model", model_name], encoding="utf-8")
+
+
+async def get_data_integrator_credentials(
+    ops_test: OpsTest, data_integrator_app_name: str, avoid_unit: Optional[str] = None
+) -> Dict:
+    """Helper to get the credentials from the deployed data integrator"""
+    for unit in ops_test.model.applications[data_integrator_app_name].units:
+        if unit.name != avoid_unit:
+            data_integrator_unit = unit
+            break
+
+    assert data_integrator_unit, "No valid data integrator units found to query creds"
+
+    logger.info(f"Running get-credentials on {data_integrator_unit.name}")
+
+    action = await data_integrator_unit.run_action(action_name="get-credentials")
+    result = await action.wait()
+    if is_3_or_higher:
+        assert result.results["return-code"] == 0
+    else:
+        assert result.results["Code"] == "0"
+    assert result.results["ok"] == "True"
+    return result.results["mysql"]
+
+
+async def get_machine_address(ops_test: OpsTest, unit: Unit) -> str:
+    """Get the unit's machine's address."""
+    _, output, _ = await ops_test.juju("machines")
+
+    for line in output.splitlines():
+        if unit.machine.hostname in line:
+            return line.split()[2]
+
+    assert False, "Unable to find the unit's machine"

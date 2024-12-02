@@ -12,7 +12,7 @@ import typing
 
 import ops
 import tenacity
-from charms.tempo_k8s.v1.charm_tracing import trace_charm
+from charms.tempo_coordinator_k8s.v0.charm_tracing import trace_charm
 
 import abstract_charm
 import logrotate
@@ -20,6 +20,7 @@ import machine_logrotate
 import machine_upgrade
 import machine_workload
 import relations.database_providers_wrapper
+import relations.hacluster
 import snap
 import upgrade
 import workload
@@ -51,12 +52,14 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             self, self._database_provides
         )
         self._authenticated_workload_type = machine_workload.AuthenticatedMachineWorkload
+        self._ha_cluster = relations.hacluster.HACluster(self)
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.remove, self._on_remove)
         self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
         self.framework.observe(
             self.on[machine_upgrade.FORCE_ACTION_NAME].action, self._on_force_upgrade_action
         )
+        self.framework.observe(self.on.config_changed, self.reconcile)
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
@@ -83,6 +86,12 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def host_address(self) -> str:
         """The host address for the machine."""
+        if (
+            self._ha_cluster.relation
+            and self._ha_cluster.is_clustered()
+            and self.config.get("vip")
+        ):
+            return self.config["vip"]
         return str(self.model.get_binding("juju-info").network.bind_address)
 
     @property
@@ -188,14 +197,15 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             logger.debug(f"Force upgrade event failed: {message}")
             event.fail(message)
             return
-        logger.debug("Forcing upgrade")
+
+        logger.warning("Forcing upgrade")
         event.log(f"Forcefully upgrading {self.unit.name}")
         self._upgrade.upgrade_unit(
             event=event, workload_=self.get_workload(event=None), tls=self._tls_certificate_saved
         )
         self.reconcile()
         event.set_results({"result": f"Forcefully upgraded {self.unit.name}"})
-        logger.debug("Forced upgrade")
+        logger.warning("Forced upgrade")
 
 
 if __name__ == "__main__":

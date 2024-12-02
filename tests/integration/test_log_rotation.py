@@ -153,9 +153,10 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
         len(ls_la_output) == 2
     ), f"❌ unexpected files/directories in log directory: {ls_la_output}"
     directories = [line.split()[-1] for line in ls_la_output]
-    assert sorted(directories) == sorted(
-        ["mysqlrouter.log", "archive_mysqlrouter"]
-    ), f"❌ unexpected files/directories in log directory: {ls_la_output}"
+    assert sorted(directories) == sorted([
+        "mysqlrouter.log",
+        "archive_mysqlrouter",
+    ]), f"❌ unexpected files/directories in log directory: {ls_la_output}"
 
     logger.info("Ensuring log files was rotated")
     file_contents = await read_contents_from_file_in_unit(

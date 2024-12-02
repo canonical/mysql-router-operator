@@ -8,7 +8,7 @@ import logging
 import typing
 
 import ops
-from charms.tempo_k8s.v2.tracing import TracingEndpointRequirer
+from charms.tempo_coordinator_k8s.v0.tracing import TracingEndpointRequirer
 
 import container
 import lifecycle
@@ -48,6 +48,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         self._database_requires = relations.database_requires.RelationEndpoint(self)
         self._database_provides = relations.database_provides.RelationEndpoint(self)
         self._cos_relation = relations.cos.COSRelation(self, self._container)
+        self._ha_cluster = None
         self.framework.observe(self.on.update_status, self.reconcile)
         self.framework.observe(
             self.on[upgrade.PEER_RELATION_ENDPOINT_NAME].relation_changed, self.reconcile
@@ -212,6 +213,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         workload_status = self.get_workload(event=event).status
         if self._upgrade:
             statuses.append(self._upgrade.get_unit_juju_status(workload_status=workload_status))
+        # only in machine charms
+        if self._ha_cluster:
+            statuses.append(self._ha_cluster.get_unit_juju_status())
         statuses.append(workload_status)
         return self._prioritize_statuses(statuses)
 
@@ -311,6 +315,10 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             f"{self._cos_relation.is_relation_breaking(event)=}"
         )
 
+        # only in machine charms
+        if self._ha_cluster:
+            self._ha_cluster.set_vip(self.config.get("vip"))
+
         try:
             if self._unit_lifecycle.authorized_leader:
                 if self._database_requires.is_relation_breaking(event):
@@ -333,6 +341,14 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                         exposed_read_only_endpoint=self._exposed_read_only_endpoint,
                         shell=workload_.shell,
                     )
+                    # _ha_cluster only assigned a value in machine charms
+                    if self._ha_cluster:
+                        self._database_provides.update_endpoints(
+                            router_read_write_endpoint=self._read_write_endpoint,
+                            router_read_only_endpoint=self._read_only_endpoint,
+                            exposed_read_write_endpoint=self._exposed_read_write_endpoint,
+                            exposed_read_only_endpoint=self._exposed_read_only_endpoint,
+                        )
             if workload_.container_ready:
                 workload_.reconcile(
                     event=event,
