@@ -80,6 +80,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             pass
 
     @property
+    def _status(self) -> ops.StatusBase:
+        pass
+
+    @property
     def _logrotate(self) -> machine_logrotate.LogRotate:
         return machine_logrotate.LogRotate(container_=self._container)
 
@@ -95,19 +99,19 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         return str(self.model.get_binding("juju-info").network.bind_address)
 
     @property
-    def _read_write_endpoint(self) -> str:
+    def _read_write_endpoints(self) -> str:
         return f'file://{self._container.path("/run/mysqlrouter/mysql.sock")}'
 
     @property
-    def _read_only_endpoint(self) -> str:
+    def _read_only_endpoints(self) -> str:
         return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
 
     @property
-    def _exposed_read_write_endpoint(self) -> typing.Optional[str]:
+    def _exposed_read_write_endpoints(self) -> typing.Optional[str]:
         return f"{self.host_address}:{self._READ_WRITE_PORT}"
 
     @property
-    def _exposed_read_only_endpoint(self) -> typing.Optional[str]:
+    def _exposed_read_only_endpoints(self) -> typing.Optional[str]:
         return f"{self.host_address}:{self._READ_ONLY_PORT}"
 
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
@@ -123,6 +127,14 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         else:
             ports = []
         self.unit.set_ports(*ports)
+
+    def _update_endpoints(self) -> None:
+        self._database_provides.update_endpoints(
+            router_read_write_endpoints=self._read_write_endpoints,
+            router_read_only_endpoints=self._read_only_endpoints,
+            exposed_read_write_endpoints=self._exposed_read_write_endpoints,
+            exposed_read_only_endpoints=self._exposed_read_only_endpoints,
+        )
 
     def _wait_until_service_reconciled(self) -> None:
         """Only applies to Kubernetes charm, so no-op."""

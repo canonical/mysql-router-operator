@@ -100,17 +100,17 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @property
     @abc.abstractmethod
-    def _read_write_endpoint(self) -> str:
+    def _read_write_endpoints(self) -> str:
         """MySQL Router read-write endpoint"""
 
     @property
     @abc.abstractmethod
-    def _read_only_endpoint(self) -> str:
+    def _read_only_endpoints(self) -> str:
         """MySQL Router read-only endpoint"""
 
     @property
     @abc.abstractmethod
-    def _exposed_read_write_endpoint(self) -> typing.Optional[str]:
+    def _exposed_read_write_endpoints(self) -> typing.Optional[str]:
         """The exposed read-write endpoint.
 
         Only defined in vm charm.
@@ -118,7 +118,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @property
     @abc.abstractmethod
-    def _exposed_read_only_endpoint(self) -> typing.Optional[str]:
+    def _exposed_read_only_endpoints(self) -> typing.Optional[str]:
         """The exposed read-only endpoint.
 
         Only defined in vm charm.
@@ -130,6 +130,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
         Only defined in vm charm to return True/False. In k8s charm, returns None.
         """
+
+    @property
+    @abc.abstractmethod
+    def _status(self) -> ops.StatusBase:
+        """Status of the charm."""
 
     @property
     def _tls_certificate_saved(self) -> bool:
@@ -208,6 +213,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             # (Relations should not be modified during upgrade.)
             return upgrade_status
         statuses = []
+        if self._status:
+            statuses.append(self._status)
         for endpoint in (self._database_requires, self._database_provides):
             if status := endpoint.get_status(event):
                 statuses.append(status)
@@ -249,15 +256,15 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """
 
     @abc.abstractmethod
-    def _wait_until_service_reconciled(self) -> None:
-        """Waits until the service is reconciled (connectable with a socket)"""
-
-    @abc.abstractmethod
     def _reconcile_ports(self, *, event) -> None:
         """Reconcile exposed ports.
 
         Only applies to Machine charm
         """
+
+    @abc.abstractmethod
+    def _update_endpoints(self) -> None:
+        """Update the endpoints in the provider relation if necessary."""
 
     # =======================
     #  Handlers
@@ -345,12 +352,13 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     self._reconcile_service()
                     self._database_provides.reconcile_users(
                         event=event,
-                        router_read_write_endpoint=self._read_write_endpoint,
-                        router_read_only_endpoint=self._read_only_endpoint,
-                        exposed_read_write_endpoint=self._exposed_read_write_endpoint,
-                        exposed_read_only_endpoint=self._exposed_read_only_endpoint,
+                        router_read_write_endpoints=self._read_write_endpoints,
+                        router_read_only_endpoints=self._read_only_endpoints,
+                        exposed_read_write_endpoints=self._exposed_read_write_endpoints,
+                        exposed_read_only_endpoints=self._exposed_read_only_endpoints,
                         shell=workload_.shell,
                     )
+                    self._update_endpoints()
 
             if workload_.container_ready:
                 workload_.reconcile(
@@ -366,27 +374,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     workload_, workload.AuthenticatedWorkload
                 ):
                     self._reconcile_ports(event=event)
-
-            if (
-                self._unit_lifecycle.authorized_leader
-                and not self._upgrade.in_progress
-                and isinstance(workload_, workload.AuthenticatedWorkload)
-                and workload_.container_ready
-            ):
-                # _ha_cluster only assigned a value in machine charms
-                if self._ha_cluster:
-                    self._database_provides.update_endpoints(
-                        router_read_write_endpoint=self._read_write_endpoint,
-                        router_read_only_endpoint=self._read_only_endpoint,
-                        exposed_read_write_endpoint=self._exposed_read_write_endpoint,
-                        exposed_read_only_endpoint=self._exposed_read_only_endpoint,
-                    )
-                else:
-                    self._wait_until_service_reconciled()
-                    self._database_provides.update_endpoints(
-                        router_read_write_endpoint=self._read_write_endpoint,
-                        router_read_only_endpoint=self._read_only_endpoint,
-                    )
 
             # Empty waiting status means we're waiting for database requires relation before
             # starting workload
