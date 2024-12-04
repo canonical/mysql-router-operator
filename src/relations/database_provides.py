@@ -133,7 +133,9 @@ class _RelationThatRequestedUser(_Relation):
             else router_read_write_endpoints
         )
         ro_endpoint = (
-            exposed_read_only_endpoints if self.external_connectivity else router_read_only_endpoints
+            exposed_read_only_endpoints
+            if self.external_connectivity
+            else router_read_only_endpoints
         )
 
         self._set_databag(
@@ -179,7 +181,9 @@ class _RelationWithSharedUser(_Relation):
             else router_read_write_endpoints
         )
         ro_endpoint = (
-            exposed_read_only_endpoints if self.external_connectivity else router_read_only_endpoints
+            exposed_read_only_endpoints
+            if self.external_connectivity
+            else router_read_only_endpoints
         )
 
         self._interface.set_endpoints(self._id, rw_endpoint)
