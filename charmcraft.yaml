@@ -2,19 +2,12 @@
 # See LICENSE file for licensing details.
 
 type: charm
-bases:
-  # Whenever "bases" is changed:
-  # - Update tests/conftest.py::pytest_configure()
-  # - Update .github/workflow/ci.yaml integration-test matrix
-  - name: ubuntu
-    channel: "20.04"
-    architectures: [amd64]
-  - name: ubuntu
-    channel: "22.04"
-    architectures: [amd64]
-  - name: ubuntu
-    channel: "22.04"
-    architectures: [arm64]
+platforms:
+  ubuntu@20.04:amd64:
+  ubuntu@22.04:amd64:
+  ubuntu@22.04:arm64:
+  ubuntu@24.04:amd64:
+  ubuntu@24.04:arm64:
 parts:
   files:
     plugin: dump
