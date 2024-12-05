@@ -81,7 +81,7 @@ jobs:
       - build
     uses: canonical/data-platform-workflows/.github/workflows/release_charm.yaml@v23.1.1
     with:
-      channel: dpe/edge/testcharmcraftst124
+      channel: dpe/edge/test-charmcraftst124
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
       create-github-release: false
     secrets:
