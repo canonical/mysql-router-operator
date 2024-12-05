@@ -79,7 +79,7 @@ jobs:
     name: Release charm
     needs:
       - build
-    uses: canonical/data-platform-workflows/.github/workflows/release_charm.yaml@beta-charmcraftst124
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm.yaml@v23.1.1
     with:
       channel: dpe/edge/test-charmcraftst124
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
