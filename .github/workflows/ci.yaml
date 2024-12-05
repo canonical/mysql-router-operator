@@ -66,7 +66,7 @@ jobs:
 
   build:
     name: Build charm
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v22.0.0
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v23.1.1
     with:
       # Use of cache blocked by https://github.com/canonical/charmcraft/issues/1456
       # Details: https://github.com/canonical/charmcraftcache/issues/3
