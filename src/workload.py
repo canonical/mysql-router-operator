@@ -145,14 +145,14 @@ class Workload:
 
     def _disable_router(self) -> None:
         """Disable router and clean up corresponding router files."""
-        logger.debug("Disabling MySQL Router service")
+        logger.info("Disabling MySQL Router service")
         self._container.update_mysql_router_service(enabled=False)
         self._logrotate.disable()
         self._container.router_config_directory.rmtree()
         self._container.router_config_directory.mkdir()
         self._router_data_directory.rmtree()
         self._router_data_directory.mkdir()
-        logger.debug("Disabled MySQL Router service")
+        logger.info("Disabled MySQL Router service")
 
     def reconcile(
         self,

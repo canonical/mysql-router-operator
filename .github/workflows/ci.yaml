@@ -42,7 +42,7 @@ jobs:
       - name: Run tests
         run: tox run -e unit
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
 
   lib-check:
     name: Check libraries
@@ -57,7 +57,7 @@ jobs:
           # Workaround for https://github.com/canonical/charmcraft/issues/1389#issuecomment-1880921728
           touch requirements.txt
       - name: Check libs
-        uses: canonical/charming-actions/check-libraries@2.6.0
+        uses: canonical/charming-actions/check-libraries@2.6.3
         with:
           credentials: "${{ secrets.CHARMHUB_TOKEN }}" # FIXME: current token will expire around 2023-09-23
           github-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -116,17 +116,17 @@ jobs:
             bases-index: 0
           - series: jammy
             bases-index: 1
-        juju-snap-channel:  ["2.9/stable", "3.4/stable", "3.6/beta"]
+        juju-snap-channel:  ["2.9/stable", "3.4/stable", "3.6/stable"]
         include:
-          - juju-snap-channel: "3.6/beta"
-            agent-version: "3.6-beta2"
+          - juju-snap-channel: "3.6/stable"
+            agent-version: "3.6.0"
             libjuju-version: "3.5.2.0"
           - juju-snap-channel: "3.4/stable"
             agent-version: "3.4.3"
             libjuju-version:  "3.5.2.0"
           - juju-snap-channel: "2.9/stable"
-            agent-version: "2.9.45"
-            libjuju-version:  "2.9.44.1"
+            agent-version: "2.9.51"
+            libjuju-version:  "2.9.49.0"
         exclude:
           - groups: {path_to_test_file: tests/integration/test_data_integrator.py}
             ubuntu-versions: {series: focal}
@@ -154,7 +154,7 @@ jobs:
           bootstrap-options: "--agent-version ${{ matrix.agent-version }}"
           juju-channel: ${{ matrix.juju-snap-channel }}
       - name: Update python-libjuju version
-        if: ${{ matrix.libjuju-version == '2.9.44.1' }}
+        if: ${{ matrix.libjuju-version == '2.9.49.0' }}
         run: poetry add --lock --group integration juju@'${{ matrix.libjuju-version }}'
       - name: Download packed charm(s)
         uses: actions/download-artifact@v4
