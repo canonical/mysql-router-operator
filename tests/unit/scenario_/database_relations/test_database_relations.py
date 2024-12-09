@@ -9,7 +9,7 @@ import ops
 import pytest
 import scenario
 
-import machine_charm
+import charm
 
 from . import combinations
 

@@ -5,7 +5,7 @@ import ops
 import pytest
 import scenario
 
-import machine_charm
+import charm
 
 
 @pytest.mark.parametrize("leader", [False, True])
