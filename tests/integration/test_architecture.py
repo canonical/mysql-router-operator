@@ -19,7 +19,7 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest) -> None:
     await ops_test.model.deploy(
         charm,
         application_name=MYSQL_ROUTER_APP_NAME,
-        num_units=1,
+        num_units=0,
         base="ubuntu@22.04",
     )
 
@@ -39,7 +39,7 @@ async def test_amd_charm_on_arm_host(ops_test: OpsTest) -> None:
     await ops_test.model.deploy(
         charm,
         application_name=MYSQL_ROUTER_APP_NAME,
-        num_units=1,
+        num_units=0,
         base="ubuntu@22.04",
     )
 
