@@ -6,11 +6,17 @@
 
 """MySQL Router machine charm"""
 
+import ops
+
+from architecture import WrongArchitectureWarningCharm, is_wrong_architecture
+
+if is_wrong_architecture() and __name__ == "__main__":
+    ops.main.main(WrongArchitectureWarningCharm)
+
 import logging
 import socket
 import typing
 
-import ops
 import tenacity
 from charms.tempo_coordinator_k8s.v0.charm_tracing import trace_charm
 

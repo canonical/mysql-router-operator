@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 import argparse
+import subprocess
 
 import pytest
 
@@ -30,6 +31,37 @@ def pytest_configure(config):
         config.option.mysql_router_charm_series = "jammy"
     if config.option.mysql_router_charm_bases_index is None:
         config.option.mysql_router_charm_bases_index = 1
+
+
+@pytest.fixture(autouse=True)
+def architecture() -> str:
+    return subprocess.run(
+        ["dpkg", "--print-architecture"],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+    ).stdout.strip()
+
+
+@pytest.fixture
+def only_amd64(architecture):
+    """Pretty way to skip ARM tests."""
+    if architecture != "amd64":
+        pytest.skip("Requires amd64 architecture")
+
+
+@pytest.fixture
+def only_arm64(architecture):
+    """Pretty way to skip AMD tests."""
+    if architecture != "arm64":
+        pytest.skip("Requires arm64 architecture")
+
+
+@pytest.fixture
+def only_ubuntu_jammy(mysql_router_charm_series):
+    """Pretty way to skip < Ubuntu 22.04 tests."""
+    if mysql_router_charm_series != "jammy":
+        pytest.skip("Requires Ubuntu Jammy")
 
 
 @pytest.fixture
