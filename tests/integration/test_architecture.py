@@ -14,7 +14,7 @@ MYSQL_TEST_APP_NAME = "mysql-test-app"
 
 
 @pytest.mark.group(1)
-@pytest.mark.usefixtures("only_amd64")
+@pytest.mark.usefixtures("only_amd64", "only_ubuntu_jammy")
 async def test_arm_charm_on_amd_host(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
     """Tries deploying an arm64 charm on amd64 host."""
     charm = await get_charm(".", "arm64", 2)
@@ -48,7 +48,7 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest, mysql_router_charm_serie
 
 
 @pytest.mark.group(1)
-@pytest.mark.usefixtures("only_arm64")
+@pytest.mark.usefixtures("only_arm64", "only_ubuntu_jammy")
 async def test_amd_charm_on_arm_host(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
     """Tries deploying an amd64 charm on arm64 host."""
     charm = await get_charm(".", "amd64", 1)

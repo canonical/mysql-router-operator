@@ -58,6 +58,13 @@ def only_arm64(architecture):
 
 
 @pytest.fixture
+def only_ubuntu_jammy(mysql_router_charm_series):
+    """Pretty way to skip < Ubuntu 22.04 tests."""
+    if mysql_router_charm_series != "jammy":
+        pytest.skip("Requires Ubuntu Jammy")
+
+
+@pytest.fixture
 def only_with_juju_secrets(juju_has_secrets):
     """Pretty way to skip Juju 3 tests."""
     if not juju_has_secrets:
