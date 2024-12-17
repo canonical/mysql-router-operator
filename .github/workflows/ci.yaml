@@ -120,7 +120,7 @@ jobs:
         include:
           - juju-snap-channel: "3.6/stable"
             agent-version: "3.6.0"
-            libjuju-version: "3.5.2.0"
+            libjuju-version: "3.6.0.0"
           - juju-snap-channel: "2.9/stable"
             agent-version: "2.9.51"
             libjuju-version:  "2.9.49.0"
@@ -170,7 +170,6 @@ jobs:
             echo "mark_expression=not unstable" >> "$GITHUB_OUTPUT"
           fi
       - name: Run integration tests
-        if: ${{ !startsWith(matrix.juju-snap-channel, '3.6/') || github.event_name == 'schedule' }}
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }}
         env:
           LIBJUJU_VERSION_SPECIFIER: ${{ matrix.libjuju-version }}
