@@ -144,7 +144,7 @@ jobs:
             ubuntu-versions: {series: focal}
           - groups: {path_to_test_file: tests/integration/test_hacluster.py}
             ubuntu-versions: {series: focal}
-    name: ${{ matrix.juju-snap-channel }} - (GH hosted) ${{ matrix.groups.job_name }} | ${{ matrix.ubuntu-versions.series }}
+    name: ${{ matrix.juju-snap-channel }} - (GH hosted) ${{ matrix.groups.job_name }} | ${{ matrix.ubuntu-versions.series }} new ${{ matrix.juju-new-wait-for-idle }}
     needs:
       - lint
       - unit-test
