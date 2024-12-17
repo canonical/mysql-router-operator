@@ -117,16 +117,28 @@ jobs:
           - series: jammy
             bases-index: 1
         juju-snap-channel:  ["2.9/stable", "3.4/stable", "3.6/stable"]
+        juju-new-wait-for-idle: ["True", "False"]
         include:
           - juju-snap-channel: "3.6/stable"
             agent-version: "3.6.0"
             libjuju-version: "3.5.2.0"
+            juju-new-wait-for-idle: "True"
           - juju-snap-channel: "3.4/stable"
             agent-version: "3.4.3"
             libjuju-version:  "3.5.2.0"
+            juju-new-wait-for-idle: "True"
+          - juju-snap-channel: "3.6/stable"
+            agent-version: "3.6.0"
+            libjuju-version: "3.5.2.0"
+            juju-new-wait-for-idle: "False"
+          - juju-snap-channel: "3.4/stable"
+            agent-version: "3.4.3"
+            libjuju-version:  "3.5.2.0"
+            juju-new-wait-for-idle: "False"
           - juju-snap-channel: "2.9/stable"
             agent-version: "2.9.51"
             libjuju-version:  "2.9.49.0"
+            juju-new-wait-for-idle: "False"
         exclude:
           - groups: {path_to_test_file: tests/integration/test_data_integrator.py}
             ubuntu-versions: {series: focal}
@@ -177,6 +189,7 @@ jobs:
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --mysql-router-charm-series=${{ matrix.ubuntu-versions.series }} --mysql-router-charm-bases-index=${{ matrix.ubuntu-versions.bases-index }}
         env:
           LIBJUJU_VERSION_SPECIFIER: ${{ matrix.libjuju-version }}
+          JUJU_NEW_WAIT_FOR_IDLE: ${{ matrix.juju-new-wait-for-idle }}
           SECRETS_FROM_GITHUB: |
             {
               "UBUNTU_PRO_TOKEN" : "${{ secrets.UBUNTU_PRO_TOKEN }}",
