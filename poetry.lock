@@ -783,12 +783,12 @@ referencing = ">=0.31.0"
 
 [[package]]
 name = "juju"
-version = "3.6.1.0rc1"
+version = "3.6.1.0rc2"
 description = "Python library for Juju"
 optional = false
 python-versions = ">=3.8.6"
 files = [
-    {file = "juju-3.6.1.0rc1-py3-none-any.whl", hash = "sha256:e5ff86ddc1c59a917f5c04be6a6968cea2e407b06866f6d3ce8c0fe09c109cc5"},
+    {file = "juju-3.6.1.0rc2-py3-none-any.whl", hash = "sha256:8353377b8dae8f4e17b6a42c0f336738a7dc272a5a25ffba2dd4f19eb99b9998"},
 ]
 
 [package.dependencies]
@@ -807,12 +807,12 @@ typing_inspect = ">=0.6.0"
 websockets = ">=13.0.1"
 
 [package.extras]
-dev = ["Twine", "pytest", "pytest-asyncio", "typing-inspect"]
+dev = ["Twine", "freezegun", "pytest", "pytest-asyncio", "typing-inspect"]
 docs = ["sphinx (==5.3.0)", "sphinx_rtd_theme", "sphinxcontrib-asyncio"]
 
 [package.source]
 type = "url"
-url = "https://test-files.pythonhosted.org/packages/c9/67/4d0037bc9554aadc5965022e6d32c14eec212624499684c962726c87370c/juju-3.6.1.0rc1-py3-none-any.whl"
+url = "https://test-files.pythonhosted.org/packages/29/3c/a7ce33c1616e3dc0ac84876b5f77d0dc90c9b53a16f3cd6fc2c4bbc9d28d/juju-3.6.1.0rc2-py3-none-any.whl"
 
 [[package]]
 name = "kubernetes"
@@ -2278,4 +2278,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.6"
-content-hash = "ac217d18c610d49edcd52e267672dcdcc86a61cc743ff5793b1eaf4c2fc97863"
+content-hash = "eebe35d74e64ab435169f06d5699fb93cc54d565413a535e8b0060518a72c101"
