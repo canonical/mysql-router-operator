@@ -66,8 +66,9 @@ jobs:
 
   build:
     name: Build charm
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v23.1.0
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@charmcraftst124
     with:
+      charmcraft-snap-channel: 3.x/edge
       # Use of cache blocked by https://github.com/canonical/charmcraft/issues/1456
       # Details: https://github.com/canonical/charmcraftcache/issues/3
       cache: false
@@ -75,11 +76,21 @@ jobs:
       # Needed to avoid conflict with artifact name on release CI
       artifact-prefix: ci-packed-charm-cache-false-.
 
+  release:
+    name: Release charm
+    needs:
+      - build
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm.yaml@charmcraftst124
+    with:
+      channel: dpe/edge/test-cc-poetry-plugin
+      artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
+      create-github-release: false
+      charmcraft-snap-channel: 3.x/edge
+    secrets:
+      charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
+
   gh-hosted-collect-integration-tests:
     name: (GH hosted) Collect integration test groups
-    needs:
-      - lint
-      - unit-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -134,8 +145,6 @@ jobs:
             ubuntu-versions: {series: focal}
     name: ${{ matrix.juju-snap-channel }} - (GH hosted) ${{ matrix.groups.job_name }} | ${{ matrix.ubuntu-versions.series }}
     needs:
-      - lint
-      - unit-test
       - build
       - gh-hosted-collect-integration-tests
     runs-on: ubuntu-latest
