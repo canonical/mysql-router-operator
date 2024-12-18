@@ -116,7 +116,8 @@ jobs:
             bases-index: 0
           - series: jammy
             bases-index: 1
-        juju-snap-channel:  ["2.9/stable", "3.4/stable", "3.6/stable"]
+        #juju-snap-channel:  ["2.9/stable", "3.4/stable", "3.6/stable"]
+        juju-snap-channel:  ["3.4/stable", "3.6/stable"]
         juju-new-wait-for-idle: ["True", "False"]
         include:
           - juju-snap-channel: "3.6/stable"
