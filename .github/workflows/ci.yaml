@@ -119,7 +119,7 @@ jobs:
         juju-snap-channel:  ["2.9/stable", "3.6/stable"]
         include:
           - juju-snap-channel: "3.6/stable"
-            agent-version: "3.6.0"
+            agent-version: "3.6.1"
             libjuju-version: "3.6.0.0"
           - juju-snap-channel: "2.9/stable"
             agent-version: "2.9.51"
