@@ -783,12 +783,12 @@ referencing = ">=0.31.0"
 
 [[package]]
 name = "juju"
-version = "3.6.1.0rc3"
+version = "3.6.1.0rc4"
 description = "Python library for Juju"
 optional = false
 python-versions = ">=3.8.6"
 files = [
-    {file = "juju-3.6.1.0rc3-py3-none-any.whl", hash = "sha256:616c38e48c34a700cda78d0122d79c4b9c5f55fcab593ad9a375b71a3e00e849"},
+    {file = "juju-3.6.1.0rc4-py3-none-any.whl", hash = "sha256:1849e098a4de19ac8bc2977887d6d769799f4fd6a04bd801c27a8c63c257440a"},
 ]
 
 [package.dependencies]
@@ -812,7 +812,7 @@ docs = ["sphinx (==5.3.0)", "sphinx_rtd_theme", "sphinxcontrib-asyncio"]
 
 [package.source]
 type = "url"
-url = "https://test-files.pythonhosted.org/packages/1b/37/17c39b3f65ffaeaf39dcd1ab1144888482bec0bee518740b7cfd1c2e435a/juju-3.6.1.0rc3-py3-none-any.whl"
+url = "https://test-files.pythonhosted.org/packages/38/59/6065b5c17557ca030bf597a203b0b8032594627e1842e273df1b4cd0428c/juju-3.6.1.0rc4-py3-none-any.whl"
 
 [[package]]
 name = "kubernetes"
@@ -2278,4 +2278,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.6"
-content-hash = "e8b1ebfd6fe221e6a8e8c531a189722d728fdf60dd62feb7387a58c19b0e2951"
+content-hash = "e360f849a7999ed0e4a33a36633d88c7bfe87a06414a642bccb12cbc1866424a"
