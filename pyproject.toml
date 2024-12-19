@@ -58,7 +58,7 @@ pytest-operator = "^0.35.0"
 pytest-operator-cache = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.0", subdirectory = "python/pytest_plugins/pytest_operator_cache"}
 pytest-operator-groups = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.0", subdirectory = "python/pytest_plugins/pytest_operator_groups"}
 pytest-github-secrets = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.0", subdirectory = "python/pytest_plugins/github_secrets"}
-juju = {url = "https://test-files.pythonhosted.org/packages/75/a8/65e80bc415ddede5e466a617390d34cc3d1582f811240af27f7e0baee4ac/juju-3.6.1.0rc5-py3-none-any.whl"}
+juju = {url = "https://test-files.pythonhosted.org/packages/c5/c8/a2c3696981e4af9fb09f4193f5f5da81ae91a2db6a6fdbb4bb02730a3f75/juju-3.6.1.0rc6-py3-none-any.whl"}
 mysql-connector-python = "~8.0.33"
 tenacity = "^8.5.0"
 ops = "^2.9.0"
