@@ -3,7 +3,7 @@
 name: Tests
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-1
   cancel-in-progress: true
 
 on:
@@ -68,7 +68,7 @@ jobs:
     name: Build charm
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@charmcraftst124
     with:
-      cache: false
+      cache: true
       charmcraft-snap-channel: latest/beta/data-platform
 
   release:
@@ -77,7 +77,7 @@ jobs:
       - build
     uses: canonical/data-platform-workflows/.github/workflows/release_charm.yaml@charmcraftst124
     with:
-      channel: dpe/edge/test-cc-poetry-plugin-4
+      channel: dpe/edge/test-cc-poetry-plugin-5
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
       create-github-release: false
       charmcraft-snap-channel: latest/beta/data-platform
