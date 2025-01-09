@@ -71,6 +71,19 @@ jobs:
       cache: false
       charmcraft-snap-channel: latest/beta/data-platform
 
+  release:
+    name: Release charm
+    needs:
+      - build
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm.yaml@charmcraftst124
+    with:
+      channel: dpe/edge/test-cc-poetry-plugin-4
+      artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
+      create-github-release: false
+      charmcraft-snap-channel: latest/beta/data-platform
+    secrets:
+      charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
+
   gh-hosted-collect-integration-tests:
     name: (GH hosted) Collect integration test groups
     needs:
