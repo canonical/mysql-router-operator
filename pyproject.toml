@@ -2,11 +2,8 @@
 # See LICENSE file for licensing details.
 
 [tool.poetry]
-# Charm is not packed as a standard Python package; this information is not used
-name = "charm"
-version = "0.1.0"
-description = ""
-authors = []
+package-mode = false
+requires-poetry = ">=2.0.0"
 
 [tool.poetry.dependencies]
 python = "^3.8.6"  # ^3.8.6 required by juju
@@ -55,9 +52,9 @@ pytest-mock = "^3.14.0"
 [tool.poetry.group.integration.dependencies]
 pytest = "^8.2.2"
 pytest-operator = "^0.35.0"
-pytest-operator-cache = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.0", subdirectory = "python/pytest_plugins/pytest_operator_cache"}
-pytest-operator-groups = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.0", subdirectory = "python/pytest_plugins/pytest_operator_groups"}
-pytest-github-secrets = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.0", subdirectory = "python/pytest_plugins/github_secrets"}
+pytest-operator-cache = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.6", subdirectory = "python/pytest_plugins/pytest_operator_cache"}
+pytest-operator-groups = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.6", subdirectory = "python/pytest_plugins/pytest_operator_groups"}
+pytest-github-secrets = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.6", subdirectory = "python/pytest_plugins/github_secrets"}
 juju = "^3.6.0.0"
 mysql-connector-python = "~8.0.33"
 tenacity = "^8.5.0"
