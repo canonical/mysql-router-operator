@@ -34,7 +34,7 @@ def disable_tenacity_retry(monkeypatch):
 @pytest.fixture(autouse=True)
 def patch(monkeypatch):
     monkeypatch.setattr(
-        "machine_charm.MachineSubordinateRouterCharm.wait_until_mysql_router_ready",
+        "charm.MachineSubordinateRouterCharm.wait_until_mysql_router_ready",
         lambda *args, **kwargs: None,
     )
     monkeypatch.setattr("workload.AuthenticatedWorkload._router_username", "")

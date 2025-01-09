@@ -9,7 +9,7 @@ import ops
 import pytest
 import scenario
 
-import machine_charm
+import charm
 
 from . import combinations
 
@@ -23,7 +23,7 @@ def output_states(
 
     The output state of each test should be identical for all events.
     """
-    context = scenario.Context(machine_charm.MachineSubordinateRouterCharm)
+    context = scenario.Context(charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
         relations=[*relations, scenario.PeerRelation(endpoint="upgrade-version-a")],
         secrets=secrets,
