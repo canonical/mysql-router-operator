@@ -30,7 +30,7 @@ jobs:
 
   unit-test:
     name: Unit test charm
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # TODO: use ubuntu-latest after fixing pathlib issue on python 3.12
     timeout-minutes: 5
     steps:
       - name: Checkout
