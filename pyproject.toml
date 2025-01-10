@@ -56,7 +56,6 @@ pytest-operator-cache = {git = "https://github.com/canonical/data-platform-workf
 pytest-operator-groups = {git = "https://github.com/canonical/data-platform-workflows", branch = "charmcraftst124", subdirectory = "python/pytest_plugins/pytest_operator_groups"}
 pytest-github-secrets = {git = "https://github.com/canonical/data-platform-workflows", branch = "charmcraftst124", subdirectory = "python/pytest_plugins/github_secrets"}
 juju = "^3.6.0.0"
-mysql-connector-python = "~8.0.33"
 tenacity = "^8.5.0"
 ops = "^2.9.0"
 pytest-mock = "^3.14.0"
