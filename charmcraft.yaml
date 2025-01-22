@@ -47,7 +47,7 @@ parts:
       rustup default stable
       
       # Use uv to install poetry so that a newer version of Python can be installed if needed by poetry
-      curl --proto '=https' --tlsv1.2 -LsSf https://github.com/astral-sh/uv/releases/download/0.5.15/uv-installer.sh | sh  # renovate: charmcraft-uv-latest
+      curl --proto '=https' --tlsv1.2 -LsSf https://github.com/astral-sh/uv/releases/download/0.5.22/uv-installer.sh | sh  # renovate: charmcraft-uv-latest
       # poetry 2.0.0 requires Python >=3.9
       if ! "$HOME/.local/bin/uv" python find '>=3.9'
       then
@@ -55,7 +55,7 @@ parts:
         # (to reduce the number of Python versions we use)
         "$HOME/.local/bin/uv" python install 3.10.12  # renovate: charmcraft-python-ubuntu-22.04
       fi
-      "$HOME/.local/bin/uv" tool install --no-python-downloads --python '>=3.9' poetry==2.0.0 --with poetry-plugin-export==1.8.0  # renovate: charmcraft-poetry-latest
+      "$HOME/.local/bin/uv" tool install --no-python-downloads --python '>=3.9' poetry==2.0.1 --with poetry-plugin-export==1.9.0  # renovate: charmcraft-poetry-latest
 
       # Convert subset of poetry.lock to requirements.txt
       "$HOME/.local/bin/poetry" export --only main,charm-libs --output requirements.txt
