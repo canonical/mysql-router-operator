@@ -50,6 +50,7 @@ def juju_has_secrets(mocker: MockerFixture, request):
     NOTE: This is needed, as normally JujuVersion is set to 0.0.0 in tests
     (i.e. not the real juju version)
     """
+    # TODO cleanup
     juju_version = os.environ["LIBJUJU_VERSION_SPECIFIER"].split("/")[0]
     if juju_version < "3":
         mocker.patch.object(
