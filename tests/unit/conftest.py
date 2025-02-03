@@ -133,23 +133,10 @@ def machine_patch(monkeypatch):
     monkeypatch.setattr("ops.model.Binding._network_get", _network_get)
 
 
-@pytest.fixture(autouse=True, params=["juju2", "juju3"])
-def juju_has_secrets(mocker: MockerFixture, request):
-    """This fixture will force the usage of secrets whenever run on Juju 3.x.
-
-    NOTE: This is needed, as normally JujuVersion is set to 0.0.0 in tests
-    (i.e. not the real juju version)
-    """
-    if request.param == "juju3":
-        mocker.patch.object(
-            ops.JujuVersion, "has_secrets", new_callable=PropertyMock
-        ).return_value = False
-        return False
-    else:
-        mocker.patch.object(
-            ops.JujuVersion, "has_secrets", new_callable=PropertyMock
-        ).return_value = True
-        return True
+@pytest.fixture(params=[True, False])
+def juju_has_secrets(request, monkeypatch):
+    monkeypatch.setattr("ops.JujuVersion.has_secrets", request.param)
+    return request.param
 
 
 @pytest.fixture(autouse=True)

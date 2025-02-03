@@ -28,12 +28,10 @@ CHARMED_MYSQL_COMMON_DIRECTORY = "/var/snap/charmed-mysql/common"
 SLOW_TIMEOUT = 15 * 60
 
 
-@pytest.mark.group(1)
+
 @pytest.mark.abort_on_fail
-async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
+async def test_log_rotation(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Test the log rotation of mysqlrouter logs."""
-    # Build and deploy applications
-    mysqlrouter_charm = await ops_test.build_charm(".")
 
     logger.info("Deploying all the applications")
 
@@ -48,7 +46,7 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
             num_units=1,
         ),
         ops_test.model.deploy(
-            mysqlrouter_charm,
+            charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=None,
         ),
@@ -57,7 +55,7 @@ async def test_log_rotation(ops_test: OpsTest, mysql_router_charm_series: str) -
             application_name=APPLICATION_APP_NAME,
             num_units=1,
             # MySQL Router is subordinate—it will use the series of the principal charm
-            series=mysql_router_charm_series,
+            base=f"ubuntu@{ubuntu_base}",
             channel="latest/edge",
         ),
     )

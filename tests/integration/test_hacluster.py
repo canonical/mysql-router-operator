@@ -86,18 +86,15 @@ async def generate_next_available_ip(
     assert False, "Unable to compute next available IP"
 
 
-@pytest.mark.group(1)
+
 @pytest.mark.abort_on_fail
 async def test_external_connectivity_vip_with_hacluster(
-    ops_test: OpsTest, mysql_router_charm_series
+    ops_test: OpsTest, charm, ubuntu_base
 ) -> None:
     """Test external connectivity and VIP with data-integrator hacluster."""
     logger.info("Deploy and relate all applications without hacluster")
     # speed up test by firing update-status more frequently (for hacluster)
     async with ops_test.fast_forward("60s"):
-        # mysqlrouter charm
-        mysqlrouter_charm = await ops_test.build_charm(".")
-
         # deploy data-integrator with mysqlrouter
         _, _, data_integrator_application = await asyncio.gather(
             ops_test.model.deploy(
@@ -107,16 +104,16 @@ async def test_external_connectivity_vip_with_hacluster(
                 num_units=1,
             ),
             ops_test.model.deploy(
-                mysqlrouter_charm,
+                charm,
                 application_name=MYSQL_ROUTER_APP_NAME,
                 num_units=None,
-                series=mysql_router_charm_series,
+                base=f"ubuntu@{ubuntu_base}",
             ),
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,
                 application_name=DATA_INTEGRATOR_APP_NAME,
                 channel="latest/stable",
-                series=mysql_router_charm_series,
+                base=f"ubuntu@{ubuntu_base}",
                 config={"database-name": TEST_DATABASE},
                 num_units=4,
             ),
@@ -211,7 +208,7 @@ async def test_external_connectivity_vip_with_hacluster(
         await ensure_database_accessible_from_vip(ops_test)
 
 
-@pytest.mark.group(1)
+
 @pytest.mark.abort_on_fail
 async def test_hacluster_failover(ops_test: OpsTest) -> None:
     """Test the failover of the hacluster leader."""
@@ -262,9 +259,9 @@ async def test_hacluster_failover(ops_test: OpsTest) -> None:
     await ops_test.model.wait_for_idle(status="active", timeout=TIMEOUT)
 
 
-@pytest.mark.group(1)
+
 @pytest.mark.abort_on_fail
-async def test_tls_along_with_ha_cluster(ops_test: OpsTest, mysql_router_charm_series) -> None:
+async def test_tls_along_with_ha_cluster(ops_test: OpsTest, ubuntu_base) -> None:
     """Ensure that mysqlrouter is externally accessible with TLS integration."""
     logger.info("Deploying TLS")
     async with ops_test.fast_forward("60s"):
@@ -343,7 +340,7 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, mysql_router_charm_s
     await ensure_database_accessible_from_vip(ops_test)
 
 
-@pytest.mark.group(1)
+
 @pytest.mark.abort_on_fail
 async def test_remove_vip(ops_test: OpsTest) -> None:
     """Ensure removal of VIP results in connection through data-integrator."""

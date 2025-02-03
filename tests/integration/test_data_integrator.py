@@ -35,10 +35,10 @@ else:
     TLS_CONFIG = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
 
 
-@pytest.mark.group(1)
+
 @pytest.mark.abort_on_fail
 async def test_external_connectivity_with_data_integrator(
-    ops_test: OpsTest, mysql_router_charm_series: str
+    ops_test: OpsTest, charm, ubuntu_base
 ) -> None:
     """Test encryption when backend database is using TLS."""
     logger.info("Deploy and relate all applications")
@@ -49,16 +49,13 @@ async def test_external_connectivity_with_data_integrator(
         )
         data_integrator_config = {"database-name": TEST_DATABASE}
 
-        # ROUTER
-        mysqlrouter_charm = await ops_test.build_charm(".")
-
         # tls, data-integrator and router
         await asyncio.gather(
             ops_test.model.deploy(
-                mysqlrouter_charm,
+                charm,
                 application_name=MYSQL_ROUTER_APP_NAME,
                 num_units=None,
-                series=mysql_router_charm_series,
+                base=f"ubuntu@{ubuntu_base}",
             ),
             ops_test.model.deploy(
                 TLS_APP_NAME, application_name=TLS_APP_NAME, channel="stable", config=TLS_CONFIG
@@ -67,7 +64,7 @@ async def test_external_connectivity_with_data_integrator(
                 DATA_INTEGRATOR_APP_NAME,
                 application_name=DATA_INTEGRATOR_APP_NAME,
                 channel="latest/stable",
-                series=mysql_router_charm_series,
+                base=f"ubuntu@{ubuntu_base}",
                 config=data_integrator_config,
             ),
         )
@@ -98,7 +95,7 @@ async def test_external_connectivity_with_data_integrator(
         assert TEST_DATABASE in databases
 
 
-@pytest.mark.group(1)
+
 @pytest.mark.abort_on_fail
 async def test_external_connectivity_with_data_integrator_and_tls(ops_test: OpsTest) -> None:
     """Test data integrator along with TLS operator"""

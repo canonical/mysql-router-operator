@@ -4,6 +4,7 @@
 """Test charms subordinated alongside MySQL Router charm."""
 
 import asyncio
+import os
 
 import pytest
 
@@ -18,9 +19,8 @@ UBUNTU_PRO_APP_NAME = "ubuntu-advantage"
 LANDSCAPE_CLIENT_APP_NAME = "landscape-client"
 
 
-@pytest.mark.group(1)
-async def test_ubuntu_pro(ops_test, mysql_router_charm_series, github_secrets):
-    mysqlrouter_charm = await ops_test.build_charm(".")
+
+async def test_ubuntu_pro(ops_test, charm, ubuntu_base):
     await asyncio.gather(
         ops_test.model.deploy(
             MYSQL_APP_NAME,
@@ -29,25 +29,25 @@ async def test_ubuntu_pro(ops_test, mysql_router_charm_series, github_secrets):
             config={"profile": "testing"},
         ),
         ops_test.model.deploy(
-            mysqlrouter_charm,
+            charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             # deploy mysqlrouter with num_units=None since it's a subordinate charm
             num_units=None,
-            series=mysql_router_charm_series,
+            base=f"ubuntu@{ubuntu_base}",
         ),
         ops_test.model.deploy(
             APPLICATION_APP_NAME,
             application_name=APPLICATION_APP_NAME,
             channel="latest/edge",
             # MySQL Router is subordinate—it will use the series of the principal charm
-            series=mysql_router_charm_series,
+            base=f"ubuntu@{ubuntu_base}",
         ),
         ops_test.model.deploy(
             UBUNTU_PRO_APP_NAME,
             application_name=UBUNTU_PRO_APP_NAME,
             channel="latest/edge",
-            config={"token": github_secrets["UBUNTU_PRO_TOKEN"]},
-            series=mysql_router_charm_series,
+            config={"token": os.environ["UBUNTU_PRO_TOKEN"]},
+            base=f"ubuntu@{ubuntu_base}",
         ),
     )
     await ops_test.model.relate(f"{MYSQL_APP_NAME}", f"{MYSQL_ROUTER_APP_NAME}")
@@ -69,18 +69,18 @@ async def test_ubuntu_pro(ops_test, mysql_router_charm_series, github_secrets):
         )
 
 
-@pytest.mark.group(1)
-async def test_landscape_client(ops_test, github_secrets, mysql_router_charm_series):
+
+async def test_landscape_client(ops_test, ubuntu_base):
     await ops_test.model.deploy(
         LANDSCAPE_CLIENT_APP_NAME,
         application_name=LANDSCAPE_CLIENT_APP_NAME,
         channel="latest/edge",
         config={
-            "account-name": github_secrets["LANDSCAPE_ACCOUNT_NAME"],
-            "registration-key": github_secrets["LANDSCAPE_REGISTRATION_KEY"],
+            "account-name": os.environ["LANDSCAPE_ACCOUNT_NAME"],
+            "registration-key": os.environ["LANDSCAPE_REGISTRATION_KEY"],
             "ppa": "ppa:landscape/self-hosted-beta",
         },
-        series=mysql_router_charm_series,
+        base=f"ubuntu@{ubuntu_base}",
     )
     await ops_test.model.relate(APPLICATION_APP_NAME, LANDSCAPE_CLIENT_APP_NAME)
     async with ops_test.fast_forward("60s"):

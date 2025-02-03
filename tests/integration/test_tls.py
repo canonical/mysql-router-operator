@@ -32,9 +32,9 @@ else:
     TLS_CONFIG = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
 
 
-@pytest.mark.group(1)
+
 @pytest.mark.abort_on_fail
-async def test_build_deploy_and_relate(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
+async def test_build_deploy_and_relate(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Test encryption when backend database is using TLS."""
     logger.info("Deploy and relate all applications")
     async with ops_test.fast_forward():
@@ -47,16 +47,13 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, mysql_router_charm_ser
             num_units=1,
         )
 
-        # ROUTER
-        mysqlrouter_charm = await ops_test.build_charm(".")
-
         # tls, test app and router
         await asyncio.gather(
             ops_test.model.deploy(
-                mysqlrouter_charm,
+                charm,
                 application_name=MYSQL_ROUTER_APP_NAME,
                 num_units=None,
-                series=mysql_router_charm_series,
+                base=f"ubuntu@{ubuntu_base}",
             ),
             ops_test.model.deploy(
                 TLS_APP_NAME,
@@ -69,7 +66,7 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, mysql_router_charm_ser
                 TEST_APP_NAME,
                 application_name=TEST_APP_NAME,
                 channel="latest/edge",
-                series=mysql_router_charm_series,
+                base=f"ubuntu@{ubuntu_base}",
             ),
         )
 
@@ -86,7 +83,7 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, mysql_router_charm_ser
         await ops_test.model.wait_for_idle([TEST_APP_NAME], status="active", timeout=SLOW_TIMEOUT)
 
 
-@pytest.mark.group(1)
+
 @pytest.mark.abort_on_fail
 async def test_connected_encryption(ops_test: OpsTest) -> None:
     """Test encryption when backend database is using TLS."""

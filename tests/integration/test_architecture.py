@@ -8,14 +8,15 @@ import pytest
 from pytest_operator.plugin import OpsTest
 
 from .helpers import get_charm
+from . import markers
 
 MYSQL_ROUTER_APP_NAME = "mysql-router"
 MYSQL_TEST_APP_NAME = "mysql-test-app"
 
 
-@pytest.mark.group(1)
-@pytest.mark.usefixtures("only_amd64", "only_ubuntu_jammy")
-async def test_arm_charm_on_amd_host(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
+
+@markers.amd64_only
+async def test_arm_charm_on_amd_host(ops_test: OpsTest, ubuntu_base) -> None:
     """Tries deploying an arm64 charm on amd64 host."""
     charm = await get_charm(".", "arm64", 2)
 
@@ -24,14 +25,14 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest, mysql_router_charm_serie
             charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=0,
-            series=mysql_router_charm_series,
+            base=f"ubuntu@{ubuntu_base}",
         ),
         ops_test.model.deploy(
             MYSQL_TEST_APP_NAME,
             application_name=MYSQL_TEST_APP_NAME,
             num_units=1,
             channel="latest/edge",
-            series=mysql_router_charm_series,
+            base=f"ubuntu@{ubuntu_base}",
         ),
     )
 
@@ -47,9 +48,9 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest, mysql_router_charm_serie
     )
 
 
-@pytest.mark.group(1)
-@pytest.mark.usefixtures("only_arm64", "only_ubuntu_jammy")
-async def test_amd_charm_on_arm_host(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
+
+@markers.arm64_only
+async def test_amd_charm_on_arm_host(ops_test: OpsTest, ubuntu_base) -> None:
     """Tries deploying an amd64 charm on arm64 host."""
     charm = await get_charm(".", "amd64", 1)
 
@@ -58,14 +59,14 @@ async def test_amd_charm_on_arm_host(ops_test: OpsTest, mysql_router_charm_serie
             charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=0,
-            series=mysql_router_charm_series,
+            base=f"ubuntu@{ubuntu_base}",
         ),
         ops_test.model.deploy(
             MYSQL_TEST_APP_NAME,
             application_name=MYSQL_TEST_APP_NAME,
             num_units=1,
             channel="latest/edge",
-            series=mysql_router_charm_series,
+            base=f"ubuntu@{ubuntu_base}",
         ),
     )
 
