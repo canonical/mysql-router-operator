@@ -29,7 +29,7 @@ SLOW_TIMEOUT = 15 * 60
 
 
 @pytest.mark.abort_on_fail
-async def test_log_rotation(ops_test: OpsTest, charm, ubuntu_base) -> None:
+async def test_log_rotation(ops_test: OpsTest, charm, series) -> None:
     """Test the log rotation of mysqlrouter logs."""
     logger.info("Deploying all the applications")
 
@@ -53,7 +53,7 @@ async def test_log_rotation(ops_test: OpsTest, charm, ubuntu_base) -> None:
             application_name=APPLICATION_APP_NAME,
             num_units=1,
             # MySQL Router is subordinate—it will use the series of the principal charm
-            base=f"ubuntu@{ubuntu_base}",
+            series=series,
             channel="latest/edge",
         ),
     )

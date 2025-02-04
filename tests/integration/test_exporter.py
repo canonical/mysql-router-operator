@@ -27,7 +27,7 @@ RETRY_TIMEOUT = 3 * 60
 
 
 @pytest.mark.abort_on_fail
-async def test_exporter_endpoint(ops_test: OpsTest, charm, ubuntu_base) -> None:
+async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
     """Test that exporter endpoint is functional."""
     logger.info("Deploying all the applications")
 
@@ -45,7 +45,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, ubuntu_base) -> None:
             charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=0,
-            base=f"ubuntu@{ubuntu_base}",
+            series=series,
         ),
         ops_test.model.deploy(
             APPLICATION_APP_NAME,
@@ -53,7 +53,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, ubuntu_base) -> None:
             num_units=1,
             # MySQL Router and Grafana agent are subordinate -
             # they will use the series of the principal charm
-            base=f"ubuntu@{ubuntu_base}",
+            series=series,
             channel="latest/edge",
         ),
         ops_test.model.deploy(
@@ -61,7 +61,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, ubuntu_base) -> None:
             application_name=GRAFANA_AGENT_APP_NAME,
             num_units=0,
             channel="latest/stable",
-            base=f"ubuntu@{ubuntu_base}",
+            series=series,
         ),
     )
 

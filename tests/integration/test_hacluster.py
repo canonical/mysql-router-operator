@@ -87,9 +87,7 @@ async def generate_next_available_ip(
 
 
 @pytest.mark.abort_on_fail
-async def test_external_connectivity_vip_with_hacluster(
-    ops_test: OpsTest, charm, ubuntu_base
-) -> None:
+async def test_external_connectivity_vip_with_hacluster(ops_test: OpsTest, charm, series) -> None:
     """Test external connectivity and VIP with data-integrator hacluster."""
     logger.info("Deploy and relate all applications without hacluster")
     # speed up test by firing update-status more frequently (for hacluster)
@@ -106,13 +104,13 @@ async def test_external_connectivity_vip_with_hacluster(
                 charm,
                 application_name=MYSQL_ROUTER_APP_NAME,
                 num_units=None,
-                base=f"ubuntu@{ubuntu_base}",
+                series=series,
             ),
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,
                 application_name=DATA_INTEGRATOR_APP_NAME,
                 channel="latest/stable",
-                base=f"ubuntu@{ubuntu_base}",
+                series=series,
                 config={"database-name": TEST_DATABASE},
                 num_units=4,
             ),
@@ -258,7 +256,7 @@ async def test_hacluster_failover(ops_test: OpsTest) -> None:
 
 
 @pytest.mark.abort_on_fail
-async def test_tls_along_with_ha_cluster(ops_test: OpsTest, ubuntu_base) -> None:
+async def test_tls_along_with_ha_cluster(ops_test: OpsTest, series) -> None:
     """Ensure that mysqlrouter is externally accessible with TLS integration."""
     logger.info("Deploying TLS")
     async with ops_test.fast_forward("60s"):

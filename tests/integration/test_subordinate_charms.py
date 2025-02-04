@@ -17,7 +17,7 @@ UBUNTU_PRO_APP_NAME = "ubuntu-advantage"
 LANDSCAPE_CLIENT_APP_NAME = "landscape-client"
 
 
-async def test_ubuntu_pro(ops_test, charm, ubuntu_base):
+async def test_ubuntu_pro(ops_test, charm, series):
     await asyncio.gather(
         ops_test.model.deploy(
             MYSQL_APP_NAME,
@@ -30,21 +30,21 @@ async def test_ubuntu_pro(ops_test, charm, ubuntu_base):
             application_name=MYSQL_ROUTER_APP_NAME,
             # deploy mysqlrouter with num_units=None since it's a subordinate charm
             num_units=None,
-            base=f"ubuntu@{ubuntu_base}",
+            series=series,
         ),
         ops_test.model.deploy(
             APPLICATION_APP_NAME,
             application_name=APPLICATION_APP_NAME,
             channel="latest/edge",
             # MySQL Router is subordinate—it will use the series of the principal charm
-            base=f"ubuntu@{ubuntu_base}",
+            series=series,
         ),
         ops_test.model.deploy(
             UBUNTU_PRO_APP_NAME,
             application_name=UBUNTU_PRO_APP_NAME,
             channel="latest/edge",
             config={"token": os.environ["UBUNTU_PRO_TOKEN"]},
-            base=f"ubuntu@{ubuntu_base}",
+            series=series,
         ),
     )
     await ops_test.model.relate(f"{MYSQL_APP_NAME}", f"{MYSQL_ROUTER_APP_NAME}")
@@ -66,7 +66,7 @@ async def test_ubuntu_pro(ops_test, charm, ubuntu_base):
         )
 
 
-async def test_landscape_client(ops_test, ubuntu_base):
+async def test_landscape_client(ops_test, series):
     await ops_test.model.deploy(
         LANDSCAPE_CLIENT_APP_NAME,
         application_name=LANDSCAPE_CLIENT_APP_NAME,
@@ -76,7 +76,7 @@ async def test_landscape_client(ops_test, ubuntu_base):
             "registration-key": os.environ["LANDSCAPE_REGISTRATION_KEY"],
             "ppa": "ppa:landscape/self-hosted-beta",
         },
-        base=f"ubuntu@{ubuntu_base}",
+        series=series,
     )
     await ops_test.model.relate(APPLICATION_APP_NAME, LANDSCAPE_CLIENT_APP_NAME)
     async with ops_test.fast_forward("60s"):

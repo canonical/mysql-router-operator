@@ -40,7 +40,7 @@ TEST_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 
 
 @pytest.mark.abort_on_fail
-async def test_deploy_edge(ops_test: OpsTest, ubuntu_base) -> None:
+async def test_deploy_edge(ops_test: OpsTest, series) -> None:
     """Simple test to ensure that mysql, mysqlrouter and application charms deploy."""
     logger.info("Deploying all applications")
     await asyncio.gather(
@@ -57,14 +57,14 @@ async def test_deploy_edge(ops_test: OpsTest, ubuntu_base) -> None:
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=1,
             channel="dpe/edge",
-            base=f"ubuntu@{ubuntu_base}",
+            series=series,
         ),
         ops_test.model.deploy(
             TEST_APP_NAME,
             application_name=TEST_APP_NAME,
             num_units=3,
             channel="latest/edge",
-            base=f"ubuntu@{ubuntu_base}",
+            series=series,
         ),
     )
 
