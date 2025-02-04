@@ -13,9 +13,9 @@ MYSQL_TEST_APP_NAME = "mysql-test-app"
 
 
 @markers.amd64_only
-async def test_arm_charm_on_amd_host(ops_test: OpsTest, series) -> None:
+async def test_arm_charm_on_amd_host(ops_test: OpsTest, charm, series) -> None:
     """Tries deploying an arm64 charm on amd64 host."""
-    charm = "./mysql-router_ubuntu@22.04-arm64.charm"
+    charm = charm.replace("amd64", "arm64")
 
     await asyncio.gather(
         ops_test.model.deploy(
@@ -46,9 +46,9 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest, series) -> None:
 
 
 @markers.arm64_only
-async def test_amd_charm_on_arm_host(ops_test: OpsTest, series) -> None:
+async def test_amd_charm_on_arm_host(ops_test: OpsTest, charm, series) -> None:
     """Tries deploying an amd64 charm on arm64 host."""
-    charm = "./mysql-router_ubuntu@22.04-amd64.charm"
+    charm = charm.replace("arm64", "amd64")
 
     await asyncio.gather(
         ops_test.model.deploy(
