@@ -27,11 +27,9 @@ TEST_TABLE = "random_data"
 SLOW_TIMEOUT = 15 * 60
 
 
-
 @pytest.mark.abort_on_fail
 async def test_database_relation(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Test the database relation."""
-
     # deploy mysqlrouter with num_units=None since it's a subordinate charm
     # and will be installed with the related consumer application
     applications = await asyncio.gather(

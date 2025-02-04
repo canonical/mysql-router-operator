@@ -35,7 +35,6 @@ else:
     TLS_CONFIG = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
 
 
-
 @pytest.mark.abort_on_fail
 async def test_external_connectivity_with_data_integrator(
     ops_test: OpsTest, charm, ubuntu_base
@@ -93,7 +92,6 @@ async def test_external_connectivity_with_data_integrator(
             port=credentials["endpoints"].split(",")[0].split(":")[1],
         )
         assert TEST_DATABASE in databases
-
 
 
 @pytest.mark.abort_on_fail

@@ -6,8 +6,6 @@
 import asyncio
 import os
 
-import pytest
-
 from .test_database import (
     APPLICATION_APP_NAME,
     MYSQL_APP_NAME,
@@ -17,7 +15,6 @@ from .test_database import (
 
 UBUNTU_PRO_APP_NAME = "ubuntu-advantage"
 LANDSCAPE_CLIENT_APP_NAME = "landscape-client"
-
 
 
 async def test_ubuntu_pro(ops_test, charm, ubuntu_base):
@@ -67,7 +64,6 @@ async def test_ubuntu_pro(ops_test, charm, ubuntu_base):
             raise_on_blocked=True,
             timeout=SLOW_TIMEOUT,
         )
-
 
 
 async def test_landscape_client(ops_test, ubuntu_base):

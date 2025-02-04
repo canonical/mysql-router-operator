@@ -32,7 +32,6 @@ else:
     TLS_CONFIG = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
 
 
-
 @pytest.mark.abort_on_fail
 async def test_build_deploy_and_relate(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Test encryption when backend database is using TLS."""
@@ -81,7 +80,6 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, charm, ubuntu_base) ->
         # We can safely wait only for test application to be ready, given that it will
         # only become active once all the other applications are ready.
         await ops_test.model.wait_for_idle([TEST_APP_NAME], status="active", timeout=SLOW_TIMEOUT)
-
 
 
 @pytest.mark.abort_on_fail

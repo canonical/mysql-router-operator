@@ -7,15 +7,16 @@ import os
 import pytest
 from pytest_operator.plugin import OpsTest
 
-from . import juju_
-from . import architecture
+from . import architecture, juju_
 from .helpers import APPLICATION_DEFAULT_APP_NAME, get_application_name
 
 logger = logging.getLogger(__name__)
 
+
 @pytest.fixture
 def ubuntu_base():
     return os.environ["CHARM_UBUNTU_BASE"]
+
 
 @pytest.fixture
 def charm(ubuntu_base):
@@ -23,6 +24,7 @@ def charm(ubuntu_base):
     # juju bundle files expect local charms to begin with `./` or `/` to distinguish them from
     # Charmhub charms.
     return f"./mysql-router_ubuntu@{ubuntu_base}-{architecture.architecture}.charm"
+
 
 @pytest.fixture
 async def continuous_writes(ops_test: OpsTest):

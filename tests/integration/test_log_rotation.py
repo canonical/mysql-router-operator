@@ -28,11 +28,9 @@ CHARMED_MYSQL_COMMON_DIRECTORY = "/var/snap/charmed-mysql/common"
 SLOW_TIMEOUT = 15 * 60
 
 
-
 @pytest.mark.abort_on_fail
 async def test_log_rotation(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Test the log rotation of mysqlrouter logs."""
-
     logger.info("Deploying all the applications")
 
     # deploy mysqlrouter with num_units=None since it's a subordinate charm

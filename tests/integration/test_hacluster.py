@@ -86,7 +86,6 @@ async def generate_next_available_ip(
     assert False, "Unable to compute next available IP"
 
 
-
 @pytest.mark.abort_on_fail
 async def test_external_connectivity_vip_with_hacluster(
     ops_test: OpsTest, charm, ubuntu_base
@@ -208,7 +207,6 @@ async def test_external_connectivity_vip_with_hacluster(
         await ensure_database_accessible_from_vip(ops_test)
 
 
-
 @pytest.mark.abort_on_fail
 async def test_hacluster_failover(ops_test: OpsTest) -> None:
     """Test the failover of the hacluster leader."""
@@ -257,7 +255,6 @@ async def test_hacluster_failover(ops_test: OpsTest) -> None:
             ), "Started machine's workload status is unknown"
 
     await ops_test.model.wait_for_idle(status="active", timeout=TIMEOUT)
-
 
 
 @pytest.mark.abort_on_fail
@@ -338,7 +335,6 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, ubuntu_base) -> None
 
     logger.info("Ensure router externally accessible after TLS integration removed")
     await ensure_database_accessible_from_vip(ops_test)
-
 
 
 @pytest.mark.abort_on_fail

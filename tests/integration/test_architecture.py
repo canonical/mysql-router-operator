@@ -4,15 +4,13 @@
 
 import asyncio
 
-import pytest
 from pytest_operator.plugin import OpsTest
 
-from .helpers import get_charm
 from . import markers
+from .helpers import get_charm
 
 MYSQL_ROUTER_APP_NAME = "mysql-router"
 MYSQL_TEST_APP_NAME = "mysql-test-app"
-
 
 
 @markers.amd64_only
@@ -46,7 +44,6 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest, ubuntu_base) -> None:
         status="error",
         raise_on_error=False,
     )
-
 
 
 @markers.arm64_only

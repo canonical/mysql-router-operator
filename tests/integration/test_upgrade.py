@@ -13,10 +13,10 @@ import zipfile
 import pytest
 import tenacity
 from pytest_operator.plugin import OpsTest
-from . import markers
 
 import snap
 
+from . import markers
 from .helpers import (
     APPLICATION_DEFAULT_APP_NAME,
     MYSQL_DEFAULT_APP_NAME,
@@ -37,7 +37,6 @@ SMALL_TIMEOUT = 5 * 60
 MYSQL_APP_NAME = MYSQL_DEFAULT_APP_NAME
 MYSQL_ROUTER_APP_NAME = MYSQL_ROUTER_DEFAULT_APP_NAME
 TEST_APP_NAME = APPLICATION_DEFAULT_APP_NAME
-
 
 
 @pytest.mark.abort_on_fail
@@ -80,7 +79,6 @@ async def test_deploy_edge(ops_test: OpsTest, ubuntu_base) -> None:
     await ops_test.model.wait_for_idle(
         [MYSQL_APP_NAME, MYSQL_ROUTER_APP_NAME, TEST_APP_NAME], status="active", timeout=TIMEOUT
     )
-
 
 
 @markers.amd64_only
@@ -149,7 +147,6 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
     await ops_test.model.wait_for_idle(
         [MYSQL_ROUTER_APP_NAME], idle_period=30, status="active", timeout=TIMEOUT
     )
-
 
 
 @pytest.mark.abort_on_fail

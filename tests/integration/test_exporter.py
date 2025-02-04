@@ -26,11 +26,9 @@ SLOW_TIMEOUT = 25 * 60
 RETRY_TIMEOUT = 3 * 60
 
 
-
 @pytest.mark.abort_on_fail
 async def test_exporter_endpoint(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Test that exporter endpoint is functional."""
-
     logger.info("Deploying all the applications")
 
     # deploy mysqlrouter with num_units=None since it's a subordinate charm
