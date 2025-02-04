@@ -39,6 +39,7 @@ else:
 async def test_external_connectivity_with_data_integrator(
     ops_test: OpsTest, charm, series
 ) -> None:
+    logger.error(f"{charm=}")
     """Test encryption when backend database is using TLS."""
     logger.info("Deploy and relate all applications")
     async with ops_test.fast_forward():
@@ -49,6 +50,7 @@ async def test_external_connectivity_with_data_integrator(
         data_integrator_config = {"database-name": TEST_DATABASE}
 
         # tls, data-integrator and router
+        logger.error(f"{charm=}")
         await asyncio.gather(
             ops_test.model.deploy(
                 charm,
