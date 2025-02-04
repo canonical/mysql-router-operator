@@ -7,7 +7,6 @@ import asyncio
 from pytest_operator.plugin import OpsTest
 
 from . import markers
-from .helpers import get_charm
 
 MYSQL_ROUTER_APP_NAME = "mysql-router"
 MYSQL_TEST_APP_NAME = "mysql-test-app"
@@ -16,7 +15,7 @@ MYSQL_TEST_APP_NAME = "mysql-test-app"
 @markers.amd64_only
 async def test_arm_charm_on_amd_host(ops_test: OpsTest, series) -> None:
     """Tries deploying an arm64 charm on amd64 host."""
-    charm = await get_charm(".", "arm64", 2)
+    charm = "./mysql-k8s_ubuntu@22.04-arm64.charm"
 
     await asyncio.gather(
         ops_test.model.deploy(
@@ -49,7 +48,7 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest, series) -> None:
 @markers.arm64_only
 async def test_amd_charm_on_arm_host(ops_test: OpsTest, series) -> None:
     """Tries deploying an amd64 charm on arm64 host."""
-    charm = await get_charm(".", "amd64", 1)
+    charm = "./mysql-k8s_ubuntu@22.04-amd64.charm"
 
     await asyncio.gather(
         ops_test.model.deploy(
