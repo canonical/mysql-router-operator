@@ -84,11 +84,3 @@ jobs:
     secrets: inherit
     permissions:
       contents: write  # Needed for Allure Report
-
-# TODO
-#  gh-hosted-collect-integration-tests:
-#        exclude:
-#          - groups: {path_to_test_file: tests/integration/test_data_integrator.py}
-#            ubuntu-versions: {series: focal}
-#          - groups: {path_to_test_file: tests/integration/test_hacluster.py}
-#            ubuntu-versions: {series: focal}
