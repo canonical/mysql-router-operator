@@ -84,6 +84,10 @@ backends:
     # Manually pass specific environment variables
     environment:
       CI: '$(HOST: echo $CI)'
+      CHARM_UBUNTU_BASE: '$(HOST: echo $CHARM_UBUNTU_BASE)'
+      UBUNTU_PRO_TOKEN: '$(HOST: echo $UBUNTU_PRO_TOKEN)'
+      LANDSCAPE_ACCOUNT_NAME: '$(HOST: echo $LANDSCAPE_ACCOUNT_NAME)'
+      LANDSCAPE_REGISTRATION_KEY: '$(HOST: echo $LANDSCAPE_REGISTRATION_KEY)'
     systems:
       - ubuntu-24.04:
           username: runner
