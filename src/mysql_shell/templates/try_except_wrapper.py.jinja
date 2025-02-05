@@ -3,7 +3,7 @@ import mysqlsh
 import traceback
 
 try:
-    shell.connect("{{ username }}:{{ password }}@{{ host }}:{{ port }}")
+    shell.options.set('useWizards', False)
     {{ code|indent(width=4) }}
 except mysqlsh.DBError as exception:
     error = {
