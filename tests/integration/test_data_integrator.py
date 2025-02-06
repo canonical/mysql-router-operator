@@ -57,7 +57,11 @@ async def test_external_connectivity_with_data_integrator(
                 series=series,
             ),
             ops_test.model.deploy(
-                TLS_APP_NAME, application_name=TLS_APP_NAME, channel="stable", config=TLS_CONFIG
+                TLS_APP_NAME,
+                application_name=TLS_APP_NAME,
+                channel="stable",
+                config=TLS_CONFIG,
+                base="ubuntu@22.04",
             ),
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,

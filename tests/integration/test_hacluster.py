@@ -265,6 +265,7 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, series) -> None:
             application_name=TLS_APP_NAME,
             channel="stable",
             config=TLS_CONFIG,
+            base="ubuntu@22.04",
         )
 
     logger.info("Ensure auto-generated TLS cert before relation with TLS")
