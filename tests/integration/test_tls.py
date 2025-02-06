@@ -59,7 +59,7 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, charm, series) -> None
                 application_name=TLS_APP_NAME,
                 channel="stable",
                 config=TLS_CONFIG,
-                base="ubuntu@22.04",
+                series="jammy",
             ),
             ops_test.model.deploy(
                 TEST_APP_NAME,

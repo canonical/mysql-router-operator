@@ -136,7 +136,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
         application_name=TLS_APP_NAME,
         channel="stable",
         config=TLS_CONFIG,
-        base="ubuntu@22.04",
+        series="jammy",
     )
     await ops_test.model.wait_for_idle([TLS_APP_NAME], status="active", timeout=SLOW_TIMEOUT)
 
