@@ -57,7 +57,7 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, charm, series) -> None
             ops_test.model.deploy(
                 TLS_APP_NAME,
                 application_name=TLS_APP_NAME,
-                channel="latest/stable",
+                channel="stable",
                 config=TLS_CONFIG,
                 series="jammy",
             ),
