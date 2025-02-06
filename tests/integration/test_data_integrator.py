@@ -28,13 +28,13 @@ TEST_DATABASE = "testdatabase"
 TEST_TABLE = "testtable"
 
 if juju_.is_3_or_higher:
-    tls_app_name = "tls-certificates-operator"
-    tls_channel = "legacy/edge" if architecture.architecture == "arm64" else "legacy/stable"
-    tls_config = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
-else:
     tls_app_name = "self-signed-certificates"
     tls_channel = "latest/edge" if architecture.architecture == "arm64" else "latest/stable"
     tls_config = {"ca-common-name": "Test CA"}
+else:
+    tls_app_name = "tls-certificates-operator"
+    tls_channel = "legacy/edge" if architecture.architecture == "arm64" else "legacy/stable"
+    tls_config = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
 
 
 @pytest.mark.abort_on_fail
