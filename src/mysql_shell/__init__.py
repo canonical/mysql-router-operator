@@ -70,7 +70,8 @@ class Shell:
             self._container.run_mysql_shell(
                 [
                     "--passwords-from-stdin",
-                    f"--uri={self._connection_info.username}@{self._connection_info.host}:{self._connection_info.port}",
+                    "--uri",
+                    f"{self._connection_info.username}@{self._connection_info.host}:{self._connection_info.port}",
                     "--python",
                     "-c",
                     script,
