@@ -3,9 +3,8 @@
 
 import pytest
 
-from . import architecture, juju_
+from . import architecture
 
-juju_secrets = pytest.mark.skipif(not juju_.is_3_or_higher, reason="Requires juju secrets")
 amd64_only = pytest.mark.skipif(
     architecture.architecture != "amd64", reason="Requires amd64 architecture"
 )
