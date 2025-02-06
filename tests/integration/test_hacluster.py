@@ -263,7 +263,7 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, series) -> None:
         await ops_test.model.deploy(
             TLS_APP_NAME,
             application_name=TLS_APP_NAME,
-            channel="stable",
+            channel="latest/stable",
             config=TLS_CONFIG,
         )
 
