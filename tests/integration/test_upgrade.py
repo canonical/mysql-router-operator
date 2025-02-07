@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os
 import pathlib
+import platform
 import re
 import shutil
 import typing
@@ -220,11 +221,15 @@ def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> N
         charm_zip.writestr("workload_version", f"{workload_version}+testupgrade\n")
 
         # charm needs to refresh snap to be able to avoid no-op when upgrading.
-        # set rev 102 (an old edge version of the snap)
+        # set an old revision of the snap
         snap_file = pathlib.Path("src/snap.py")
         content = snap_file.read_text()
-        # TODO: add arm64 support or mark as amd64 only
-        new_snap_content = re.sub(f'"x86_64": "{snap.revision}"', '"x86_64": "102"', str(content))
+        old_revision = {"x86_64": "121", "aarch64": "122"}[platform.machine()]
+        new_snap_content = re.sub(
+            f'"{platform.machine()}": "{snap.revision}"',
+            f'"{platform.machine()}": "{old_revision}"',
+            str(content),
+        )
         charm_zip.writestr("src/snap.py", new_snap_content)
 
 
