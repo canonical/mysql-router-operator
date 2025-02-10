@@ -17,7 +17,6 @@ from pytest_operator.plugin import OpsTest
 
 import snap
 
-from . import markers
 from .helpers import (
     APPLICATION_DEFAULT_APP_NAME,
     MYSQL_DEFAULT_APP_NAME,
