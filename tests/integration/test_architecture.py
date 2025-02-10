@@ -7,31 +7,32 @@ import asyncio
 import pytest
 from pytest_operator.plugin import OpsTest
 
-from .helpers import get_charm
+from . import markers
 
 MYSQL_ROUTER_APP_NAME = "mysql-router"
 MYSQL_TEST_APP_NAME = "mysql-test-app"
 
 
-@pytest.mark.group(1)
-@pytest.mark.usefixtures("only_amd64", "only_ubuntu_jammy")
-async def test_arm_charm_on_amd_host(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
+@markers.amd64_only
+async def test_arm_charm_on_amd_host(ops_test: OpsTest, charm, ubuntu_base, series) -> None:
     """Tries deploying an arm64 charm on amd64 host."""
-    charm = await get_charm(".", "arm64", 2)
+    if ubuntu_base == "20.04":
+        pytest.skip("arm64 charm not built for 20.04")
+    charm = charm.replace("amd64", "arm64")
 
     await asyncio.gather(
         ops_test.model.deploy(
             charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=0,
-            series=mysql_router_charm_series,
+            series=series,
         ),
         ops_test.model.deploy(
             MYSQL_TEST_APP_NAME,
             application_name=MYSQL_TEST_APP_NAME,
             num_units=1,
             channel="latest/edge",
-            series=mysql_router_charm_series,
+            series=series,
         ),
     )
 
@@ -47,25 +48,24 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest, mysql_router_charm_serie
     )
 
 
-@pytest.mark.group(1)
-@pytest.mark.usefixtures("only_arm64", "only_ubuntu_jammy")
-async def test_amd_charm_on_arm_host(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
+@markers.arm64_only
+async def test_amd_charm_on_arm_host(ops_test: OpsTest, charm, series) -> None:
     """Tries deploying an amd64 charm on arm64 host."""
-    charm = await get_charm(".", "amd64", 1)
+    charm = charm.replace("arm64", "amd64")
 
     await asyncio.gather(
         ops_test.model.deploy(
             charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=0,
-            series=mysql_router_charm_series,
+            series=series,
         ),
         ops_test.model.deploy(
             MYSQL_TEST_APP_NAME,
             application_name=MYSQL_TEST_APP_NAME,
             num_units=1,
             channel="latest/edge",
-            series=mysql_router_charm_series,
+            series=series,
         ),
     )
 

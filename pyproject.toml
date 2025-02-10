@@ -46,21 +46,15 @@ pytest = "^8.2.2"
 pytest-xdist = "^3.6.1"
 pytest-cov = "^5.0.0"
 ops-scenario = "^6.0.3, <6.0.4"  # 6.0.4 requires ops >= 2.12
-ops = "^2.9.0"
-pytest-mock = "^3.14.0"
 
 [tool.poetry.group.integration.dependencies]
 pytest = "^8.2.2"
 pytest-operator = "^0.35.0"
-pytest-operator-cache = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.6", subdirectory = "python/pytest_plugins/pytest_operator_cache"}
-pytest-operator-groups = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.6", subdirectory = "python/pytest_plugins/pytest_operator_groups"}
-pytest-github-secrets = {git = "https://github.com/canonical/data-platform-workflows", tag = "v24.0.6", subdirectory = "python/pytest_plugins/github_secrets"}
 juju = "^3.6.0.0"
 mysql-connector-python = "~8.0.33"
 tenacity = "^8.5.0"
 ops = "^2.9.0"
-pytest-mock = "^3.14.0"
-
+allure-pytest-default-results = "^0.1.2"
 
 [tool.coverage.run]
 branch = true
@@ -71,7 +65,6 @@ show_missing = true
 [tool.pytest.ini_options]
 minversion = "6.0"
 log_cli_level = "INFO"
-markers = ["unstable"]
 
 # Formatting tools configuration
 [tool.ruff]

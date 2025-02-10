@@ -1,0 +1,10 @@
+summary: test_hacluster.py
+environment:
+  TEST_MODULE: test_hacluster.py
+execute: |
+  tox run -e integration -- "tests/integration/$TEST_MODULE" --model testing --alluredir="$SPREAD_TASK/allure-results"
+artifacts:
+  - allure-results
+variants:
+  - -juju36_ubuntu20
+  - -juju29_ubuntu20

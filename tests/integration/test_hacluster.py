@@ -11,7 +11,7 @@ import pytest
 import tenacity
 from pytest_operator.plugin import OpsTest
 
-from . import juju_
+from . import architecture, juju_
 from .helpers import (
     MYSQL_DEFAULT_APP_NAME,
     MYSQL_ROUTER_DEFAULT_APP_NAME,
@@ -34,11 +34,13 @@ SMALL_TIMEOUT = 5 * 60
 TEST_DATABASE = "testdatabase"
 
 if juju_.is_3_or_higher:
-    TLS_APP_NAME = "self-signed-certificates"
-    TLS_CONFIG = {"ca-common-name": "Test CA"}
+    tls_app_name = "self-signed-certificates"
+    tls_channel = "latest/edge" if architecture.architecture == "arm64" else "latest/stable"
+    tls_config = {"ca-common-name": "Test CA"}
 else:
-    TLS_APP_NAME = "tls-certificates-operator"
-    TLS_CONFIG = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
+    tls_app_name = "tls-certificates-operator"
+    tls_channel = "legacy/edge" if architecture.architecture == "arm64" else "legacy/stable"
+    tls_config = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
 
 vip = None
 
@@ -86,18 +88,12 @@ async def generate_next_available_ip(
     assert False, "Unable to compute next available IP"
 
 
-@pytest.mark.group(1)
 @pytest.mark.abort_on_fail
-async def test_external_connectivity_vip_with_hacluster(
-    ops_test: OpsTest, mysql_router_charm_series
-) -> None:
+async def test_external_connectivity_vip_with_hacluster(ops_test: OpsTest, charm, series) -> None:
     """Test external connectivity and VIP with data-integrator hacluster."""
     logger.info("Deploy and relate all applications without hacluster")
     # speed up test by firing update-status more frequently (for hacluster)
     async with ops_test.fast_forward("60s"):
-        # mysqlrouter charm
-        mysqlrouter_charm = await ops_test.build_charm(".")
-
         # deploy data-integrator with mysqlrouter
         _, _, data_integrator_application = await asyncio.gather(
             ops_test.model.deploy(
@@ -107,16 +103,16 @@ async def test_external_connectivity_vip_with_hacluster(
                 num_units=1,
             ),
             ops_test.model.deploy(
-                mysqlrouter_charm,
+                charm,
                 application_name=MYSQL_ROUTER_APP_NAME,
                 num_units=None,
-                series=mysql_router_charm_series,
+                series=series,
             ),
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,
                 application_name=DATA_INTEGRATOR_APP_NAME,
                 channel="latest/stable",
-                series=mysql_router_charm_series,
+                series=series,
                 config={"database-name": TEST_DATABASE},
                 num_units=4,
             ),
@@ -211,7 +207,6 @@ async def test_external_connectivity_vip_with_hacluster(
         await ensure_database_accessible_from_vip(ops_test)
 
 
-@pytest.mark.group(1)
 @pytest.mark.abort_on_fail
 async def test_hacluster_failover(ops_test: OpsTest) -> None:
     """Test the failover of the hacluster leader."""
@@ -262,17 +257,16 @@ async def test_hacluster_failover(ops_test: OpsTest) -> None:
     await ops_test.model.wait_for_idle(status="active", timeout=TIMEOUT)
 
 
-@pytest.mark.group(1)
 @pytest.mark.abort_on_fail
-async def test_tls_along_with_ha_cluster(ops_test: OpsTest, mysql_router_charm_series) -> None:
+async def test_tls_along_with_ha_cluster(ops_test: OpsTest, series) -> None:
     """Ensure that mysqlrouter is externally accessible with TLS integration."""
     logger.info("Deploying TLS")
     async with ops_test.fast_forward("60s"):
         await ops_test.model.deploy(
-            TLS_APP_NAME,
-            application_name=TLS_APP_NAME,
-            channel="stable",
-            config=TLS_CONFIG,
+            tls_app_name,
+            application_name=tls_app_name,
+            channel=tls_channel,
+            config=tls_config,
         )
 
     logger.info("Ensure auto-generated TLS cert before relation with TLS")
@@ -294,10 +288,10 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, mysql_router_charm_s
 
     logger.info("Relate TLS with MySQLRouter")
     await ops_test.model.relate(
-        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{TLS_APP_NAME}:certificates"
+        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{tls_app_name}:certificates"
     )
 
-    await ops_test.model.wait_for_idle([TLS_APP_NAME], status="active", timeout=TIMEOUT)
+    await ops_test.model.wait_for_idle([tls_app_name], status="active", timeout=TIMEOUT)
 
     for attempt in tenacity.Retrying(
         reraise=True,
@@ -313,14 +307,14 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, mysql_router_charm_s
             )
             assert (
                 "CN = Test CA" in issuer
-            ), f"Expected mysqlrouter certificate from {TLS_APP_NAME}"
+            ), f"Expected mysqlrouter certificate from {tls_app_name}"
 
     logger.info("Ensure router externally accessible after TLS integration")
     await ensure_database_accessible_from_vip(ops_test)
 
-    logger.info(f"Removing relation between mysqlrouter and {TLS_APP_NAME}")
+    logger.info(f"Removing relation between mysqlrouter and {tls_app_name}")
     await ops_test.model.applications[MYSQL_ROUTER_APP_NAME].remove_relation(
-        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{TLS_APP_NAME}:certificates"
+        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{tls_app_name}:certificates"
     )
 
     for attempt in tenacity.Retrying(
@@ -343,7 +337,6 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, mysql_router_charm_s
     await ensure_database_accessible_from_vip(ops_test)
 
 
-@pytest.mark.group(1)
 @pytest.mark.abort_on_fail
 async def test_remove_vip(ops_test: OpsTest) -> None:
     """Ensure removal of VIP results in connection through data-integrator."""
