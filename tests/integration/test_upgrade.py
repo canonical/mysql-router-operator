@@ -82,7 +82,6 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
     )
 
 
-@markers.amd64_only
 @pytest.mark.abort_on_fail
 async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) -> None:
     """Upgrade mysqlrouter while ensuring continuous writes incrementing."""
