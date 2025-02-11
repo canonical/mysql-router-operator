@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os
 import pathlib
+import platform
 import re
 import shutil
 import typing
@@ -38,9 +39,8 @@ MYSQL_ROUTER_APP_NAME = MYSQL_ROUTER_DEFAULT_APP_NAME
 TEST_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 
 
-@pytest.mark.group(1)
 @pytest.mark.abort_on_fail
-async def test_deploy_edge(ops_test: OpsTest, mysql_router_charm_series: str) -> None:
+async def test_deploy_edge(ops_test: OpsTest, series) -> None:
     """Simple test to ensure that mysql, mysqlrouter and application charms deploy."""
     logger.info("Deploying all applications")
     await asyncio.gather(
@@ -57,14 +57,14 @@ async def test_deploy_edge(ops_test: OpsTest, mysql_router_charm_series: str) ->
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=1,
             channel="dpe/edge",
-            series=mysql_router_charm_series,
+            series=series,
         ),
         ops_test.model.deploy(
             TEST_APP_NAME,
             application_name=TEST_APP_NAME,
             num_units=3,
             channel="latest/edge",
-            series=mysql_router_charm_series,
+            series=series,
         ),
     )
 
@@ -81,9 +81,8 @@ async def test_deploy_edge(ops_test: OpsTest, mysql_router_charm_series: str) ->
     )
 
 
-@pytest.mark.group(1)
 @pytest.mark.abort_on_fail
-async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
+async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) -> None:
     """Upgrade mysqlrouter while ensuring continuous writes incrementing."""
     await ensure_all_units_continuous_writes_incrementing(ops_test)
 
@@ -93,8 +92,6 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
     old_workload_version = await get_workload_version(ops_test, mysql_router_unit.name)
 
     logger.info("Build charm locally")
-    global charm
-    charm = await ops_test.build_charm(".")
     global temporary_charm
     temporary_charm = "./upgrade.charm"
     shutil.copy(charm, temporary_charm)
@@ -151,9 +148,8 @@ async def test_upgrade_from_edge(ops_test: OpsTest, continuous_writes) -> None:
     )
 
 
-@pytest.mark.group(1)
 @pytest.mark.abort_on_fail
-async def test_fail_and_rollback(ops_test: OpsTest, continuous_writes) -> None:
+async def test_fail_and_rollback(ops_test: OpsTest, charm, continuous_writes) -> None:
     """Upgrade to an invalid version and test rollback.
 
     Relies on the charm built in the previous test (test_upgrade_from_edge).
@@ -223,11 +219,15 @@ def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> N
         charm_zip.writestr("workload_version", f"{workload_version}+testupgrade\n")
 
         # charm needs to refresh snap to be able to avoid no-op when upgrading.
-        # set rev 102 (an old edge version of the snap)
+        # set an old revision of the snap
         snap_file = pathlib.Path("src/snap.py")
         content = snap_file.read_text()
-        # TODO: add arm64 support or mark as amd64 only
-        new_snap_content = re.sub(f'"x86_64": "{snap.revision}"', '"x86_64": "102"', str(content))
+        old_revision = {"x86_64": "121", "aarch64": "122"}[platform.machine()]
+        new_snap_content = re.sub(
+            f'"{platform.machine()}": "{snap.revision}"',
+            f'"{platform.machine()}": "{old_revision}"',
+            str(content),
+        )
         charm_zip.writestr("src/snap.py", new_snap_content)
 
 

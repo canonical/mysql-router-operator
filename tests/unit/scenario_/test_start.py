@@ -5,12 +5,12 @@ import ops
 import pytest
 import scenario
 
-import machine_charm
+import charm
 
 
 @pytest.mark.parametrize("leader", [False, True])
 def test_start_sets_status_if_no_relations(leader):
-    context = scenario.Context(machine_charm.MachineSubordinateRouterCharm)
+    context = scenario.Context(charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
         leader=leader,
         relations=[scenario.PeerRelation(endpoint="upgrade-version-a")],
