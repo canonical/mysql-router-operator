@@ -66,6 +66,9 @@ class Shell:
 
         script = template.render(code=code, error_filepath=error_file.relative_to_container)
 
+        temporary_script_file = self._container.path("/tmp/mysqlsh_script.py")
+        temporary_script_file.write_text(script)
+
         try:
             self._container.run_mysql_shell(
                 [
@@ -73,8 +76,8 @@ class Shell:
                     "--uri",
                     f"{self._connection_info.username}@{self._connection_info.host}:{self._connection_info.port}",
                     "--python",
-                    "-c",
-                    script,
+                    "--file",
+                    str(temporary_script_file.relative_to_container),
                 ],
                 input=self._connection_info.password,
             )
@@ -83,6 +86,8 @@ class Shell:
                 f"Failed to run MySQL Shell script:\n{script}\n\nstderr:\n{e.stderr}\n"
             )
             raise
+        finally:
+            temporary_script_file.unlink()
 
         with error_file.open("r") as file:
             exception = json.load(file)
