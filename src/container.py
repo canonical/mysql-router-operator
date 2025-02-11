@@ -196,14 +196,20 @@ class Container(abc.ABC):
         return self._run_command(args, timeout=timeout)
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def run_mysql_shell(self, args: typing.List[str], *, timeout: int = None) -> str:
+    def run_mysql_shell(
+        self,
+        args: typing.List[str],
+        *,
+        timeout: int = None,
+        input: str = None,  # noqa: A002 Match subprocess.run()
+    ) -> str:
         """Run MySQL Shell command.
 
         Raises:
             CalledProcessError: Command returns non-zero exit code
         """
         args.insert(0, self._mysql_shell_command)
-        return self._run_command(args, timeout=timeout)
+        return self._run_command(args, timeout=timeout, input=input)
 
     @abc.abstractmethod
     def path(self, *args) -> Path:

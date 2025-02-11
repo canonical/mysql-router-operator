@@ -3,7 +3,8 @@ import mysqlsh
 import traceback
 
 try:
-    shell.connect("{{ username }}:{{ password }}@{{ host }}:{{ port }}")
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
     {{ code|indent(width=4) }}
 except mysqlsh.DBError as exception:
     error = {

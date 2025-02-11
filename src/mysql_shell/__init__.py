@@ -64,40 +64,36 @@ class Shell:
         template = _jinja_env.get_template("try_except_wrapper.py.jinja")
         error_file = self._container.path("/tmp/mysqlsh_error.json")
 
-        def render(connection_info: "relations.database_requires.ConnectionInformation"):
-            return template.render(
-                username=connection_info.username,
-                password=connection_info.password,
-                host=connection_info.host,
-                port=connection_info.port,
-                code=code,
-                error_filepath=error_file.relative_to_container,
-            )
+        script = template.render(code=code, error_filepath=error_file.relative_to_container)
 
-        # Redact password from log
-        logged_script = render(self._connection_info.redacted)
-
-        script = render(self._connection_info)
         temporary_script_file = self._container.path("/tmp/mysqlsh_script.py")
-        error_file = self._container.path("/tmp/mysqlsh_error.json")
         temporary_script_file.write_text(script)
+
         try:
-            self._container.run_mysql_shell([
-                "--no-wizard",
-                "--python",
-                "--file",
-                str(temporary_script_file.relative_to_container),
-            ])
+            # https://bugs.mysql.com/bug.php?id=117429 details on why --no-wizard is omitted
+            self._container.run_mysql_shell(
+                [
+                    "--passwords-from-stdin",
+                    "--uri",
+                    f"{self._connection_info.username}@{self._connection_info.host}:{self._connection_info.port}",
+                    "--python",
+                    "--file",
+                    str(temporary_script_file.relative_to_container),
+                ],
+                input=self._connection_info.password,
+            )
         except container.CalledProcessError as e:
             logger.exception(
-                f"Failed to run MySQL Shell script:\n{logged_script}\n\nstderr:\n{e.stderr}\n"
+                f"Failed to run MySQL Shell script:\n{script}\n\nstderr:\n{e.stderr}\n"
             )
             raise
         finally:
             temporary_script_file.unlink()
+
         with error_file.open("r") as file:
             exception = json.load(file)
         error_file.unlink()
+
         try:
             if exception:
                 raise ShellDBError(**exception)
@@ -107,7 +103,7 @@ class Shell:
                 raise server_exceptions.ConnectionError_
             else:
                 logger.exception(
-                    f"Failed to run MySQL Shell script:\n{logged_script}\n\nMySQL client error {e.code}\nMySQL Shell traceback:\n{e.traceback_message}\n"
+                    f"Failed to run MySQL Shell script:\n{script}\n\nMySQL client error {e.code}\nMySQL Shell traceback:\n{e.traceback_message}\n"
                 )
                 raise
 
