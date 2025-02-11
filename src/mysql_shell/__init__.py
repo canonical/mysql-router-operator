@@ -70,6 +70,7 @@ class Shell:
         temporary_script_file.write_text(script)
 
         try:
+            # https://bugs.mysql.com/bug.php?id=117429 details on why --no-wizard is omitted
             self._container.run_mysql_shell(
                 [
                     "--passwords-from-stdin",
