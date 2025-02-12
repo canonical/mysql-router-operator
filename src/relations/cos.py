@@ -8,7 +8,7 @@ import typing
 from dataclasses import dataclass
 
 import ops
-from charms.grafana_agent.v0.cos_agent import COSAgentProvider
+from charms.grafana_agent.v0.cos_agent import COSAgentProvider, charm_tracing_config
 
 import container
 import relations.secrets
@@ -42,6 +42,8 @@ class COSRelation:
     MONITORING_USERNAME = "monitoring"
     _MONITORING_PASSWORD_KEY = "monitoring-password"
 
+    _TRACING_PROTOCOL = "otlp_http"
+
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm", container_: container.Container):
         self._interface = COSAgentProvider(
             charm_,
@@ -52,6 +54,7 @@ class COSRelation:
                 }
             ],
             log_slots=[f"{_SNAP_NAME}:logs"],
+            tracing_protocols=[self._TRACING_PROTOCOL],
         )
         self._charm = charm_
         self._container = container_
@@ -71,6 +74,8 @@ class COSRelation:
             unit_secret_fields=[self._MONITORING_PASSWORD_KEY],
         )
 
+        self._tracing_endpoint, _ = charm_tracing_config(self._interface, None)
+
     @property
     def exporter_user_config(self) -> ExporterConfig:
         """Returns user config needed for the router exporter service."""
@@ -85,6 +90,11 @@ class COSRelation:
     def relation_exists(self) -> bool:
         """Whether relation with cos exists."""
         return len(self._charm.model.relations.get(self._NAME, [])) == 1
+
+    @property
+    def tracing_endpoint(self) -> bool:
+        """The tracing endpoint."""
+        return self._tracing_endpoint
 
     def get_monitoring_password(self) -> str:
         """Gets the monitoring password from unit peer data, or generate and cache it."""
