@@ -1,0 +1,24 @@
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:263 Deploying TLS
+[32mINFO    [0m juju.model:model.py:2284 Deploying ch:amd64/jammy/self-signed-certificates-155
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:272 Ensure auto-generated TLS cert before relation with TLS
+[32mINFO    [0m integration.helpers:helpers.py:468 Running get-credentials on data-integrator/0
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:286 Ensure router externally accessible before TLS integration
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:52 Ensure database accessible via VIP
+[32mINFO    [0m integration.helpers:helpers.py:468 Running get-credentials on data-integrator/0
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:289 Relate TLS with MySQLRouter
+[33mWARNING [0m juju.model:model.py:1666 relate is deprecated and will be removed. Use integrate instead.
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  self-signed-certificates/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  self-signed-certificates/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  self-signed-certificates/0 [executing] active: 
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  self-signed-certificates/0 [idle] active: 
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:312 Ensure router externally accessible after TLS integration
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:52 Ensure database accessible via VIP
+[32mINFO    [0m integration.helpers:helpers.py:468 Running get-credentials on data-integrator/0
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:315 Removing relation between mysqlrouter and self-signed-certificates
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:336 Ensure router externally accessible after TLS integration removed
+[32mINFO    [0m integration.test_hacluster:test_hacluster.py:52 Ensure database accessible via VIP
+[32mINFO    [0m integration.helpers:helpers.py:468 Running get-credentials on data-integrator/0
