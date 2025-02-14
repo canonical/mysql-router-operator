@@ -1,0 +1,5 @@
+[32mINFO    [0m integration.helpers:helpers.py:360 Ensure continuous writes are incrementing
+[32mINFO    [0m integration.helpers:helpers.py:312 Retrieving primary unit
+[32mINFO    [0m mysql.connector:authentication.py:66 package: mysql.connector.plugins
+[32mINFO    [0m mysql.connector:authentication.py:67 plugin_name: caching_sha2_password
+[32mINFO    [0m mysql.connector:authentication.py:71 AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
