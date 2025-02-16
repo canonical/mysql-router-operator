@@ -1,0 +1,62 @@
+[33mWARNING [0m juju.client.connection:connection.py:490 Receiver: Connection closed, reconnecting
+[32mINFO    [0m pytest_operator.plugin:plugin.py:862 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  3.6.2    unsupported  01:43:07Z
+
+App              Version          Status   Scale  Charm            Channel        Rev  Exposed  Message
+data-integrator                   active       4  data-integrator  latest/stable   78  no       
+hacluster        2.1.2            waiting      4  hacluster        2.4/stable     131  no       Resource: res_mysql-router_df542e80fbb4c9_vip not yet configured
+mysql            8.0.41-0ubun...  active       1  mysql            8.0/edge       349  no       
+mysql-router     8.0.41-0ubun...  active       4  mysql-router                      0  no       
+
+Unit                Workload  Agent      Machine  Public address  Ports           Message
+data-integrator/0*  active    executing  0        10.126.148.5                    (get-credentials) 
+  hacluster/0*      active    executing           10.126.148.5                    Unit is ready and clustered
+  mysql-router/0*   active    idle                10.126.148.5    6446-6447/tcp   VIP: 10.126.148.7
+data-integrator/1   active    idle       1        10.126.148.212                  
+  hacluster/5       waiting   idle                10.126.148.212                  Resource: res_mysql-router_df542e80fbb4c9_vip not yet configured
+  mysql-router/3    active    idle                10.126.148.212  6446-6447/tcp   
+data-integrator/2   active    idle       2        10.126.148.224                  
+  hacluster/2       waiting   idle                10.126.148.224                  Resource: res_mysql-router_df542e80fbb4c9_vip not yet configured
+  mysql-router/2    active    idle                10.126.148.224  6446-6447/tcp   
+data-integrator/3   active    idle       3        10.126.148.245                  
+  hacluster/4       waiting   idle                10.126.148.245                  Resource: res_mysql-router_df542e80fbb4c9_vip not yet configured
+  mysql-router/1    active    idle                10.126.148.245  6446-6447/tcp   
+mysql/0*            active    idle       4        10.126.148.165  3306,33060/tcp  Primary
+
+Machine  State    Address         Inst id        Base          AZ  Message
+0        started  10.126.148.5    juju-7e1551-0  ubuntu@22.04      Running
+1        started  10.126.148.212  juju-7e1551-1  ubuntu@22.04      Running
+2        started  10.126.148.224  juju-7e1551-2  ubuntu@22.04      Running
+3        started  10.126.148.245  juju-7e1551-3  ubuntu@22.04      Running
+4        started  10.126.148.165  juju-7e1551-4  ubuntu@22.04      Running
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:868 Juju error logs:
+
+machine-0: 01:32:20 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-0: 01:32:20 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-data-integrator-0: 01:32:20 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 01:32:24 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-3: 01:35:01 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 01:35:01 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-data-integrator-3: 01:35:01 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-1: 01:35:07 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-4: 01:35:08 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-4: 01:35:08 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-0: 01:35:08 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-2: 01:35:08 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 01:35:08 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 01:35:09 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 01:35:09 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-data-integrator-2: 01:35:09 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-data-integrator-1: 01:35:09 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-2: 01:35:17 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-3: 01:35:17 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-hacluster-5: 01:37:48 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-4: 01:42:41 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [e4d7d2] "machine-4" cannot open api: unable to connect to API: dial tcp 10.126.148.7:17070: connect: connection refused
+machine-4: 01:42:45 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [e4d7d2] "machine-4" cannot open api: unable to connect to API: dial tcp 10.126.148.7:17070: connect: connection refused
+machine-4: 01:42:49 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [e4d7d2] "machine-4" cannot open api: unable to connect to API: dial tcp 10.126.148.7:17070: connect: connection refused
+machine-4: 01:42:55 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [e4d7d2] "machine-4" cannot open api: unable to connect to API: dial tcp 10.126.148.7:17070: connect: connection refused
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:947 Forgetting model main...
