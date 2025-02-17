@@ -12,9 +12,9 @@ on:
 
 
 jobs:
-  static-code-analysis:
-    name: Static code analysis
-    runs-on: [self-hosted, linux, amd64, tiobe, jammy]
+  tiobe-scan:
+    name: Tiobe scan
+    runs-on: [self-hosted, tiobe]
     timeout-minutes: 60
     steps:
       - name: Checkout the project
@@ -46,7 +46,7 @@ jobs:
         uses: tiobe/tics-github-action@v3
         with:
           mode: qserver
-          project: mysql-operator
+          project: mysql-router-operator
           branchdir: .
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
           ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
