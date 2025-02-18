@@ -8,7 +8,6 @@ import logging
 import typing
 
 import ops
-from charms.tempo_k8s.v2.tracing import TracingEndpointRequirer
 
 import container
 import lifecycle
@@ -32,9 +31,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     _READ_ONLY_PORT = 6447
     _READ_WRITE_X_PORT = 6448
     _READ_ONLY_X_PORT = 6449
-
-    _TRACING_RELATION_NAME = "tracing"
-    _TRACING_PROTOCOL = "otlp_http"
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -71,10 +67,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         )
         self.tls = relations.tls.RelationEndpoint(self)
 
-        self.tracing = TracingEndpointRequirer(
-            self, relation_name=self._TRACING_RELATION_NAME, protocols=[self._TRACING_PROTOCOL]
-        )
-
     @property
     @abc.abstractmethod
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
@@ -100,23 +92,29 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @property
     @abc.abstractmethod
-    def _read_write_endpoint(self) -> str:
+    def _read_write_endpoints(self) -> str:
         """MySQL Router read-write endpoint"""
 
     @property
     @abc.abstractmethod
-    def _read_only_endpoint(self) -> str:
+    def _read_only_endpoints(self) -> str:
         """MySQL Router read-only endpoint"""
 
     @property
     @abc.abstractmethod
-    def _exposed_read_write_endpoint(self) -> str:
-        """The exposed read-write endpoint"""
+    def _exposed_read_write_endpoints(self) -> typing.Optional[str]:
+        """The exposed read-write endpoint.
+
+        Only defined in vm charm.
+        """
 
     @property
     @abc.abstractmethod
-    def _exposed_read_only_endpoint(self) -> str:
-        """The exposed read-only endpoint"""
+    def _exposed_read_only_endpoints(self) -> typing.Optional[str]:
+        """The exposed read-only endpoint.
+
+        Only defined in vm charm.
+        """
 
     @abc.abstractmethod
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
@@ -124,6 +122,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
         Only defined in vm charm to return True/False. In k8s charm, returns None.
         """
+
+    @property
+    @abc.abstractmethod
+    def _status(self) -> ops.StatusBase:
+        """Status of the charm."""
 
     @property
     def _tls_certificate_saved(self) -> bool:
@@ -148,8 +151,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     @property
     def tracing_endpoint(self) -> typing.Optional[str]:
         """Otlp http endpoint for charm instrumentation."""
-        if self.tracing.is_ready():
-            return self.tracing.get_endpoint(self._TRACING_PROTOCOL)
+        return self._cos_relation.tracing_endpoint
 
     def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
@@ -202,6 +204,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             # (Relations should not be modified during upgrade.)
             return upgrade_status
         statuses = []
+        if self._status:
+            statuses.append(self._status)
         for endpoint in (self._database_requires, self._database_provides):
             if status := endpoint.get_status(event):
                 statuses.append(status)
@@ -236,8 +240,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """
 
     @abc.abstractmethod
-    def _reconcile_node_port(self, *, event) -> None:
-        """Reconcile node port.
+    def _reconcile_service(self) -> None:
+        """Reconcile service.
 
         Only applies to Kubernetes charm
         """
@@ -248,6 +252,10 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
         Only applies to Machine charm
         """
+
+    @abc.abstractmethod
+    def _update_endpoints(self) -> None:
+        """Update the endpoints in the provider relation if necessary."""
 
     # =======================
     #  Handlers
@@ -332,23 +340,17 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     and isinstance(workload_, workload.AuthenticatedWorkload)
                     and workload_.container_ready
                 ):
-                    self._reconcile_node_port(event=event)
+                    self._reconcile_service()
                     self._database_provides.reconcile_users(
                         event=event,
-                        router_read_write_endpoint=self._read_write_endpoint,
-                        router_read_only_endpoint=self._read_only_endpoint,
-                        exposed_read_write_endpoint=self._exposed_read_write_endpoint,
-                        exposed_read_only_endpoint=self._exposed_read_only_endpoint,
+                        router_read_write_endpoints=self._read_write_endpoints,
+                        router_read_only_endpoints=self._read_only_endpoints,
+                        exposed_read_write_endpoints=self._exposed_read_write_endpoints,
+                        exposed_read_only_endpoints=self._exposed_read_only_endpoints,
                         shell=workload_.shell,
                     )
-                    # _ha_cluster only assigned a value in machine charms
-                    if self._ha_cluster:
-                        self._database_provides.update_endpoints(
-                            router_read_write_endpoint=self._read_write_endpoint,
-                            router_read_only_endpoint=self._read_only_endpoint,
-                            exposed_read_write_endpoint=self._exposed_read_write_endpoint,
-                            exposed_read_only_endpoint=self._exposed_read_only_endpoint,
-                        )
+                    self._update_endpoints()
+
             if workload_.container_ready:
                 workload_.reconcile(
                     event=event,

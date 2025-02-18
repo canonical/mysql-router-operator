@@ -6,13 +6,19 @@
 
 """MySQL Router machine charm"""
 
+import ops
+
+from architecture import WrongArchitectureWarningCharm, is_wrong_architecture
+
+if is_wrong_architecture() and __name__ == "__main__":
+    ops.main.main(WrongArchitectureWarningCharm)
+
 import logging
 import socket
 import typing
 
-import ops
 import tenacity
-from charms.tempo_k8s.v1.charm_tracing import trace_charm
+from charms.tempo_coordinator_k8s.v0.charm_tracing import trace_charm
 
 import abstract_charm
 import logrotate
@@ -80,6 +86,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             pass
 
     @property
+    def _status(self) -> ops.StatusBase:
+        pass
+
+    @property
     def _logrotate(self) -> machine_logrotate.LogRotate:
         return machine_logrotate.LogRotate(container_=self._container)
 
@@ -96,25 +106,25 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         return self.config["vip"]
 
     @property
-    def _read_write_endpoint(self) -> str:
+    def _read_write_endpoints(self) -> str:
         return f'file://{self._container.path("/run/mysqlrouter/mysql.sock")}'
 
     @property
-    def _read_only_endpoint(self) -> str:
+    def _read_only_endpoints(self) -> str:
         return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
 
     @property
-    def _exposed_read_write_endpoint(self) -> str:
+    def _exposed_read_write_endpoints(self) -> typing.Optional[str]:
         return f"{self.host_address}:{self._READ_WRITE_PORT}"
 
     @property
-    def _exposed_read_only_endpoint(self) -> str:
+    def _exposed_read_only_endpoints(self) -> typing.Optional[str]:
         return f"{self.host_address}:{self._READ_ONLY_PORT}"
 
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
         return self._database_provides.external_connectivity(event)
 
-    def _reconcile_node_port(self, *, event) -> None:
+    def _reconcile_service(self) -> None:
         """Only applies to Kubernetes charm, so no-op."""
         pass
 
@@ -124,6 +134,18 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         else:
             ports = []
         self.unit.set_ports(*ports)
+
+    def _update_endpoints(self) -> None:
+        self._database_provides.update_endpoints(
+            router_read_write_endpoints=self._read_write_endpoints,
+            router_read_only_endpoints=self._read_only_endpoints,
+            exposed_read_write_endpoints=self._exposed_read_write_endpoints,
+            exposed_read_only_endpoints=self._exposed_read_only_endpoints,
+        )
+
+    def _wait_until_service_reconciled(self) -> None:
+        """Only applies to Kubernetes charm, so no-op."""
+        pass
 
     def wait_until_mysql_router_ready(self, *, event) -> None:
         logger.debug("Waiting until MySQL Router is ready")
@@ -198,14 +220,15 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             logger.debug(f"Force upgrade event failed: {message}")
             event.fail(message)
             return
-        logger.debug("Forcing upgrade")
+
+        logger.warning("Forcing upgrade")
         event.log(f"Forcefully upgrading {self.unit.name}")
         self._upgrade.upgrade_unit(
             event=event, workload_=self.get_workload(event=None), tls=self._tls_certificate_saved
         )
         self.reconcile()
         event.set_results({"result": f"Forcefully upgraded {self.unit.name}"})
-        logger.debug("Forced upgrade")
+        logger.warning("Forced upgrade")
 
 
 if __name__ == "__main__":

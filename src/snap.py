@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 _SNAP_NAME = "charmed-mysql"
 REVISIONS: typing.Dict[str, str] = {
     # Keep in sync with `workload_version` file
-    "x86_64": "109",
-    "aarch64": "110",
+    "x86_64": "134",
+    "aarch64": "135",
 }
 revision = REVISIONS[platform.machine()]
 _snap = snap_lib.SnapCache()[_SNAP_NAME]
