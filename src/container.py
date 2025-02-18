@@ -228,14 +228,11 @@ class Container(abc.ABC):
         self.create_router_rest_api_credentials_file()
 
         if not password:
-            users_credentials = self._run_command(
-                [
-                    self._mysql_router_password_command,
-                    "list",
-                    str(self.rest_api_credentials_file),
-                ],
-                timeout=30,
-            )
+            users_credentials = self._run_command([
+                self._mysql_router_password_command,
+                "list",
+                str(self.rest_api_credentials_file),
+            ])
             if user not in users_credentials:
                 return
 
@@ -248,5 +245,4 @@ class Container(abc.ABC):
                 user,
             ],
             input=password,
-            timeout=30,
         )

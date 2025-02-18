@@ -266,7 +266,7 @@ class AuthenticatedWorkload(Workload):
 
         command = self._get_bootstrap_command(event=event, connection_info=self._connection_info)
         try:
-            self._container.run_mysql_router(command, timeout=30)
+            self._container.run_mysql_router(command)
         except container.CalledProcessError as e:
             # Original exception contains password
             # Re-raising would log the password to Juju's debug log
@@ -327,7 +327,7 @@ class AuthenticatedWorkload(Workload):
 
     def _enable_router(self, *, event, tls: bool, unit_name: str) -> None:
         """Enable router after setting up all the necessary prerequisites."""
-        logger.debug("Enabling MySQL Router service")
+        logger.info("Enabling MySQL Router service")
         self._cleanup_after_upgrade_or_potential_container_restart()
         # create an empty credentials file, if the file does not exist
         self._container.create_router_rest_api_credentials_file()
@@ -337,7 +337,7 @@ class AuthenticatedWorkload(Workload):
         )
         self._container.update_mysql_router_service(enabled=True, tls=tls)
         self._logrotate.enable()
-        logger.debug("Enabled MySQL Router service")
+        logger.info("Enabled MySQL Router service")
         self._charm.wait_until_mysql_router_ready(event=event)
 
     def _enable_exporter(
