@@ -24,40 +24,50 @@ This MySQL Router charm is an official distribution of MySQL Router. It’s an o
 |  [Tutorials]()</br>  Get started - a hands-on introduction to using Charmed MySQL operator for new users </br> |  [How-to guides]() </br> Step-by-step guides covering key operations and common tasks |
 | [Reference](https://charmhub.io/mysql-router/actions) </br> Technical information - specifications, APIs, architecture | [Explanation]() </br> Concepts - discussion and clarification of key topics  |
 
-# Contents
+# Navigation
 
-1. [Tutorial](tutorial)
-  1. [1. Introduction](tutorial/t-overview.md)
-  1. [2. Set up the environment](tutorial/t-setup-environment.md)
-  1. [3. Deploy MySQL Router](tutorial/t-deploy-charm.md)
-  1. [4. Manage units](tutorial/t-managing-units.md)
-  1. [5. Enable security](tutorial/t-enable-security.md)
-  1. [6. Cleanup environment](tutorial/t-cleanup-environment.md)
-1. [How To](how-to)
-  1. [Setup](how-to/h-setup)
-    1. [Deploy on LXD](how-to/h-setup/h-deploy-lxd.md)
-    1. [Manage units](how-to/h-setup/h-manage-units.md)
-    1. [Enable encryption](how-to/h-setup/h-enable-encryption.md)
-    1. [Manage applications](how-to/h-setup/h-manage-app.md)
-  1. [Monitoring](how-to/h-monitoring)
-    1. [Monitoring (COS)](how-to/h-monitoring/h-enable-monitoring.md)
-    1. [Tracing (COS)](how-to/h-monitoring/h-enable-tracing.md)
-  1. [Upgrade](how-to/h-upgrade)
-    1. [Intro](how-to/h-upgrade/h-upgrade-intro.md)
-    1. [Major upgrade](how-to/h-upgrade/h-upgrade-major.md)
-    1. [Major rollback](how-to/h-upgrade/h-rollback-major.md)
-    1. [Minor upgrade](how-to/h-upgrade/h-upgrade-minor.md)
-    1. [Minor rollback](how-to/h-upgrade/h-rollback-minor.md)
-  1. [Contribute](how-to/h-contribute.md)
-1. [Reference](reference)
-  1. [Release Notes](reference/r-releases-group)
-    1. [All releases](reference/r-releases-group/r-releases.md)
-    1. [Revision 197/198](reference/r-releases-group/r-releases-rev197.md)
-    1. [Revision 118/119](reference/r-releases-group/r-releases-rev119.md)
-  1. [Requirements](reference/r-requirements.md)
-  1. [Testing](reference/r-testing.md)
-  1. [Contacts](reference/r-contacts.md)
-1. [Explanation](explanation)
-  1. [Interfaces/endpoints](explanation/e-interfaces.md)
-  1. [Statuses](explanation/e-statuses.md)
-  1. [Juju](explanation/e-juju-details.md)
+[details=Navigation]
+
+| Level | Path | Navlink |
+|---------|---------|-------------|
+| 1 | tutorial | [Tutorial]() |
+| 2 | t-overview | [1. Introduction](/t/12332) |
+| 2 | t-setup-environment | [2. Set up the environment](/t/12333) |
+| 2 | t-deploy-charm | [3. Deploy MySQL Router](/t/12334) |
+| 2 | t-managing-units | [4. Manage units](/t/12335) |
+| 2 | t-enable-security | [5. Enable security](/t/12336) |
+| 2 | t-cleanup-environment | [6. Cleanup environment](/t/12337) |
+| 1 | how-to | [How To]() |
+| 2 | h-setup | [Setup]() |
+| 3 | h-deploy-lxd | [Deploy on LXD](/t/12340) |
+| 3 | h-manage-units | [Manage units](/t/12338) |
+| 3 | h-enable-encryption | [Enable encryption](/t/12341) |
+| 3 | h-manage-app | [Manage applications](/t/12339) |
+| 3 | h-external-access | [External access](/t/15696) | 
+| 2 | h-monitoring | [Monitoring]() |
+| 3 | h-enable-monitoring | [Monitoring (COS)](/t/14094) |
+| 3 | h-enable-tracing | [Tracing (COS)](/t/14785) |
+| 2 | h-upgrade | [Upgrade]() |
+| 3 | h-upgrade-intro | [Intro](/t/12342) |
+| 3 | h-upgrade-major | [Major upgrade](/t/12343) |
+| 3 | h-rollback-major | [Major rollback](/t/12344) |
+| 3 | h-upgrade-minor | [Minor upgrade](/t/12345) |
+| 3 | h-rollback-minor | [Minor rollback](/t/12346) |
+| 2 | h-contribute | [Contribute](/t/14656) |
+| 1 | reference | [Reference]() |
+| 2 | r-releases-group | [Release Notes]() |
+| 3 | r-releases | [All releases](/t/12318) |
+| 3 | r-releases-rev269 | [Revision 267/268/269](/t/16074)
+| 3 | r-releases-rev225 | [Revision 223/224/225](/t/15360)
+| 3 | r-releases-rev198 | [Revision 197/198](/t/14073) |
+| 3 | r-releases-rev119 | [Revision 118/119](/t/12319) |
+| 2 | r-requirements | [Requirements](/t/12325) |
+| 2 | r-testing | [Testing](/t/12324) |
+| 2 | r-contacts | [Contacts](/t/12323) |
+| 1 | explanation | [Explanation]() |
+| 2 | e-interfaces | [Interfaces/endpoints](/t/12322) |
+| 2 | e-statuses | [Statuses](/t/12321) |
+| 2 | e-juju-details | [Juju](/t/12320) |
+| 2 | e-legacy-charm | [Legacy charm](/t/15370) |
+
+[/details]
