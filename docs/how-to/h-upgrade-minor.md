@@ -18,5 +18,4 @@ The concurrency with other operations is not supported, and it can lead the clus
 
 ## Minor upgrade steps
 
-
-WIP...
+TODO
