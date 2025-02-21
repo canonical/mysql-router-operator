@@ -1,15 +1,15 @@
->Reference > Release Notes > [All revisions](/t/12318) > Revision 185/186
-# Revision 185/186 (`dpe/candidate` only)
+>Reference > Release Notes > [All revisions](/t/12318) > Revision 197/198
+# Revision 197/198 (`dpe/candidate` only)
 
-<sub>TODO: DD, MM, YYYY</sub>
+<sub>June 11, 2024</sub>
 
 Dear community,
 
-We'd like to announce that Canonical's newest Charmed MySQL Router operator has been published in the 'dpe/stable' [channel](/t/12318?channel=dpe/candidate) :tada: :
+We'd like to announce that Canonical's newest Charmed MySQL Router operator has been published in the `dpe/candidate` [channel](/t/12318?channel=dpe/candidate) :tada: :
 
 |   |AMD64|
 |---:|:---:|
-| Revisions: | 186 (`jammy`) / 185 (`focal`) | 
+| Revisions: | 198 (`jammy`) / 197 (`focal`) | 
 
 [note]
 If you are jumping over several stable revisions, make sure to check [previous release notes](/t/12318?channel=dpe/candidate) before upgrading to this revision.
@@ -40,6 +40,8 @@ If you are jumping over several stable revisions, make sure to check [previous r
 * Bootstrap with force by default in [PR#100](https://github.com/canonical/mysql-router-operator/pull/100)
 * Updated the logrotation dateformat to tolerate more than 24hrs of uptime in [PR#94](https://github.com/canonical/mysql-router-operator/pull/94), [[DPE-3063](https://warthogs.atlassian.net/browse/DPE-3063)] 
 * Made `install` handler idempotent in [PR#92](https://github.com/canonical/mysql-router-operator/pull/92)
+* Stabilize exporter tests + leftover cleanup in [#146](https://github.com/canonical/mysql-router-operator/pull/146)
+* Fix TLS configuration immediately deleted after enabling in [#150](https://github.com/canonical/mysql-router-operator/pull/150)
 
 Canonical Data issues are now public on both [Jira](https://warthogs.atlassian.net/jira/software/c/projects/DPE/issues/) and [GitHub](https://github.com/canonical/mysql-router-operator/issues) platforms.  
 [GitHub Releases](https://github.com/canonical/mysql-router-operator/releases) provide a detailed list of bugfixes, PRs, and commits for each revision.  
