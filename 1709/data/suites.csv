@@ -1,0 +1,26 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"Test that the exporter endpoint works when related with TLS","307357","test_exporter_endpoint","tests.integration","Sun Feb 23 01:31:06 UTC 2025","passed","Sun Feb 23 01:36:13 UTC 2025","","test_exporter_with_tls","",""
+"Simple test to ensure that mysql, mysqlrouter and application charms deploy.","325589","test_deploy_edge","tests.integration","Sun Feb 23 01:34:58 UTC 2025","passed","Sun Feb 23 01:40:23 UTC 2025","","test_upgrade","",""
+"Test the database relation.","319246","test_database_relation","tests.integration","Sun Feb 23 01:31:52 UTC 2025","passed","Sun Feb 23 01:37:11 UTC 2025","","test_database","",""
+"Test external connectivity and VIP with data-integrator hacluster.","691070","test_external_connectivity_vip_with_hacluster","tests.integration","Sun Feb 23 01:32:06 UTC 2025","passed","Sun Feb 23 01:43:37 UTC 2025","","test_hacluster","",""
+"Test encryption when backend database is using TLS.","220929","test_external_connectivity_with_data_integrator","tests.integration","Sun Feb 23 01:31:21 UTC 2025","passed","Sun Feb 23 01:35:02 UTC 2025","","test_data_integrator","",""
+"Test the log rotation of mysqlrouter logs.","212904","test_log_rotation","tests.integration","Sun Feb 23 01:32:50 UTC 2025","passed","Sun Feb 23 01:36:23 UTC 2025","","test_log_rotation","",""
+"Test data integrator along with TLS operator","25500","test_external_connectivity_with_data_integrator_and_tls","tests.integration","Sun Feb 23 01:35:02 UTC 2025","passed","Sun Feb 23 01:35:28 UTC 2025","","test_data_integrator","",""
+"","90311","test_landscape_client","tests.integration","Sun Feb 23 01:37:29 UTC 2025","passed","Sun Feb 23 01:38:59 UTC 2025","","test_subordinate_charms","",""
+"","232000","test_ubuntu_pro","tests.integration","Sun Feb 23 01:33:37 UTC 2025","passed","Sun Feb 23 01:37:29 UTC 2025","","test_subordinate_charms","",""
+"Ensure that mysqlrouter is externally accessible with TLS integration.","107367","test_tls_along_with_ha_cluster","tests.integration","Sun Feb 23 01:44:41 UTC 2025","passed","Sun Feb 23 01:46:29 UTC 2025","","test_hacluster","",""
+"Test the failover of the hacluster leader.","64395","test_hacluster_failover","tests.integration","Sun Feb 23 01:43:37 UTC 2025","passed","Sun Feb 23 01:44:41 UTC 2025","","test_hacluster","",""
+"Test that exporter endpoint is functional.","226442","test_exporter_endpoint","tests.integration","Sun Feb 23 01:31:58 UTC 2025","passed","Sun Feb 23 01:35:45 UTC 2025","","test_exporter","",""
+"Tries deploying an amd64 charm on arm64 host.","0","test_amd_charm_on_arm_host","tests.integration","Sun Feb 23 01:32:53 UTC 2025","skipped","Sun Feb 23 01:32:53 UTC 2025","","test_architecture","",""
+"Ensure removal of VIP results in connection through data-integrator.","91394","test_remove_vip","tests.integration","Sun Feb 23 01:46:29 UTC 2025","passed","Sun Feb 23 01:48:00 UTC 2025","","test_hacluster","",""
+"Upgrade to an invalid version and test rollback.
+
+    Relies on the charm built in the previous test (test_upgrade_from_edge).
+    Furthermore, the previous test will refresh the charm till revision 102.
+    This test will refresh the charm till the revision in src/snap.py, thus avoiding
+    no-ops.
+    ","119159","test_fail_and_rollback","tests.integration","Sun Feb 23 01:44:29 UTC 2025","passed","Sun Feb 23 01:46:28 UTC 2025","","test_upgrade","",""
+"Test encryption when backend database is using TLS.","25964","test_connected_encryption","tests.integration","Sun Feb 23 01:36:40 UTC 2025","passed","Sun Feb 23 01:37:06 UTC 2025","","test_tls","",""
+"Test encryption when backend database is using TLS.","210655","test_build_deploy_and_relate","tests.integration","Sun Feb 23 01:33:09 UTC 2025","passed","Sun Feb 23 01:36:40 UTC 2025","","test_tls","",""
+"Tries deploying an arm64 charm on amd64 host.","91423","test_arm_charm_on_amd_host","tests.integration","Sun Feb 23 01:31:21 UTC 2025","passed","Sun Feb 23 01:32:53 UTC 2025","","test_architecture","",""
+"Upgrade mysqlrouter while ensuring continuous writes incrementing.","245852","test_upgrade_from_edge","tests.integration","Sun Feb 23 01:40:23 UTC 2025","passed","Sun Feb 23 01:44:29 UTC 2025","","test_upgrade","",""
