@@ -1,0 +1,26 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"Ensure removal of VIP results in connection through data-integrator.","91884","test_remove_vip","tests.integration","Fri Feb 28 02:00:16 UTC 2025","passed","Fri Feb 28 02:01:47 UTC 2025","","test_hacluster","",""
+"Test that exporter endpoint is functional.","221339","test_exporter_endpoint","tests.integration","Fri Feb 28 01:39:36 UTC 2025","passed","Fri Feb 28 01:43:17 UTC 2025","","test_exporter","",""
+"Test external connectivity and VIP with data-integrator hacluster.","1010110","test_external_connectivity_vip_with_hacluster","tests.integration","Fri Feb 28 01:40:01 UTC 2025","passed","Fri Feb 28 01:56:51 UTC 2025","","test_hacluster","",""
+"Test that the exporter endpoint works when related with TLS","321256","test_exporter_endpoint","tests.integration","Fri Feb 28 01:39:54 UTC 2025","passed","Fri Feb 28 01:45:15 UTC 2025","","test_exporter_with_tls","",""
+"","241014","test_ubuntu_pro","tests.integration","Fri Feb 28 01:40:43 UTC 2025","passed","Fri Feb 28 01:44:44 UTC 2025","","test_subordinate_charms","",""
+"Test the failover of the hacluster leader.","88128","test_hacluster_failover","tests.integration","Fri Feb 28 01:56:51 UTC 2025","passed","Fri Feb 28 01:58:19 UTC 2025","","test_hacluster","",""
+"","157061","test_landscape_client","tests.integration","Fri Feb 28 01:44:44 UTC 2025","passed","Fri Feb 28 01:47:21 UTC 2025","","test_subordinate_charms","",""
+"Test the log rotation of mysqlrouter logs.","201915","test_log_rotation","tests.integration","Fri Feb 28 01:39:53 UTC 2025","passed","Fri Feb 28 01:43:15 UTC 2025","","test_log_rotation","",""
+"Upgrade mysqlrouter while ensuring continuous writes incrementing.","156125","test_upgrade_from_edge","tests.integration","Fri Feb 28 01:46:59 UTC 2025","passed","Fri Feb 28 01:49:35 UTC 2025","","test_upgrade","",""
+"Simple test to ensure that mysql, mysqlrouter and application charms deploy.","325218","test_deploy_edge","tests.integration","Fri Feb 28 01:41:34 UTC 2025","passed","Fri Feb 28 01:46:59 UTC 2025","","test_upgrade","",""
+"Upgrade to an invalid version and test rollback.
+
+    Relies on the charm built in the previous test (test_upgrade_from_edge).
+    Furthermore, the previous test will refresh the charm till revision 102.
+    This test will refresh the charm till the revision in src/snap.py, thus avoiding
+    no-ops.
+    ","100254","test_fail_and_rollback","tests.integration","Fri Feb 28 01:49:35 UTC 2025","passed","Fri Feb 28 01:51:16 UTC 2025","","test_upgrade","",""
+"Test encryption when backend database is using TLS.","217315","test_external_connectivity_with_data_integrator","tests.integration","Fri Feb 28 01:39:01 UTC 2025","passed","Fri Feb 28 01:42:39 UTC 2025","","test_data_integrator","",""
+"Test data integrator along with TLS operator","25206","test_external_connectivity_with_data_integrator_and_tls","tests.integration","Fri Feb 28 01:42:39 UTC 2025","passed","Fri Feb 28 01:43:04 UTC 2025","","test_data_integrator","",""
+"Ensure that mysqlrouter is externally accessible with TLS integration.","116177","test_tls_along_with_ha_cluster","tests.integration","Fri Feb 28 01:58:19 UTC 2025","passed","Fri Feb 28 02:00:16 UTC 2025","","test_hacluster","",""
+"Test the database relation.","318991","test_database_relation","tests.integration","Fri Feb 28 01:39:15 UTC 2025","passed","Fri Feb 28 01:44:34 UTC 2025","","test_database","",""
+"Tries deploying an amd64 charm on arm64 host.","0","test_amd_charm_on_arm_host","tests.integration","Fri Feb 28 01:40:35 UTC 2025","skipped","Fri Feb 28 01:40:35 UTC 2025","","test_architecture","",""
+"Test encryption when backend database is using TLS.","222224","test_build_deploy_and_relate","tests.integration","Fri Feb 28 01:40:09 UTC 2025","passed","Fri Feb 28 01:43:51 UTC 2025","","test_tls","",""
+"Test encryption when backend database is using TLS.","25402","test_connected_encryption","tests.integration","Fri Feb 28 01:43:51 UTC 2025","passed","Fri Feb 28 01:44:17 UTC 2025","","test_tls","",""
+"Tries deploying an arm64 charm on amd64 host.","93054","test_arm_charm_on_amd_host","tests.integration","Fri Feb 28 01:39:02 UTC 2025","passed","Fri Feb 28 01:40:35 UTC 2025","","test_architecture","",""
