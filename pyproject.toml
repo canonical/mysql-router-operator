@@ -22,8 +22,8 @@ ops = ">=2.0.0"
 cryptography = ">=42.0.5"
 jsonschema = "*"
 # grafana_agent/v0/cos_agent.py
-pydantic = "<2"
-cosl = "*"
+pydantic = "*"
+cosl = ">=0.0.50"
 # tempo_coordinator_k8s/v0/charm_tracing.py
 opentelemetry-exporter-otlp-proto-http = "1.21.0"
 
