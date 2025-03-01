@@ -47,21 +47,13 @@ This MySQL Router charm is an official distribution of MySQL Router. It’s an o
 | 2 | h-monitoring | [Monitoring]() |
 | 3 | h-enable-monitoring | [Monitoring (COS)](/t/14094) |
 | 3 | h-enable-tracing | [Tracing (COS)](/t/14785) |
-| 2 | h-upgrade | [Upgrade]() |
-| 3 | h-upgrade-intro | [Intro](/t/12342) |
-| 3 | h-upgrade-major | [Major upgrade](/t/12343) |
-| 3 | h-rollback-major | [Major rollback](/t/12344) |
+| 2 | h-upgrade | [Upgrade](/t/12342) |
 | 3 | h-upgrade-minor | [Minor upgrade](/t/12345) |
 | 3 | h-rollback-minor | [Minor rollback](/t/12346) |
 | 2 | h-contribute | [Contribute](/t/14656) |
 | 1 | reference | [Reference]() |
-| 2 | r-releases-group | [Release Notes]() |
-| 3 | r-releases | [All releases](/t/12318) |
-| 3 | r-releases-rev269 | [Revision 267/268/269](/t/16074)
-| 3 | r-releases-rev225 | [Revision 223/224/225](/t/15360)
-| 3 | r-releases-rev198 | [Revision 197/198](/t/14073) |
-| 3 | r-releases-rev119 | [Revision 118/119](/t/12319) |
-| 2 | r-requirements | [Requirements](/t/12325) |
+| 2 | r-releases | [Releases](/t/12318) |
+| 2 | r-system-requirements | [System requirements](/t/12325) |
 | 2 | r-testing | [Testing](/t/12324) |
 | 2 | r-contacts | [Contacts](/t/12323) |
 | 1 | explanation | [Explanation]() |
@@ -71,3 +63,13 @@ This MySQL Router charm is an official distribution of MySQL Router. It’s an o
 | 2 | e-legacy-charm | [Legacy charm](/t/15370) |
 
 [/details]
+
+<!--Archived
+| 3 | h-upgrade-major | [Major upgrade](/t/12343) |
+| 3 | h-rollback-major | [Major rollback](/t/12344) |
+
+| 3 | r-releases-rev269 | [Revision 267/268/269](/t/16074)
+| 3 | r-releases-rev225 | [Revision 223/224/225](/t/15360)
+| 3 | r-releases-rev198 | [Revision 197/198](/t/14073) |
+| 3 | r-releases-rev119 | [Revision 118/119](/t/12319) |
+-->
