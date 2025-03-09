@@ -1,0 +1,29 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:734 Connecting to existing model concierge-lxd:testing on unspecified cloud
+[32mINFO    [0m integration.test_data_integrator:test_data_integrator.py:45 Deploy and relate all applications
+[32mINFO    [0m juju.model:model.py:2284 Deploying ch:amd64/jammy/mysql-364
+[32mINFO    [0m juju.model:model.py:2284 Deploying ch:amd64/jammy/data-integrator-78
+[32mINFO    [0m juju.model:model.py:2284 Deploying ch:amd64/jammy/self-signed-certificates-155
+[32mINFO    [0m juju.model:model.py:2284 Deploying local:jammy/mysql-router-0
+[33mWARNING [0m juju.model:model.py:1666 relate is deprecated and will be removed. Use integrate instead.
+[33mWARNING [0m juju.model:model.py:1666 relate is deprecated and will be removed. Use integrate instead.
+[32mINFO    [0m integration.test_data_integrator:test_data_integrator.py:80 Waiting for applications to become active
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  data-integrator/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  data-integrator/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  data-integrator/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  data-integrator/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  data-integrator/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  data-integrator/0 [executing] maintenance: installing charm software
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  data-integrator/0 [idle] blocked: Please relate the data-integrator with the desired product
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  data-integrator/0 [idle] active: 
+[32mINFO    [0m integration.helpers:helpers.py:468 Running get-credentials on data-integrator/0
+[32mINFO    [0m mysql.connector:authentication.py:66 package: mysql.connector.plugins
+[32mINFO    [0m mysql.connector:authentication.py:67 plugin_name: caching_sha2_password
+[32mINFO    [0m mysql.connector:authentication.py:71 AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
