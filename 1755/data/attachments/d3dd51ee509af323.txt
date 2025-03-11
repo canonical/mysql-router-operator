@@ -1,0 +1,73 @@
+[32mINFO    [0m juju.model:model.py:2284 Deploying ch:amd64/jammy/landscape-client-71
+[33mWARNING [0m juju.model:model.py:1666 relate is deprecated and will be removed. Use integrate instead.
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [idle] active: Primary
+  mysql-router/0 [idle] active: 
+  mysql-test-app/0 [idle] active: 
+  landscape-client/0 [allocating] waiting: agent initialising
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  landscape-client/0 [executing] maintenance: Configuring landscape client..
+[32mINFO    [0m pytest_operator.plugin:plugin.py:862 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  3.6.3    unsupported  01:39:04Z
+
+App               Version          Status   Scale  Charm             Channel      Rev  Exposed  Message
+landscape-client                   blocked      1  landscape-client  latest/edge   71  no       Registration failed!
+mysql             8.0.41-0ubun...  active       1  mysql             8.0/edge     364  no       
+mysql-router      8.0.41-0ubun...  active       1  mysql-router                     0  no       
+mysql-test-app    0.0.2            active       1  mysql-test-app    latest/edge   73  no       
+ubuntu-advantage                   active       1  ubuntu-advantage  latest/edge  137  no       Attached (esm-apps,esm-infra)
+
+Unit                   Workload  Agent      Machine  Public address  Ports           Message
+mysql-test-app/0*      active    idle       0        10.178.250.42                   
+  landscape-client/0*  blocked   executing           10.178.250.42                   (start) Registration failed!
+  mysql-router/0*      active    idle                10.178.250.42                   
+  ubuntu-advantage/0*  active    idle                10.178.250.42                   Attached (esm-apps,esm-infra)
+mysql/0*               active    executing  1        10.178.250.124  3306,33060/tcp  Primary
+
+Machine  State    Address         Inst id        Base          AZ  Message
+0        started  10.178.250.42   juju-9775d7-0  ubuntu@22.04      Running
+1        started  10.178.250.124  juju-9775d7-1  ubuntu@22.04      Running
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:868 Juju error logs:
+
+machine-0: 01:35:44 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-0: 01:35:44 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-0: 01:35:45 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 01:35:49 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-ubuntu-advantage-0: 01:35:50 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 127
+machine-1: 01:36:42 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 01:36:42 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-0: 01:36:42 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-landscape-client-0: 01:38:23 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-landscape-client-0: 01:38:23 ERROR juju.worker.dependency "uniter" manifold worker returned unexpected error: preparing operation "install ch:amd64/landscape-client-71" for landscape-client/0: failed to download charm "ch:amd64/landscape-client-71" from API server: download request with archiveSha256 length 0 not valid
+unit-landscape-client-0: 01:39:03 CRITICAL unit.landscape-client/0.juju-log   File "/var/lib/juju/agents/unit-landscape-client-0/charm/./src/charm.py", line 299, in <module>
+    main(LandscapeClientCharm)
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/venv/ops/main.py", line 45, in main
+    return _main.main(charm_class=charm_class, use_juju_for_storage=use_juju_for_storage)
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/venv/ops/_main.py", line 543, in main
+    manager.run()
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/venv/ops/_main.py", line 529, in run
+    self._emit()
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/venv/ops/_main.py", line 518, in _emit
+    _emit_charm_event(self.charm, self.dispatcher.event_name, self._juju_context)
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/venv/ops/_main.py", line 134, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/venv/ops/framework.py", line 347, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/venv/ops/framework.py", line 857, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/venv/ops/framework.py", line 947, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/./src/charm.py", line 253, in _on_config_changed
+    self.run_landscape_client()
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/./src/charm.py", line 228, in run_landscape_client
+    self.send_registration()
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/./src/charm.py", line 216, in send_registration
+    if process_helper([CLIENT_CONFIG_CMD, "--silent"]):
+  File "/var/lib/juju/agents/unit-landscape-client-0/charm/./src/charm.py", line 117, in process_helper
+    log_error("".join(traceback.format_stack()))
+
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:947 Forgetting model main...
