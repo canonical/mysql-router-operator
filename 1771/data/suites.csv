@@ -1,0 +1,26 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"Test encryption when backend database is using TLS.","260648","test_external_connectivity_with_data_integrator","tests.integration","Sat Mar 22 01:39:23 UTC 2025","passed","Sat Mar 22 01:43:44 UTC 2025","","test_data_integrator","",""
+"Tries deploying an amd64 charm on arm64 host.","0","test_amd_charm_on_arm_host","tests.integration","Sat Mar 22 01:40:52 UTC 2025","skipped","Sat Mar 22 01:40:52 UTC 2025","","test_architecture","",""
+"Test that exporter endpoint is functional.","246942","test_exporter_endpoint","tests.integration","Sat Mar 22 01:39:36 UTC 2025","passed","Sat Mar 22 01:43:43 UTC 2025","","test_exporter","",""
+"Test encryption when backend database is using TLS.","265947","test_build_deploy_and_relate","tests.integration","Sat Mar 22 01:42:22 UTC 2025","passed","Sat Mar 22 01:46:48 UTC 2025","","test_tls","",""
+"","245805","test_ubuntu_pro","tests.integration","Sat Mar 22 01:41:31 UTC 2025","passed","Sat Mar 22 01:45:37 UTC 2025","","test_subordinate_charms","",""
+"Test external connectivity and VIP with data-integrator hacluster.","772929","test_external_connectivity_vip_with_hacluster","tests.integration","Sat Mar 22 01:40:31 UTC 2025","passed","Sat Mar 22 01:53:24 UTC 2025","","test_hacluster","",""
+"Test data integrator along with TLS operator","25045","test_external_connectivity_with_data_integrator_and_tls","tests.integration","Sat Mar 22 01:43:44 UTC 2025","passed","Sat Mar 22 01:44:09 UTC 2025","","test_data_integrator","",""
+"Test encryption when backend database is using TLS.","26199","test_connected_encryption","tests.integration","Sat Mar 22 01:46:48 UTC 2025","passed","Sat Mar 22 01:47:14 UTC 2025","","test_tls","",""
+"","82104","test_landscape_client","tests.integration","Sat Mar 22 01:45:37 UTC 2025","passed","Sat Mar 22 01:46:59 UTC 2025","","test_subordinate_charms","",""
+"Ensure that mysqlrouter is externally accessible with TLS integration.","141957","test_tls_along_with_ha_cluster","tests.integration","Sat Mar 22 01:54:20 UTC 2025","passed","Sat Mar 22 01:56:42 UTC 2025","","test_hacluster","",""
+"Tries deploying an arm64 charm on amd64 host.","111066","test_arm_charm_on_amd_host","tests.integration","Sat Mar 22 01:39:01 UTC 2025","passed","Sat Mar 22 01:40:52 UTC 2025","","test_architecture","",""
+"Ensure removal of VIP results in connection through data-integrator.","86781","test_remove_vip","tests.integration","Sat Mar 22 01:56:42 UTC 2025","passed","Sat Mar 22 01:58:08 UTC 2025","","test_hacluster","",""
+"Test the failover of the hacluster leader.","55639","test_hacluster_failover","tests.integration","Sat Mar 22 01:53:24 UTC 2025","passed","Sat Mar 22 01:54:20 UTC 2025","","test_hacluster","",""
+"Simple test to ensure that mysql, mysqlrouter and application charms deploy.","347065","test_deploy_edge","tests.integration","Sat Mar 22 01:41:50 UTC 2025","passed","Sat Mar 22 01:47:38 UTC 2025","","test_upgrade","",""
+"Test that the exporter endpoint works when related with TLS","386637","test_exporter_endpoint","tests.integration","Sat Mar 22 01:40:25 UTC 2025","passed","Sat Mar 22 01:46:52 UTC 2025","","test_exporter_with_tls","",""
+"Upgrade to an invalid version and test rollback.
+
+    Relies on the charm built in the previous test (test_upgrade_from_edge).
+    Furthermore, the previous test will refresh the charm till revision 102.
+    This test will refresh the charm till the revision in src/snap.py, thus avoiding
+    no-ops.
+    ","119343","test_fail_and_rollback","tests.integration","Sat Mar 22 01:50:47 UTC 2025","passed","Sat Mar 22 01:52:46 UTC 2025","","test_upgrade","",""
+"Test the log rotation of mysqlrouter logs.","228678","test_log_rotation","tests.integration","Sat Mar 22 01:40:53 UTC 2025","passed","Sat Mar 22 01:44:42 UTC 2025","","test_log_rotation","",""
+"Upgrade mysqlrouter while ensuring continuous writes incrementing.","189567","test_upgrade_from_edge","tests.integration","Sat Mar 22 01:47:38 UTC 2025","passed","Sat Mar 22 01:50:47 UTC 2025","","test_upgrade","",""
+"Test the database relation.","365259","test_database_relation","tests.integration","Sat Mar 22 01:39:35 UTC 2025","passed","Sat Mar 22 01:45:40 UTC 2025","","test_database","",""
