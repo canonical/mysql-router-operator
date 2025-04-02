@@ -214,10 +214,7 @@ class RelationEndpoint:
 
     def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
         self._interface = data_interfaces.DatabaseProvides(charm_, relation_name=self._NAME)
-
-        charm_.framework.observe(charm_.on[self._NAME].relation_created, charm_.reconcile)
         charm_.framework.observe(self._interface.on.database_requested, charm_.reconcile)
-        charm_.framework.observe(charm_.on[self._NAME].relation_broken, charm_.reconcile)
 
     @property
     # TODO python3.10 min version: Use `list` instead of `typing.List`

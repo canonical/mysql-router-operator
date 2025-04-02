@@ -7,13 +7,13 @@ import logging
 import typing
 from dataclasses import dataclass
 
+import charm_refresh
 import ops
 from charms.grafana_agent.v0.cos_agent import COSAgentProvider, charm_tracing_config
 
 import container
 import relations.secrets
 import utils
-from snap import _SNAP_NAME
 
 if typing.TYPE_CHECKING:
     import abstract_charm
@@ -53,20 +53,11 @@ class COSRelation:
                     "port": self._EXPORTER_PORT,
                 }
             ],
-            log_slots=[f"{_SNAP_NAME}:logs"],
+            log_slots=[f"{charm_refresh.snap_name()}:logs"],
             tracing_protocols=[self._TRACING_PROTOCOL],
         )
         self._charm = charm_
         self._container = container_
-
-        charm_.framework.observe(
-            charm_.on[self._NAME].relation_created,
-            charm_.reconcile,
-        )
-        charm_.framework.observe(
-            charm_.on[self._NAME].relation_broken,
-            charm_.reconcile,
-        )
 
         self._secrets = relations.secrets.RelationSecrets(
             charm_,

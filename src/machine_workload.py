@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class AuthenticatedMachineWorkload(workload.AuthenticatedWorkload):
+class RunningMachineWorkload(workload.RunningWorkload):
     """Workload with connection to MySQL cluster and with Unix sockets enabled"""
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`

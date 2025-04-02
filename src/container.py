@@ -8,6 +8,7 @@ import pathlib
 import subprocess
 import typing
 
+import charm_refresh
 import ops
 
 if typing.TYPE_CHECKING:
@@ -59,6 +60,13 @@ class CalledProcessError(subprocess.CalledProcessError):
         self, *, returncode: int, cmd: typing.List[str], output: str, stderr: str
     ) -> None:
         super().__init__(returncode=returncode, cmd=cmd, output=output, stderr=stderr)
+
+
+class RefreshFailed(Exception):
+    """Snap failed to refresh. Previous snap revision is still installed
+
+    Only applies to machine charm
+    """
 
 
 class Container(abc.ABC):
@@ -163,11 +171,33 @@ class Container(abc.ABC):
                 "`key`, `certificate` and `certificate_authority` required when tls=True"
             )
 
+    @staticmethod
     @abc.abstractmethod
-    def upgrade(self, unit: ops.Unit) -> None:
-        """Upgrade container version
+    def install(
+        *, unit: ops.Unit, model_uuid: str, snap_revision: str, refresh: charm_refresh.Machines
+    ) -> None:
+        """Ensure snap is installed by this charm
 
         Only applies to machine charm
+
+        If snap is not installed, install it
+        If snap is installed, check that it was installed by this charm & raise an exception otherwise
+
+        Automatically retries if snap installation fails
+        """
+
+    @staticmethod
+    @abc.abstractmethod
+    def refresh(
+        *, unit: ops.Unit, model_uuid: str, snap_revision: str, refresh: charm_refresh.Machines
+    ) -> None:
+        """Refresh snap
+
+        Only applies to machine charm
+
+        If snap refresh fails and previous revision is still installed, raises `RefreshFailed`
+
+        Does not automatically retry if snap installation fails
         """
 
     @abc.abstractmethod
