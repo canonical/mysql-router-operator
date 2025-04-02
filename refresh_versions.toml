@@ -1,7 +1,7 @@
 # https://canonical-charm-refresh.readthedocs-hosted.com/latest/refresh-versions-toml/
 
 charm_major = 1
-workload = "8.0.41"
+workload = "8.0.40"
 
 charm = "8.0/1.0.0" # TODO remove
 
@@ -10,6 +10,6 @@ name = "charmed-mysql"
 
 [snap.revisions]
 # amd64
-x86_64 = "139"
+x86_64 = "128"
 # arm64
-aarch64 = "138"
+aarch64 = "127"
