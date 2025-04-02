@@ -185,4 +185,4 @@ require_realm=default_auth_realm
     ],
 )
 def test_parse_username_from_config(config_file_text, username):
-    assert workload.AuthenticatedWorkload._parse_username_from_config(config_file_text) == username
+    assert workload.RunningWorkload._parse_username_from_config(config_file_text) == username
