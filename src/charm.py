@@ -101,6 +101,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             if self.unit.is_leader():
                 self.app.status = ops.MaintenanceStatus("Waiting for peer relation")
             exit()
+        raise Exception
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
