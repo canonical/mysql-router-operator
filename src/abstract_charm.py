@@ -173,7 +173,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         if cos_relation_exists:
             return self._cos_relation.exporter_user_config
 
-    def get_workload(self, *, event, refresh: charm_refresh.Common):
+    def get_workload(self, *, event, refresh: charm_refresh.Common = None):
         """MySQL Router workload
 
         Pass `refresh` if `self.refresh` is not set
@@ -214,10 +214,10 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     return status
         return ops.ActiveStatus()
 
-    def _determine_app_status(self, *, event, refresh: charm_refresh.Common) -> ops.StatusBase:
+    def _determine_app_status(self, *, event) -> ops.StatusBase:
         """Report app status."""
-        if refresh.app_status_higher_priority:
-            return refresh.app_status_higher_priority
+        if self.refresh.app_status_higher_priority:
+            return self.refresh.app_status_higher_priority
         statuses = []
         if self._status:
             statuses.append(self._status)
@@ -226,32 +226,32 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 statuses.append(status)
         return self._prioritize_statuses(statuses)
 
-    def _determine_unit_status(self, *, event, refresh: charm_refresh.Common) -> ops.StatusBase:
+    def _determine_unit_status(self, *, event) -> ops.StatusBase:
         """Report unit status."""
-        if refresh.unit_status_higher_priority:
-            return refresh.unit_status_higher_priority
+        if self.refresh.unit_status_higher_priority:
+            return self.refresh.unit_status_higher_priority
         statuses = []
-        workload_ = self.get_workload(event=event, refresh=refresh)
+        workload_ = self.get_workload(event=event)
         if status := workload_.status:
             statuses.append(status)
         # only in machine charms
         if self._ha_cluster:
             if status := self._ha_cluster.get_unit_juju_status():
                 statuses.append(status)
-        refresh_lower_priority = refresh.unit_status_lower_priority(
+        refresh_lower_priority = self.refresh.unit_status_lower_priority(
             workload_is_running=isinstance(workload_, workload.RunningWorkload)
         )
         if (not statuses or statuses == [ops.WaitingStatus()]) and refresh_lower_priority:
             return refresh_lower_priority
         return self._prioritize_statuses(statuses)
 
-    def set_status(self, *, event, refresh: charm_refresh.Common, app=True, unit=True) -> None:
+    def set_status(self, *, event, app=True, unit=True) -> None:
         """Set charm status."""
         if app and self._unit_lifecycle.authorized_leader:
-            self.app.status = self._determine_app_status(event=event, refresh=refresh)
+            self.app.status = self._determine_app_status(event=event)
             logger.debug(f"Set app status to {self.app.status}")
         if unit:
-            self.unit.status = self._determine_unit_status(event=event, refresh=refresh)
+            self.unit.status = self._determine_unit_status(event=event)
             logger.debug(f"Set unit status to {self.unit.status}")
 
     @abc.abstractmethod
@@ -283,28 +283,26 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     #  Handlers
     # =======================
 
-    def reconcile(self, event=None, *, refresh: charm_refresh.Common = None) -> None:  # noqa: C901
+    def reconcile(self, event=None) -> None:  # noqa: C901
         """Handle most events."""
-        if refresh is None:
-            refresh = self.refresh
-        workload_ = self.get_workload(event=event, refresh=refresh)
+        workload_ = self.get_workload(event=event)
         logger.debug(
             "State of reconcile "
             f"{self._unit_lifecycle.authorized_leader=}, "
             f"{isinstance(workload_, workload.RunningWorkload)=}, "
             f"{workload_.container_ready=}, "
-            f"{refresh.workload_allowed_to_start=}, "
+            f"{self.refresh.workload_allowed_to_start=}, "
             f"{self._database_requires.is_relation_breaking(event)=}, "
             f"{self._database_requires.does_relation_exist()=}, "
-            f"{refresh.in_progress=}, "
+            f"{self.refresh.in_progress=}, "
             f"{self._cos_relation.is_relation_breaking(event)=}"
         )
-        if isinstance(refresh, charm_refresh.Machines):
+        if isinstance(self.refresh, charm_refresh.Machines):
             workload_.install(
                 unit=self.unit,
                 model_uuid=self.model.uuid,
-                snap_revision=refresh.pinned_snap_revision,
-                refresh=refresh,
+                snap_revision=self.refresh.pinned_snap_revision,
+                refresh=self.refresh,
             )
         self.unit.set_workload_version(workload_.version)
 
@@ -315,13 +313,13 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         try:
             if self._unit_lifecycle.authorized_leader:
                 if self._database_requires.is_relation_breaking(event):
-                    if refresh.in_progress:
+                    if self.refresh.in_progress:
                         logger.warning(
                             "Modifying relations during an upgrade is not supported. The charm may be in a broken, unrecoverable state. Re-deploy the charm"
                         )
                     self._database_provides.delete_all_databags()
                 elif (
-                    not refresh.in_progress
+                    not self.refresh.in_progress
                     and isinstance(workload_, workload.RunningWorkload)
                     and workload_.container_ready
                 ):
@@ -346,13 +344,17 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     certificate=self._tls_certificate,
                     certificate_authority=self._tls_certificate_authority,
                 )
-                if not refresh.in_progress and isinstance(workload_, workload.RunningWorkload):
+                if not self.refresh.in_progress and isinstance(
+                    workload_, workload.RunningWorkload
+                ):
                     self._reconcile_ports(event=event)
 
             logger.debug(f"{workload_.status=}")
             if not workload_.status:
-                refresh.next_unit_allowed_to_refresh = True
-            elif refresh.workload_allowed_to_start and workload_.status == ops.WaitingStatus():
+                self.refresh.next_unit_allowed_to_refresh = True
+            elif (
+                self.refresh.workload_allowed_to_start and workload_.status == ops.WaitingStatus()
+            ):
                 # During scale up, this code should not be reached before the first
                 # relation-created event is received on this unit since otherwise
                 # `charm_refresh.PeerRelationNotReady` would be raised
@@ -361,10 +363,10 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     pass
                 else:
                     # Waiting for database requires relation; refresh can continue
-                    refresh.next_unit_allowed_to_refresh = True
-            self.set_status(event=event, refresh=refresh)
+                    self.refresh.next_unit_allowed_to_refresh = True
+            self.set_status(event=event)
         except server_exceptions.Error as e:
             # If not for `unit=False`, another `server_exceptions.Error` could be thrown here
-            self.set_status(event=event, refresh=refresh, unit=False)
+            self.set_status(event=event, unit=False)
             self.unit.status = e.status
             logger.debug(f"Set unit status to {self.unit.status}")

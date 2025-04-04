@@ -53,8 +53,9 @@ class _MachinesRouterRefresh(abstract_charm.RouterRefresh, charm_refresh.CharmSp
             tls=self._charm._tls_certificate_saved,
             exporter_config=self._charm._cos_exporter_config(event=None),
         )
-        # Set `refresh.next_unit_allowed_to_refresh = True`
-        self._charm.reconcile(refresh=refresh)
+        # `reconcile()` will run on every event, which will set
+        # `refresh.next_unit_allowed_to_refresh = True`
+        # (This method will run in the charm's __init__, before `reconcile()` is called by ops)
 
 
 @trace_charm(
