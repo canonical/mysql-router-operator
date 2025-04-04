@@ -30,7 +30,7 @@ class RouterRefresh(charm_refresh.CharmSpecificCommon, abc.ABC):
 
     @staticmethod
     def run_pre_refresh_checks_after_1_unit_refreshed() -> None:
-        raise charm_refresh.PrecheckFailed("Backup in progress")
+        pass
 
     @classmethod
     def is_compatible(
