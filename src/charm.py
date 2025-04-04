@@ -110,6 +110,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             self._reconcile_allowed = False
         else:
             self._reconcile_allowed = True
+        raise Exception
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
