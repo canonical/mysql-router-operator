@@ -61,6 +61,12 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     _READ_ONLY_X_PORT = 6449
 
     refresh: charm_refresh.Common
+    # Whether `reconcile` method is allowed to run
+    # `False` if `charm_refresh.UnitTearingDown` or `charm_refresh.PeerRelationNotReady` raised
+    # Most of the charm code should not run if either of those exceptions is raised
+    # However, some charm libs (i.e. data-platform-libs) will break if they do not receive every
+    # event they expect (e.g. relation-created)
+    _reconcile_allowed: bool
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -285,6 +291,9 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     def reconcile(self, event=None) -> None:  # noqa: C901
         """Handle most events."""
+        if not self._reconcile_allowed:
+            logger.debug("Reconcile not allowed")
+            return
         workload_ = self.get_workload(event=event)
         logger.debug(
             "State of reconcile "
