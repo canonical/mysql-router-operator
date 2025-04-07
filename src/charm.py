@@ -18,6 +18,7 @@ import logging
 import socket
 import typing
 
+import charm_ as charm
 import charm_refresh
 import ops.log
 import tenacity
@@ -44,7 +45,6 @@ class _MachinesRouterRefresh(abstract_charm.RouterRefresh, charm_refresh.CharmSp
     def refresh_snap(
         self, *, snap_name: str, snap_revision: str, refresh: charm_refresh.Machines
     ) -> None:
-        raise Exception
         # TODO: issue on relation-broken event since event not passed? mitigated by regular event handler?
         self._charm.get_workload(event=None, refresh=refresh).refresh(
             event=None,
@@ -111,7 +111,8 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             self._reconcile_allowed = False
         else:
             self._reconcile_allowed = True
-        raise Exception
+        if not isinstance(charm.event, charm.UpgradeCharmEvent):
+            raise Exception
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
