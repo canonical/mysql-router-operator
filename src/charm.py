@@ -95,12 +95,14 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             # unit(s) tear down
             self.unit.status = ops.MaintenanceStatus("Tearing down")
             snap.uninstall()
-            exit()
+            self._reconcile_allowed = False
         except charm_refresh.PeerRelationNotReady:
             self.unit.status = ops.MaintenanceStatus("Waiting for peer relation")
             if self.unit.is_leader():
                 self.app.status = ops.MaintenanceStatus("Waiting for peer relation")
-            exit()
+            self._reconcile_allowed = False
+        else:
+            self._reconcile_allowed = True
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
