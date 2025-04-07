@@ -44,6 +44,7 @@ class _MachinesRouterRefresh(abstract_charm.RouterRefresh, charm_refresh.CharmSp
     def refresh_snap(
         self, *, snap_name: str, snap_revision: str, refresh: charm_refresh.Machines
     ) -> None:
+        raise Exception
         # TODO: issue on relation-broken event since event not passed? mitigated by regular event handler?
         self._charm.get_workload(event=None, refresh=refresh).refresh(
             event=None,
