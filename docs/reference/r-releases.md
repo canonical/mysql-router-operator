@@ -1,4 +1,4 @@
-# Release Notes
+:expressionless: Release Notes
 
 Here you will find release notes for the main revisions of this charm that are available in Charmhub [channels](https://juju.is/docs/sdk/channel):
 
@@ -13,7 +13,8 @@ The charmhub track `8.0` is currently used by [the legacy charm](/t/15370?channe
 
 |  Channel  | amd64 | arm64 |
 |:---------|:-----:|:-----:|
-| `dpe/candidate` | [223 (`jammy`) / 224 (`focal`)](/t/15360?channel=dpe/candidate) |   [225 (`jammy`)](/t/15360?channel=dpe/candidate)   |
+| `dpe/candidate` | [355 (`jammy`) / 356 (`focal`)](/t/15360?channel=dpe/candidate) |   [354 (`jammy`)](/t/15360?channel=dpe/candidate)   |
+|                                  | [223 (`jammy`) / 224 (`focal`)](/t/15360?channel=dpe/candidate) |   [225 (`jammy`)](/t/15360?channel=dpe/candidate)   |
 |                                  | [198 (`jammy`) / 197 (`focal`)](/t/14073?channel=dpe/candidate) |   -   |
 |                                  | [119 (`jammy`) / 118 (`focal`)](/t/12319?channel=dpe/candidate) |   -   |
 
