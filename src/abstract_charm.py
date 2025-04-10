@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass(eq=False)
-class RouterRefresh(charm_refresh.CharmSpecificCommon):
+class RouterRefresh(charm_refresh.CharmSpecificCommon, abc.ABC):
     """MySQL Router refresh callbacks & configuration"""
 
     @staticmethod
