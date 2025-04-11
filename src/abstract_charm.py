@@ -313,7 +313,6 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 snap_revision=self.refresh.pinned_snap_revision,
                 refresh=self.refresh,
             )
-        self.unit.set_workload_version(workload_.version)
 
         # only in machine charms
         if self._ha_cluster:
