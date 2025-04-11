@@ -305,7 +305,7 @@ develop = false
 type = "git"
 url = "https://github.com/canonical/charm-api"
 reference = "HEAD"
-resolved_reference = "c76857d71b309bd28ba5330b0880d179184b0f87"
+resolved_reference = "d298e56e355679b8f2095a149fdb83b77601c3f2"
 
 [[package]]
 name = "charm-json"
@@ -329,7 +329,7 @@ resolved_reference = "dd96b4c1b4a44255dfd20c0ca7d4f4a28e01ead7"
 [[package]]
 name = "charm-refresh"
 version = "0.1.0"
-description = ""
+description = "In-place rolling refreshes of stateful charmed applications "
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
@@ -350,7 +350,7 @@ tomli = ">=2.0.1"
 type = "git"
 url = "https://github.com/canonical/charm-refresh"
 reference = "draft"
-resolved_reference = "7f52a6887904342f91b512c8bfcbcac970f6e21f"
+resolved_reference = "b4e8db416505d5340983b7c7155c81e9406aca61"
 
 [[package]]
 name = "charset-normalizer"

@@ -68,15 +68,6 @@ class Workload:
         """
         return self._container.ready
 
-    @property
-    def version(self) -> str:
-        """MySQL Router version"""
-        version = self._container.run_mysql_router(["--version"])
-        for component in version.split():
-            if component.startswith("8"):
-                return component
-        return ""
-
     def install(
         self,
         *,
