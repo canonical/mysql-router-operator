@@ -35,7 +35,7 @@ def patch(monkeypatch):
         "charm.MachineSubordinateRouterCharm.wait_until_mysql_router_ready",
         lambda *args, **kwargs: None,
     )
-    monkeypatch.setattr("workload.AuthenticatedWorkload._router_username", "")
+    monkeypatch.setattr("workload.RunningWorkload._router_username", "")
     monkeypatch.setattr("mysql_shell.Shell._run_code", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         "mysql_shell.Shell.get_mysql_router_user_for_unit", lambda *args, **kwargs: None
