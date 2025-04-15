@@ -19,6 +19,7 @@ import socket
 import typing
 
 import charm_refresh
+import ops.log
 import tenacity
 from charms.tempo_coordinator_k8s.v0.charm_tracing import trace_charm
 
@@ -76,6 +77,12 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
+        # Show logger name (module name) in logs
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers:
+            if isinstance(handler, ops.log.JujuLogHandler):
+                handler.setFormatter(logging.Formatter("{name}:{message}", style="{"))
+
         # DEPRECATED shared-db: Enable legacy "mysql-shared" interface
         self._database_provides = relations.database_providers_wrapper.RelationEndpoint(
             self, self._database_provides
