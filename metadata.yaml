@@ -17,15 +17,12 @@ website:
   - https://chat.charmhub.io/charmhub/channels/data-platform
 maintainers:
   - Canonical Data Platform <data-platform@lists.launchpad.net>
-subordinate: true
 provides:
   database:
     interface: mysql_client
-    scope: container
   # DEPRECATED shared-db: Legacy "mysql-shared" interface
   shared-db:
     interface: mysql-shared
-    scope: container
   cos-agent:
     interface: cos_agent
     limit: 1
@@ -33,11 +30,6 @@ requires:
   backend-database:
     interface: mysql_client
     limit: 1
-  # Workaround: Subordinate charms are required to have at least one `requires` endpoint with
-  # `scope: container`
-  juju-info:
-    interface: juju-info
-    scope: container
   certificates:
     interface: tls-certificates
     optional: true
