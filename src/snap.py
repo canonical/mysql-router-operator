@@ -229,6 +229,9 @@ class Snap(container.Container):
         if _snap.present:
             _raise_if_snap_installed_not_by_this_charm(unit=unit, model_uuid=model_uuid)
             return
+        installed = pathlib.Path("installed")
+        if installed.exists():
+            return
         # Install snap
         logger.info(f"Installing snap revision {repr(snap_revision)}")
         unit.status = ops.MaintenanceStatus("Installing snap")
@@ -249,6 +252,7 @@ class Snap(container.Container):
                 _snap.ensure(state=snap_lib.SnapState.Present, revision=snap_revision)
         refresh.update_snap_revision()
         _snap.hold()
+        installed.touch()
         _installed_by_unit.write_text(unique_unit_name)
         logger.debug(f"Wrote {unique_unit_name=} to {_installed_by_unit.name=}")
         logger.info(f"Installed snap revision {repr(snap_revision)}")
