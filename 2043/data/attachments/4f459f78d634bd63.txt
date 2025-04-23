@@ -1,0 +1,89 @@
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHServer received from the controller
+[32mINFO    [0m pytest_operator.plugin:plugin.py:734 Connecting to existing model concierge-lxd:testing on unspecified cloud
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHServer received from the controller
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHSession received from the controller
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHTunneler received from the controller
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHServer received from the controller
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:45 Deploying all applications
+[32mINFO    [0m juju.model:model.py:2284 Deploying ch:amd64/jammy/mysql-test-app-73
+[32mINFO    [0m juju.model:model.py:2284 Deploying ch:amd64/jammy/mysql-router-361
+[32mINFO    [0m juju.model:model.py:2284 Deploying ch:amd64/jammy/mysql-370
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:71 Relating mysql-router to mysql and mysql-test-app
+[33mWARNING [0m juju.model:model.py:1666 relate is deprecated and will be removed. Use integrate instead.
+[33mWARNING [0m juju.model:model.py:1666 relate is deprecated and will be removed. Use integrate instead.
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:78 Waiting for applications to become active
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [allocating] waiting: waiting for machine
+  mysql-router (not enough units yet - 0/1)
+  mysql-test-app/0 [allocating] waiting: waiting for machine
+  mysql-test-app/1 [allocating] waiting: waiting for machine
+  mysql-test-app/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [allocating] waiting: waiting for machine
+  mysql-router (not enough units yet - 0/1)
+  mysql-test-app/0 [allocating] waiting: waiting for machine
+  mysql-test-app/1 [allocating] waiting: waiting for machine
+  mysql-test-app/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [allocating] waiting: waiting for machine
+  mysql-router (not enough units yet - 0/1)
+  mysql-test-app/0 [allocating] waiting: waiting for machine
+  mysql-test-app/1 [allocating] waiting: waiting for machine
+  mysql-test-app/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [allocating] waiting: waiting for machine
+  mysql-router/0 [executing] maintenance: Installing snap
+  mysql-test-app/0 [idle] waiting: 
+  mysql-test-app/1 [allocating] waiting: waiting for machine
+  mysql-test-app/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [allocating] waiting: waiting for machine
+  mysql-router/0 [executing] maintenance: Installing snap
+  mysql-test-app/0 [idle] waiting: 
+  mysql-test-app/1 [allocating] waiting: waiting for machine
+  mysql-test-app/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [allocating] waiting: waiting for machine
+  mysql-router/0 [executing] maintenance: Installing snap
+  mysql-test-app/0 [idle] waiting: 
+  mysql-test-app/1 [allocating] waiting: waiting for machine
+  mysql-test-app/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [allocating] waiting: waiting for machine
+  mysql-router/0 [idle] waiting: 
+  mysql-test-app/0 [idle] waiting: 
+  mysql-test-app/1 [allocating] waiting: waiting for machine
+  mysql-test-app/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [executing] maintenance: Installing MySQL
+  mysql-router/0 [idle] waiting: 
+  mysql-router/1 [allocating] waiting: agent initialising
+  mysql-test-app/0 [idle] waiting: 
+  mysql-test-app/1 [allocating] waiting: waiting for machine
+  mysql-test-app/2 [executing] waiting: 
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [executing] waiting: Waiting to start MySQL
+  mysql-router/0 [idle] waiting: 
+  mysql-router/1 [executing] maintenance: Installing snap
+  mysql-router/2 [executing] maintenance: Installing snap
+  mysql-test-app/0 [idle] waiting: 
+  mysql-test-app/1 [executing] waiting: 
+  mysql-test-app/2 [idle] waiting: 
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [executing] active: Primary
+  mysql-router/0 [idle] waiting: 
+  mysql-router/1 [executing] waiting: 
+  mysql-router/2 [executing] waiting: 
+  mysql-test-app/0 [idle] waiting: 
+  mysql-test-app/1 [idle] waiting: 
+  mysql-test-app/2 [idle] waiting: 
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [idle] active: Primary
+  mysql-router/0 [idle] active: 
+  mysql-router/1 [executing] active: 
+  mysql-router/2 [executing] active: 
+  mysql-test-app/0 [idle] active: 
+  mysql-test-app/1 [idle] active: 
+  mysql-test-app/2 [idle] active: 
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql/0 [idle] active: Primary
