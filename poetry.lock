@@ -350,7 +350,7 @@ tomli = ">=2.0.1"
 type = "git"
 url = "https://github.com/canonical/charm-refresh"
 reference = "draft"
-resolved_reference = "240c8c1a9cc225ac2cf038da30be3022700bc950"
+resolved_reference = "de8c58161758c4344ddb18aa6d54e11c0c6d3aa4"
 
 [[package]]
 name = "charset-normalizer"
