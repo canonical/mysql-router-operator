@@ -18,6 +18,7 @@ import logging
 import socket
 import typing
 
+import charm_ as charm
 import charm_refresh
 import ops.log
 import tenacity
@@ -110,6 +111,8 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             self._reconcile_allowed = False
         else:
             self._reconcile_allowed = True
+        if not isinstance(charm.event, charm.UpgradeCharmEvent):
+            raise Exception
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
