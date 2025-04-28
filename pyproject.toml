@@ -1,59 +1,23 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-[tool.poetry]
-package-mode = false
-requires-poetry = ">=2.0.0"
-
-[tool.poetry.dependencies]
-python = "^3.8.6"  # ^3.8.6 required by juju
-# breaking change in ops 2.10.0: https://github.com/canonical/operator/pull/1091#issuecomment-1888644075
-ops = "^2.9.0, <2.10"
-tenacity = "^9.0.0"
-poetry-core = "^1.9.1"
-jinja2 = "^3.1.4"
-requests = "^2.32.3"
-
-[tool.poetry.group.charm-libs.dependencies]
-# data_platform_libs/v0/data_interfaces.py
-ops = ">=2.0.0"
-# tls_certificates_interface/v2/tls_certificates.py
-# tls_certificates lib v2 uses a feature only available in cryptography >=42.0.5
-cryptography = ">=42.0.5"
-jsonschema = "*"
-# grafana_agent/v0/cos_agent.py
-pydantic = "*"
-cosl = ">=0.0.50"
-# tempo_coordinator_k8s/v0/charm_tracing.py
-opentelemetry-exporter-otlp-proto-http = "1.21.0"
-
-[tool.poetry.group.format]
-optional = true
-
-[tool.poetry.group.format.dependencies]
-ruff = "^0.4.5"
-
-[tool.poetry.group.lint]
-optional = true
-
-[tool.poetry.group.lint.dependencies]
-ruff = "^0.4.5"
-codespell = "^2.3.0"
-
-[tool.poetry.group.unit.dependencies]
-pytest = "^8.2.2"
-pytest-xdist = "^3.6.1"
-pytest-cov = "^5.0.0"
-ops-scenario = "^6.0.3, <6.0.4"  # 6.0.4 requires ops >= 2.12
-
-[tool.poetry.group.integration.dependencies]
-pytest = "^8.2.2"
-pytest-operator = "^0.35.0"
-juju = "^3.6.0.0"
-mysql-connector-python = "~8.0.33"
-tenacity = "^9.0.0"
-ops = "^2.9.0"
-allure-pytest-default-results = "^0.1.2"
+[project]
+name = "foo"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "cosl>=0.0.50",
+    "cryptography>=42.0.5",
+    "jinja2>=3.1.6",
+    "jsonschema>=4.23.0",
+    "opentelemetry-exporter-otlp-proto-http==1.21.0",
+    "ops>=2.9.0,<2.10",
+    "poetry-core>=1.9.1,<2",
+    "requests>=2.32.3",
+    "tenacity>=9.0.0",
+]
 
 [tool.coverage.run]
 branch = true
