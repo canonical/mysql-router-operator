@@ -19,6 +19,9 @@ dependencies = [
     "tenacity>=9.0.0",
 ]
 
+[tool.uv]
+no-binary = true
+
 [tool.coverage.run]
 branch = true
 
