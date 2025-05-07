@@ -51,8 +51,12 @@ class RouterRefresh(charm_refresh.CharmSpecificCommon, abc.ABC):
             return False
 
         # Check workload version compatibility
-        old_major, old_minor, old_patch = (int(component) for component in old_workload_version.split("."))
-        new_major, new_minor, new_patch = (int(component) for component in new_workload_version.split("."))
+        old_major, old_minor, old_patch = (
+            int(component) for component in old_workload_version.split(".")
+        )
+        new_major, new_minor, new_patch = (
+            int(component) for component in new_workload_version.split(".")
+        )
         if old_major != new_major:
             return False
         if new_minor > old_minor:
