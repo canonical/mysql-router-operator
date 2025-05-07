@@ -23,7 +23,7 @@ def output_states(*, relations: list[scenario.Relation]) -> typing.Iterable[scen
     """
     context = scenario.Context(charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
-        relations=[*relations, scenario.PeerRelation(endpoint="upgrade-version-a")],
+        relations=[*relations, scenario.PeerRelation(endpoint="refresh-v-three")],
         leader=True,
     )
     events = []
