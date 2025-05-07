@@ -17,7 +17,7 @@ def output_state(
 ) -> scenario.State:
     context = scenario.Context(charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
-        relations=[*relations, scenario.PeerRelation(endpoint="upgrade-version-a")],
+        relations=[*relations, scenario.PeerRelation(endpoint="refresh-v-three")],
         secrets=secrets,
         leader=True,
     )
