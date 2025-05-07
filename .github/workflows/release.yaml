@@ -1,6 +1,6 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
-name: Release to Charmhub
+name: Release to Charmhub edge
 
 on:
   push:
@@ -24,9 +24,9 @@ jobs:
     name: Release charm
     needs:
       - ci-tests
-    uses: canonical/data-platform-workflows/.github/workflows/release_charm.yaml@v31.0.1
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm_edge.yaml@v32.0.0
     with:
-      channel: dpe/edge
+      track: 'dpe'
       artifact-prefix: ${{ needs.ci-tests.outputs.artifact-prefix }}
     secrets:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
