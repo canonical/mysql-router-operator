@@ -1,8 +1,6 @@
 charm_major = 1
 workload = "8.0.41"
 
-charm = "8.0/1.0.0" # TODO remove
-
 [snap]
 name = "charmed-mysql"
 
