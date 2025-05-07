@@ -92,9 +92,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
         try:
             self.refresh = charm_refresh.Machines(
                 _MachinesRouterRefresh(
-                    workload_name="Router",
-                    refresh_user_docs_url="https://charmhub.io/mysql-router/docs/h-upgrade",
-                    _charm=self,
+                    workload_name="Router", charm_name="mysql-router", _charm=self
                 )
             )
         except charm_refresh.UnitTearingDown:
