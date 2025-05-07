@@ -6,7 +6,6 @@ import platform
 import ops
 import pytest
 import tomli
-
 from charms.tempo_coordinator_k8s.v0.charm_tracing import charm_tracing_disabled
 
 import snap
@@ -67,7 +66,10 @@ def patch(monkeypatch):
     )
     monkeypatch.setattr("mysql_shell.Shell.is_router_in_cluster_set", lambda *args, **kwargs: True)
     monkeypatch.setattr("charm_refresh.Machines", _MockRefresh)
-    monkeypatch.setattr("relations.database_requires.RelationEndpoint.does_relation_exist", lambda *args, **kwargs: True)
+    monkeypatch.setattr(
+        "relations.database_requires.RelationEndpoint.does_relation_exist",
+        lambda *args, **kwargs: True,
+    )
 
 
 # flake8: noqa: C901
