@@ -6,6 +6,7 @@
 import logging
 import typing
 
+import charm_ as charm
 import charms.data_platform_libs.v0.data_interfaces as data_interfaces
 import ops
 
@@ -109,10 +110,8 @@ class RelationEndpoint:
             database_name="mysql_innodb_cluster_metadata",
             extra_user_roles="mysqlrouter",
         )
-        charm_.framework.observe(charm_.on[self._NAME].relation_created, charm_.reconcile)
         charm_.framework.observe(self._interface.on.database_created, charm_.reconcile)
         charm_.framework.observe(self._interface.on.endpoints_changed, charm_.reconcile)
-        charm_.framework.observe(charm_.on[self._NAME].relation_broken, charm_.reconcile)
 
     def get_connection_info(self, *, event) -> typing.Optional[CompleteConnectionInformation]:
         """Information for connection to MySQL cluster"""
@@ -137,3 +136,11 @@ class RelationEndpoint:
             CompleteConnectionInformation(interface=self._interface, event=event)
         except (_MissingRelation, remote_databag.IncompleteDatabag) as exception:
             return exception.status
+
+    def does_relation_exist(self) -> bool:
+        """Whether a relation exists
+
+        From testing: during scale up, this should return `True` as soon as this unit receives the
+        first relation-created event on any endpoint
+        """
+        return charm.Endpoint(self._NAME).relation is not None
