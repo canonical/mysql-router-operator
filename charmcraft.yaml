@@ -53,6 +53,8 @@ parts:
     after:
       - poetry-deps
     poetry-export-extra-args: ['--only', 'main,charm-libs']
+    build-environment:
+      - PIP_CONSTRAINT: constraints.txt  # Workaround for 20.04
     build-packages:
       - libffi-dev  # Needed to build Python dependencies with Rust from source
       - libssl-dev  # Needed to build Python dependencies with Rust from source
@@ -97,5 +99,6 @@ parts:
     stage:
       - LICENSE
       - charm_version
+      - constraints.txt  # Include in *.charm artifact for easier debugging
       - workload_version
       - templates

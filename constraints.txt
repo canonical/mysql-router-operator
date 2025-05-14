@@ -1,0 +1,5 @@
+setuptools_scm < 8.2.0; python_version <= "3.8"
+# 1.8.4 maturin setup.py uses RustBin with env arg, which requires setuptools-rust >= 1.11.0, which
+# does not support python 3.8
+maturin < 1.8.4; python_version <= "3.8"
+setuptools-rust < 1.11; python_version <= "3.8"
