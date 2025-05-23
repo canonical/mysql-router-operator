@@ -1,0 +1,48 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:734 Connecting to existing model concierge-lxd:testing on unspecified cloud
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:34 Deploying all the applications
+[32mINFO    [0m juju.model:model.py:1994 Deploying local:mysql-router-0
+[32mINFO    [0m juju.model:model.py:1994 Deploying ch:amd64/jammy/mysql-test-app-73
+[32mINFO    [0m juju.model:model.py:1994 Deploying ch:amd64/jammy/mysql-375
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:64 Relating mysqlrouter with mysql-test-app
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:81 Relating mysqlrouter with mysql
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:97 Removing the cron file
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:102 Stopping any running logrotate jobs
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:105 Removing existing archive directory
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:112 Writing some data mysqlrouter log file
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:116 Ensuring only log files exist
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:127 Executing logrotate
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:143 Ensuring log files and archive directories exist
+[32mINFO    [0m integration.test_log_rotation:test_log_rotation.py:157 Ensuring log files was rotated
+[32mINFO    [0m pytest_operator.plugin:plugin.py:862 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  2.9.51   unsupported  01:41:20Z
+
+App             Version          Status  Scale  Charm           Channel      Rev  Exposed  Message
+mysql           8.0.41-0ubun...  active      1  mysql           8.0/edge     375  no       
+mysql-router    8.0.41-0ubun...  active      1  mysql-router                   0  no       
+mysql-test-app  0.0.2            active      1  mysql-test-app  latest/edge   73  no       
+
+Unit               Workload  Agent  Machine  Public address  Ports               Message
+mysql-test-app/0*  active    idle   0        10.184.27.236                       
+  mysql-router/0*  active    idle            10.184.27.236                       
+mysql/0*           active    idle   1        10.184.27.198   3306/tcp,33060/tcp  Primary
+
+Machine  State    Address        Inst id        Series  AZ  Message
+0        started  10.184.27.236  juju-bf733d-0  jammy       Running
+1        started  10.184.27.198  juju-bf733d-1  jammy       Running
+
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:868 Juju error logs:
+
+machine-0: 01:39:46 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types
+machine-0: 01:39:46 ERROR juju.worker.dependency "broker-tracker" manifold worker returned unexpected error: no container types determined
+machine-0: 01:39:46 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types
+unit-mysql-test-app-0: 01:39:46 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 01:39:50 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-1: 01:39:59 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types
+machine-1: 01:39:59 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types
+machine-1: 01:39:59 ERROR juju.worker.dependency "broker-tracker" manifold worker returned unexpected error: no container types determined
+unit-mysql-0: 01:39:59 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:947 Forgetting model main...
