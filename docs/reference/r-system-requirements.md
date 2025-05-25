@@ -16,7 +16,7 @@ Make sure your machine meets the following requirements:
 
 ## Supported architectures
 
-The charm is based on SNAP "[charmed-mysql](https://snapcraft.io/charmed-mysql)", which is currently available for `amd64` only! The architecture `arm64` support is planned. Please [contact us](/t/12323) if you are interested in new architecture!
+The charm is based on SNAP "[charmed-mysql](https://snapcraft.io/charmed-mysql)", which is currently available for `amd64` and `arm64` only! Please [contact us](/t/12323) if you are interested in new architecture!
 
 <a name="mysql-gr-limits"></a>
 ## Charmed MySQL requirements
