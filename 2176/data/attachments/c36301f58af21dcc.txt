@@ -1,0 +1,46 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:862 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  2.9.51   unsupported  01:41:14Z
+
+App             Version  Status   Scale  Charm           Channel      Rev  Exposed  Message
+mysql-router             error        1  mysql-router                   0  no       hook failed: "install"
+mysql-test-app  0.0.2    waiting      1  mysql-test-app  latest/edge   73  no       
+
+Unit               Workload  Agent  Machine  Public address  Ports  Message
+mysql-test-app/0*  waiting   idle   0        10.113.193.163         
+  mysql-router/0*  error     idle            10.113.193.163         hook failed: "install"
+
+Machine  State    Address         Inst id        Series  AZ  Message
+0        started  10.113.193.163  juju-f605fc-0  jammy       Running
+
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:868 Juju error logs:
+
+machine-0: 01:40:53 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types
+machine-0: 01:40:53 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types
+machine-0: 01:40:53 ERROR juju.worker.dependency "broker-tracker" manifold worker returned unexpected error: no container types determined
+unit-mysql-test-app-0: 01:40:53 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 01:40:56 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+unit-mysql-router-0: 01:40:59 ERROR unit.mysql-router/0.juju-log Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/charm.py", line 14, in <module>
+    ops.main.main(WrongArchitectureWarningCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 424, in main
+    charm = charm_class(framework)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/architecture.py", line 29, in __init__
+    raise RuntimeError(
+RuntimeError: Incompatible architecture: this charm revision does not support x86_64. If this app is being refreshed, rollback with instructions from Charmhub docs. If this app is being deployed for the first time, remove it and deploy it again using a compatible revision.
+unit-mysql-router-0: 01:40:59 ERROR juju.worker.uniter.operation hook "install" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-0: 01:41:04 ERROR unit.mysql-router/0.juju-log Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/charm.py", line 14, in <module>
+    ops.main.main(WrongArchitectureWarningCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 424, in main
+    charm = charm_class(framework)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/architecture.py", line 29, in __init__
+    raise RuntimeError(
+RuntimeError: Incompatible architecture: this charm revision does not support x86_64. If this app is being refreshed, rollback with instructions from Charmhub docs. If this app is being deployed for the first time, remove it and deploy it again using a compatible revision.
+unit-mysql-router-0: 01:41:04 ERROR juju.worker.uniter.operation hook "install" (via hook dispatching script: dispatch) failed: exit status 1
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:947 Forgetting model main...
