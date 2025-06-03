@@ -1,0 +1,60 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:734 Connecting to existing model concierge-lxd:testing on unspecified cloud
+[32mINFO    [0m juju.model:model.py:1994 Deploying ch:amd64/jammy/mysql-test-app-73
+[32mINFO    [0m juju.model:model.py:1994 Deploying ch:amd64/jammy/mysql-375
+[32mINFO    [0m juju.model:model.py:1994 Deploying local:mysql-router-0
+[32mINFO    [0m juju.model:model.py:2631 Waiting for model:
+  mysql/0 [executing] active: Primary
+  mysql-router/0 [allocating] waiting: agent initializing
+  mysql-test-app/0 [executing] waiting: 
+[32mINFO    [0m juju.model:model.py:2631 Waiting for model:
+  mysql/0 [idle] active: Primary
+  mysql-router/0 [executing] waiting: 
+  mysql-test-app/0 [idle] waiting: 
+[32mINFO    [0m juju.model:model.py:2631 Waiting for model:
+  mysql/0 [idle] active: Primary
+  mysql-router/0 [idle] active: 
+  mysql-test-app/0 [idle] active: 
+[32mINFO    [0m mysql.connector:authentication.py:66 package: mysql.connector.plugins
+[32mINFO    [0m mysql.connector:authentication.py:67 plugin_name: caching_sha2_password
+[32mINFO    [0m mysql.connector:authentication.py:71 AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+[32mINFO    [0m pytest_operator.plugin:plugin.py:862 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  2.9.51   unsupported  01:47:22Z
+
+App             Version          Status  Scale  Charm           Channel      Rev  Exposed  Message
+mysql           8.0.41-0ubun...  active      1  mysql           8.0/edge     375  no       
+mysql-router                     active    1/2  mysql-router                   0  no       
+mysql-test-app  0.0.2            active      2  mysql-test-app  latest/edge   73  no       Last written value=9320
+
+Unit               Workload  Agent       Machine  Public address  Ports               Message
+mysql-test-app/0*  active    idle        0        10.158.74.150                       Last written value=9320
+  mysql-router/0*  active    idle                 10.158.74.150                       
+mysql-test-app/1   active    executing   2        10.158.74.211                       
+  mysql-router/1   waiting   allocating           10.158.74.211                       agent initializing
+mysql/0*           active    executing   1        10.158.74.119   3306/tcp,33060/tcp  Primary
+
+Machine  State    Address        Inst id        Series  AZ  Message
+0        started  10.158.74.150  juju-ea307c-0  jammy       Running
+1        started  10.158.74.119  juju-ea307c-1  jammy       Running
+2        started  10.158.74.211  juju-ea307c-2  jammy       Running
+
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:868 Juju error logs:
+
+machine-1: 01:43:32 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types
+machine-1: 01:43:32 ERROR juju.worker.dependency "broker-tracker" manifold worker returned unexpected error: no container types determined
+machine-1: 01:43:32 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types
+unit-mysql-0: 01:43:32 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-0: 01:43:37 ERROR juju.worker.dependency "broker-tracker" manifold worker returned unexpected error: no container types determined
+machine-0: 01:43:37 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types
+machine-0: 01:43:37 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types
+unit-mysql-test-app-0: 01:43:38 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 01:44:27 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-2: 01:47:13 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types
+machine-2: 01:47:13 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types
+machine-2: 01:47:13 ERROR juju.worker.dependency "broker-tracker" manifold worker returned unexpected error: no container types determined
+unit-mysql-test-app-1: 01:47:13 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-1: 01:47:19 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:947 Forgetting model main...
