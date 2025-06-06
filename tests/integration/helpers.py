@@ -8,6 +8,7 @@ import tempfile
 from typing import Dict, List, Optional
 
 import tenacity
+import tomli
 from juju.model import Model
 from juju.unit import Unit
 from pytest_operator.plugin import OpsTest
@@ -417,11 +418,11 @@ async def get_workload_version(ops_test: OpsTest, unit_name: str) -> str:
         unit_name,
         "sudo",
         "cat",
-        f"/var/lib/juju/agents/unit-{unit_name.replace('/', '-')}/charm/workload_version",
+        f"/var/lib/juju/agents/unit-{unit_name.replace('/', '-')}/charm/refresh_versions.toml",
     )
 
     assert return_code == 0
-    return output.strip()
+    return tomli.loads(output)["workload"]
 
 
 async def get_leader_unit(

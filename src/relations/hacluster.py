@@ -23,10 +23,6 @@ class HACluster(ops.Object):
 
         self.charm = charm
 
-        self.framework.observe(
-            self.charm.on[HACLUSTER_RELATION_NAME].relation_changed, self.charm.reconcile
-        )
-
     @property
     def relation(self) -> Optional[ops.Relation]:
         """Returns the relations in this model, or None if hacluster is not initialised."""
