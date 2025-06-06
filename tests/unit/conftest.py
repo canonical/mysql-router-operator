@@ -1,14 +1,53 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
+
 import pathlib
 import platform
+import shutil
 
+import filelock
 import ops
 import pytest
 import tomli
+import tomli_w
 from charms.tempo_coordinator_k8s.v0.charm_tracing import charm_tracing_disabled
 
-import snap
+
+def _mock_charm_version(origin_path: pathlib.Path, backup_path: pathlib.Path) -> None:
+    """Add charm version to refresh_versions.toml."""
+    shutil.copy(origin_path, backup_path)
+
+    with origin_path.open("rb") as file:
+        versions = tomli.load(file)
+
+    versions["charm"] = "8.0/0.0.0"
+    with origin_path.open("wb") as file:
+        tomli_w.dump(versions, file)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def mock_charm_version(tmp_path_factory, worker_id):
+    origin_path = pathlib.Path("refresh_versions.toml")
+    backup_path = pathlib.Path("refresh_versions.toml.backup")
+
+    # When not running with pytest-xdist
+    if worker_id == "master":
+        _mock_charm_version(origin_path, backup_path)
+        yield
+        origin_path.unlink()
+        shutil.move(backup_path, origin_path)
+
+    # When running with pytest-xdist
+    else:
+        root_tmp_dir = tmp_path_factory.getbasetemp().parent
+        lock_file = root_tmp_dir / "refresh_versions.lock"
+
+        # The first worker to acquire the lock mocks the file
+        with filelock.FileLock(lock_file):
+            _mock_charm_version(origin_path, backup_path)
+            yield
+            origin_path.unlink()
+            shutil.move(backup_path, origin_path)
 
 
 @pytest.fixture(autouse=True)
@@ -122,12 +161,10 @@ def machine_patch(monkeypatch):
             if "mysqlrouter-exporter" in services:
                 self.services["mysqlrouter-exporter"]["active"] = True
 
-    monkeypatch.setattr(snap, "_snap", Snap())
+    monkeypatch.setattr("snap.Snap._snap", Snap())
 
-    monkeypatch.setattr(
-        "snap.Snap._run_command",
-        lambda *args, **kwargs: "null",  # Use "null" for `json.loads()`
-    )
+    # Use "null" for `json.loads()`
+    monkeypatch.setattr("snap.Snap._run_command", lambda *args, **kwargs: "null")
     monkeypatch.setattr("snap.Snap.install", lambda *args, **kwargs: None)
     monkeypatch.setattr("snap._Path.read_text", lambda *args, **kwargs: "")
     monkeypatch.setattr("snap._Path.write_text", lambda *args, **kwargs: None)
