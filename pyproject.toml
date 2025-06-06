@@ -6,7 +6,7 @@ package-mode = false
 requires-poetry = ">=2.0.0"
 
 [tool.poetry.dependencies]
-python = "^3.9.0"  # ^3.9.0 required by tomli-w
+python = "^3.8.6"  # ^3.8.6 required by juju
 # breaking change in ops 2.10.0: https://github.com/canonical/operator/pull/1091#issuecomment-1888644075
 ops = "^2.9.0, <2.10"
 tenacity = "^9.0.0"
@@ -42,13 +42,10 @@ ruff = "^0.4.5"
 codespell = "^2.3.0"
 
 [tool.poetry.group.unit.dependencies]
-filelock ="^3.18.0"
 pytest = "^8.2.2"
 pytest-xdist = "^3.6.1"
 pytest-cov = "^5.0.0"
 ops-scenario = "^6.0.3, <6.0.4"  # 6.0.4 requires ops >= 2.12
-tomli = "^2.2.1"
-tomli-w = "^1.2.0"
 
 [tool.poetry.group.integration.dependencies]
 pytest = "^8.2.2"
