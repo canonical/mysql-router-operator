@@ -5,26 +5,21 @@ import asyncio
 import logging
 import os
 import pathlib
-import platform
-import re
 import shutil
 import typing
 import zipfile
 
 import pytest
-import tenacity
+import tomli
+import tomli_w
+from packaging.version import Version
 from pytest_operator.plugin import OpsTest
-
-import snap
 
 from .helpers import (
     APPLICATION_DEFAULT_APP_NAME,
     MYSQL_DEFAULT_APP_NAME,
     MYSQL_ROUTER_DEFAULT_APP_NAME,
     ensure_all_units_continuous_writes_incrementing,
-    get_juju_status,
-    get_leader_unit,
-    get_workload_version,
 )
 from .juju_ import run_action
 
@@ -87,9 +82,6 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
     await ensure_all_units_continuous_writes_incrementing(ops_test)
 
     mysql_router_application = ops_test.model.applications[MYSQL_ROUTER_APP_NAME]
-    mysql_router_unit = mysql_router_application.units[0]
-
-    old_workload_version = await get_workload_version(ops_test, mysql_router_unit.name)
 
     logger.info("Build charm locally")
     global temporary_charm
@@ -107,23 +99,26 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
         lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT
     )
     assert (
-        "resume-upgrade" in mysql_router_application.status_message
-    ), "mysql router application status not indicating that user should resume upgrade"
+        "resume-refresh" in mysql_router_application.status_message
+    ), "mysql router application status not indicating that user should resume refresh"
 
-    for attempt in tenacity.Retrying(
-        reraise=True,
-        stop=tenacity.stop_after_delay(SMALL_TIMEOUT),
-        wait=tenacity.wait_fixed(10),
-    ):
-        with attempt:
-            assert "+testupgrade" in get_juju_status(
-                ops_test.model.name
-            ), "None of the units are upgraded"
+    logger.info("Wait for first unit to upgrade")
+    async with ops_test.fast_forward("60s"):
+        await ops_test.model.wait_for_idle(
+            [MYSQL_ROUTER_APP_NAME],
+            idle_period=30,
+            timeout=TIMEOUT,
+        )
 
-    mysql_router_leader_unit = await get_leader_unit(ops_test, MYSQL_ROUTER_APP_NAME)
+    # Highest to lowest unit number
+    refresh_order = sorted(
+        mysql_router_application.units,
+        key=lambda unit: int(unit.name.split("/")[1]),
+        reverse=True,
+    )
 
-    logger.info("Running resume-upgrade on the mysql router leader unit")
-    await run_action(mysql_router_leader_unit, "resume-upgrade")
+    logger.info("Running resume-refresh on the mysql router leader unit")
+    await run_action(refresh_order[1], "resume-refresh")
 
     logger.info("Waiting for upgrade to complete on all units")
     await ops_test.model.wait_for_idle(
@@ -132,14 +127,6 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
         idle_period=30,
         timeout=UPGRADE_TIMEOUT,
     )
-
-    workload_version_file = pathlib.Path("workload_version")
-    repo_workload_version = workload_version_file.read_text().strip()
-
-    for unit in mysql_router_application.units:
-        workload_version = await get_workload_version(ops_test, unit.name)
-        assert workload_version == f"{repo_workload_version}+testupgrade"
-        assert old_workload_version != workload_version
 
     await ensure_all_units_continuous_writes_incrementing(ops_test)
 
@@ -189,17 +176,6 @@ async def test_fail_and_rollback(ops_test: OpsTest, charm, continuous_writes) ->
         apps=[MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT, idle_period=30
     )
 
-    workload_version_file = pathlib.Path("workload_version")
-    repo_workload_version = workload_version_file.read_text().strip()
-
-    for unit in mysql_router_application.units:
-        charm_workload_version = await get_workload_version(ops_test, unit.name)
-        assert charm_workload_version == f"{repo_workload_version}+testupgrade"
-
-    await ops_test.model.wait_for_idle(
-        apps=[MYSQL_ROUTER_APP_NAME], status="active", timeout=TIMEOUT
-    )
-
     logger.info("Ensure continuous writes after rollback procedure")
     await ensure_all_units_continuous_writes_incrementing(ops_test)
 
@@ -212,31 +188,28 @@ def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> N
 
     Upgrades require a new snap revision to avoid no-oping.
     """
-    workload_version_file = pathlib.Path("workload_version")
-    workload_version = workload_version_file.read_text().strip()
+    with pathlib.Path("refresh_versions.toml").open("rb") as file:
+        versions = tomli.load(file)
+
+    # charm needs to refresh snap to be able to avoid no-op when upgrading.
+    # set an old revision of the snap
+    versions["snap"]["revisions"]["x86_64"] = "121"
+    versions["snap"]["revisions"]["aarch64"] = "122"
 
     with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
-        charm_zip.writestr("workload_version", f"{workload_version}+testupgrade\n")
-
-        # charm needs to refresh snap to be able to avoid no-op when upgrading.
-        # set an old revision of the snap
-        snap_file = pathlib.Path("src/snap.py")
-        content = snap_file.read_text()
-        old_revision = {"x86_64": "121", "aarch64": "122"}[platform.machine()]
-        new_snap_content = re.sub(
-            f'"{platform.machine()}": "{snap.revision}"',
-            f'"{platform.machine()}": "{old_revision}"',
-            str(content),
-        )
-        charm_zip.writestr("src/snap.py", new_snap_content)
+        charm_zip.writestr("refresh_versions.toml", tomli_w.dumps(versions))
 
 
 def create_invalid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> None:
     """Create an invalid mysql router charm for upgrade."""
-    workload_version_file = pathlib.Path("workload_version")
-    old_workload_version = workload_version_file.read_text().strip()
-    [major, minor, patch] = old_workload_version.split(".")
+    with pathlib.Path("refresh_versions.toml").open("rb") as file:
+        versions = tomli.load(file)
+
+    old_version = Version(versions["workload"])
+    new_version = Version(f"{old_version.major - 1}.{old_version.minor}.{old_version.micro}")
+    versions["workload"] = str(new_version)
+    versions["charm"] = "8.0/0.0.0"
 
     with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
         # an invalid charm version because the major workload_version is one less than the current workload_version
-        charm_zip.writestr("workload_version", f"{int(major) - 1}.{minor}.{patch}+testrollback\n")
+        charm_zip.writestr("refresh_versions.toml", tomli_w.dumps(versions))
