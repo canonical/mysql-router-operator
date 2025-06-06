@@ -1,0 +1,43 @@
+[32mINFO    [0m integration.test_tls:test_tls.py:107 Relating TLS with mysqlrouter
+[32mINFO    [0m integration.test_tls:test_tls.py:110 Getting certificate issuer after relating with tls operator
+[32mINFO    [0m integration.test_tls:test_tls.py:126 Removing relation TLS with mysqlrouter
+[32mINFO    [0m pytest_operator.plugin:plugin.py:862 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  2.9.51   unsupported  01:46:02Z
+
+App                        Version          Status  Scale  Charm                      Channel        Rev  Exposed  Message
+mysql                      8.0.41-0ubun...  active      1  mysql                      8.0/edge       375  no       
+mysql-router               8.0.41-0ubun...  active      1  mysql-router                                0  no       
+mysql-test-app             0.0.2            active      1  mysql-test-app             latest/edge     73  no       Last written value=2112
+tls-certificates-operator                   active      1  tls-certificates-operator  legacy/stable   22  no       
+
+Unit                          Workload  Agent      Machine  Public address  Ports               Message
+mysql-test-app/0*             active    idle       2        10.130.11.76                        Last written value=2112
+  mysql-router/0*             active    idle                10.130.11.76                        
+mysql/0*                      active    executing  0        10.130.11.176   3306/tcp,33060/tcp  Primary
+tls-certificates-operator/0*  active    idle       1        10.130.11.99                        
+
+Machine  State    Address        Inst id        Series  AZ  Message
+0        started  10.130.11.176  juju-8300b6-0  jammy       Running
+1        started  10.130.11.99   juju-8300b6-1  jammy       Running
+2        started  10.130.11.76   juju-8300b6-2  jammy       Running
+
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:868 Juju error logs:
+
+machine-0: 01:43:48 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types
+machine-0: 01:43:48 ERROR juju.worker.dependency "broker-tracker" manifold worker returned unexpected error: no container types determined
+machine-0: 01:43:48 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types
+unit-mysql-0: 01:43:48 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-1: 01:44:02 ERROR juju.worker.dependency "broker-tracker" manifold worker returned unexpected error: no container types determined
+machine-1: 01:44:02 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types
+machine-1: 01:44:02 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types
+unit-tls-certificates-operator-0: 01:44:03 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-2: 01:44:11 ERROR juju.worker.dependency "broker-tracker" manifold worker returned unexpected error: no container types determined
+machine-2: 01:44:11 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types
+machine-2: 01:44:11 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types
+unit-mysql-test-app-0: 01:44:11 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 01:44:15 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:947 Forgetting model main...
