@@ -3,51 +3,11 @@
 
 import pathlib
 import platform
-import shutil
 
-import filelock
 import ops
 import pytest
 import tomli
-import tomli_w
 from charms.tempo_coordinator_k8s.v0.charm_tracing import charm_tracing_disabled
-
-
-def _mock_charm_version(origin_path: pathlib.Path, backup_path: pathlib.Path) -> None:
-    """Add charm version to refresh_versions.toml."""
-    shutil.copy(origin_path, backup_path)
-
-    with origin_path.open("rb") as file:
-        versions = tomli.load(file)
-
-    versions["charm"] = "8.0/0.0.0"
-    with origin_path.open("wb") as file:
-        tomli_w.dump(versions, file)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mock_charm_version(tmp_path_factory, worker_id):
-    origin_path = pathlib.Path("refresh_versions.toml")
-    backup_path = pathlib.Path("refresh_versions.toml.backup")
-
-    # When not running with pytest-xdist
-    if worker_id == "master":
-        _mock_charm_version(origin_path, backup_path)
-        yield
-        origin_path.unlink()
-        shutil.move(backup_path, origin_path)
-
-    # When running with pytest-xdist
-    else:
-        root_tmp_dir = tmp_path_factory.getbasetemp().parent
-        lock_file = root_tmp_dir / "refresh_versions.lock"
-
-        # The first worker to acquire the lock mocks the file
-        with filelock.FileLock(lock_file):
-            _mock_charm_version(origin_path, backup_path)
-            yield
-            origin_path.unlink()
-            shutil.move(backup_path, origin_path)
 
 
 @pytest.fixture(autouse=True)
@@ -94,6 +54,20 @@ class _MockRefresh:
 
 @pytest.fixture(autouse=True)
 def patch(monkeypatch):
+    def _tomli_load(*args, **kwargs) -> dict:
+        return {
+            "charm_major": 1,
+            "workload": "8.0.0",
+            "charm": "v8.0/1.0.0",
+            "snap": {
+                "name": "charmed-mysql",
+                "revisions": {
+                    "x86_64": "1",
+                    "aarch64": "1",
+                },
+            },
+        }
+
     monkeypatch.setattr(
         "charm.MachineSubordinateRouterCharm.wait_until_mysql_router_ready",
         lambda *args, **kwargs: None,
@@ -105,6 +79,7 @@ def patch(monkeypatch):
     )
     monkeypatch.setattr("mysql_shell.Shell.is_router_in_cluster_set", lambda *args, **kwargs: True)
     monkeypatch.setattr("charm_refresh.Machines", _MockRefresh)
+    monkeypatch.setattr("charm_refresh._main.tomli.load", _tomli_load)
     monkeypatch.setattr(
         "relations.database_requires.RelationEndpoint.does_relation_exist",
         lambda *args, **kwargs: True,
