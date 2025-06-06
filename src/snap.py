@@ -21,11 +21,6 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-_snap_name = charm_refresh.snap_name()
-_snap = snap_lib.SnapCache()[_snap_name]
-_installed_by_unit = pathlib.Path(
-    "/var/snap", _snap_name, "common", "installed_by_mysql_router_charm_unit"
-)
 _UNIX_USERNAME = "snap_daemon"
 
 
@@ -38,48 +33,60 @@ def _raise_if_snap_installed_not_by_this_charm(*, unit: ops.Unit, model_uuid: st
 
     Assumes snap is installed
     """
+    snap_name = charm_refresh.snap_name()
+    snap_unit_path = pathlib.Path(
+        "/var/snap", snap_name, "common", "installed_by_mysql_router_charm_unit"
+    )
+
     if not (
-        _installed_by_unit.exists()
-        and _installed_by_unit.read_text() == _unique_unit_name(unit=unit, model_uuid=model_uuid)
+        snap_unit_path.exists()
+        and snap_unit_path.read_text() == _unique_unit_name(unit=unit, model_uuid=model_uuid)
     ):
         # The snap could be in use by another charm (e.g. MySQL Server charm, a different MySQL
         # Router charm).
         logger.debug(
-            f"{_installed_by_unit.exists() and _installed_by_unit.read_text()=} {_unique_unit_name(unit=unit, model_uuid=model_uuid)=}"
+            f"{snap_unit_path.exists() and snap_unit_path.read_text()=} "
+            f"{_unique_unit_name(unit=unit, model_uuid=model_uuid)=}"
         )
-        logger.error(f"{_snap_name} snap already installed on machine. Installation aborted")
-        raise Exception(f"Multiple {_snap_name} snap installs not supported on one machine")
+        logger.error(f"{snap_name} snap already installed on machine. Installation aborted")
+        raise Exception(f"Multiple {snap_name} snap installs not supported on one machine")
 
 
 def uninstall():
     """Uninstall snap if installed"""
-    logger.debug(f"Ensuring {_snap_name=} is uninstalled")
-    _snap.ensure(state=snap_lib.SnapState.Absent)
-    logger.debug(f"Ensured {_snap_name=} is uninstalled")
+    snap_name = charm_refresh.snap_name()
+    snap = snap_lib.SnapCache()[snap_name]
+
+    logger.debug(f"Ensuring {snap_name=} is uninstalled")
+    snap.ensure(state=snap_lib.SnapState.Absent)
+    logger.debug(f"Ensured {snap_name=} is uninstalled")
 
 
 class _Path(pathlib.PosixPath, container.Path):
     def __new__(cls, *args, **kwargs):
         path = super().__new__(cls, *args, **kwargs)
+        snap_name = charm_refresh.snap_name()
+
         if args and isinstance(args[0], cls) and (parent_ := args[0]._container_parent):
             path._container_parent = parent_
         else:
             if str(path).startswith("/etc/mysqlrouter") or str(path).startswith(
                 "/var/lib/mysqlrouter"
             ):
-                parent = f"/var/snap/{_snap_name}/current"
+                parent = f"/var/snap/{snap_name}/current"
             elif str(path).startswith("/run/mysqlrouter") or str(path).startswith(
                 "/var/log/mysqlrouter"
             ):
-                parent = f"/var/snap/{_snap_name}/common"
+                parent = f"/var/snap/{snap_name}/common"
             elif str(path).startswith("/tmp"):
-                parent = f"/tmp/snap-private-tmp/snap.{_snap_name}"
+                parent = f"/tmp/snap-private-tmp/snap.{snap_name}"
             else:
                 parent = None
             if parent:
                 assert str(path).startswith("/")
                 path = super().__new__(cls, parent, path.relative_to("/"), **kwargs)
             path._container_parent = parent
+
         return path
 
     def __truediv__(self, other):
@@ -128,12 +135,21 @@ class Snap(container.Container):
     _EXPORTER_SERVICE_NAME = "mysqlrouter-exporter"
 
     def __init__(self, *, unit_name: str) -> None:
+        self._snap_name = charm_refresh.snap_name()
+        self._snap_unit_path = pathlib.Path(
+            "/var/snap", self._snap_name, "common", "installed_by_mysql_router_charm_unit"
+        )
+
         super().__init__(
-            mysql_router_command=f"{_snap_name}.mysqlrouter",
-            mysql_shell_command=f"{_snap_name}.mysqlsh",
-            mysql_router_password_command=f"{_snap_name}.mysqlrouter-passwd",
+            mysql_router_command=f"{self._snap_name}.mysqlrouter",
+            mysql_shell_command=f"{self._snap_name}.mysqlsh",
+            mysql_router_password_command=f"{self._snap_name}.mysqlrouter-passwd",
             unit_name=unit_name,
         )
+
+    @property
+    def _snap(self):
+        return snap_lib.SnapCache()[self._snap_name]
 
     @property
     def ready(self) -> bool:
@@ -141,29 +157,29 @@ class Snap(container.Container):
 
     @property
     def mysql_router_service_enabled(self) -> bool:
-        return _snap.services[self._SERVICE_NAME]["active"]
+        return self._snap.services[self._SERVICE_NAME]["active"]
 
     @property
     def mysql_router_exporter_service_enabled(self) -> bool:
-        return _snap.services[self._EXPORTER_SERVICE_NAME]["active"]
+        return self._snap.services[self._EXPORTER_SERVICE_NAME]["active"]
 
     def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
         super().update_mysql_router_service(enabled=enabled, tls=tls)
 
         if tls:
-            _snap.set({"mysqlrouter.extra-options": f"--extra-config {self.tls_config_file}"})
+            self._snap.set({"mysqlrouter.extra-options": f"--extra-config {self.tls_config_file}"})
         else:
-            _snap.unset("mysqlrouter.extra-options")
+            self._snap.unset("mysqlrouter.extra-options")
 
-        router_is_running = _snap.services[self._SERVICE_NAME]["active"]
+        router_is_running = self._snap.services[self._SERVICE_NAME]["active"]
 
         if enabled:
             if router_is_running:
-                _snap.restart([self._SERVICE_NAME])
+                self._snap.restart([self._SERVICE_NAME])
             else:
-                _snap.start([self._SERVICE_NAME], enable=True)
+                self._snap.start([self._SERVICE_NAME], enable=True)
         else:
-            _snap.stop([self._SERVICE_NAME], disable=True)
+            self._snap.stop([self._SERVICE_NAME], disable=True)
 
     def update_mysql_router_exporter_service(
         self,
@@ -185,7 +201,7 @@ class Snap(container.Container):
         )
 
         if enabled:
-            _snap.set({
+            self._snap.set({
                 "mysqlrouter-exporter.listen-port": config.listen_port,
                 "mysqlrouter-exporter.user": config.username,
                 "mysqlrouter-exporter.password": config.password,
@@ -193,30 +209,34 @@ class Snap(container.Container):
                 "mysqlrouter-exporter.service-name": self._unit_name.replace("/", "-"),
             })
             if tls:
-                _snap.set({
+                self._snap.set({
                     "mysqlrouter.tls-cacert-path": certificate_authority_filename,
                     "mysqlrouter.tls-cert-path": certificate_filename,
                     "mysqlrouter.tls-key-path": key_filename,
                 })
             else:
-                _snap.unset("mysqlrouter.tls-cacert-path")
-                _snap.unset("mysqlrouter.tls-cert-path")
-                _snap.unset("mysqlrouter.tls-key-path")
-            _snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
+                self._snap.unset("mysqlrouter.tls-cacert-path")
+                self._snap.unset("mysqlrouter.tls-cert-path")
+                self._snap.unset("mysqlrouter.tls-key-path")
+            self._snap.start([self._EXPORTER_SERVICE_NAME], enable=True)
         else:
-            _snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)
-            _snap.unset("mysqlrouter-exporter.listen-port")
-            _snap.unset("mysqlrouter-exporter.user")
-            _snap.unset("mysqlrouter-exporter.password")
-            _snap.unset("mysqlrouter-exporter.url")
-            _snap.unset("mysqlrouter-exporter.service-name")
-            _snap.unset("mysqlrouter.tls-cacert-path")
-            _snap.unset("mysqlrouter.tls-cert-path")
-            _snap.unset("mysqlrouter.tls-key-path")
+            self._snap.stop([self._EXPORTER_SERVICE_NAME], disable=True)
+            self._snap.unset("mysqlrouter-exporter.listen-port")
+            self._snap.unset("mysqlrouter-exporter.user")
+            self._snap.unset("mysqlrouter-exporter.password")
+            self._snap.unset("mysqlrouter-exporter.url")
+            self._snap.unset("mysqlrouter-exporter.service-name")
+            self._snap.unset("mysqlrouter.tls-cacert-path")
+            self._snap.unset("mysqlrouter.tls-cert-path")
+            self._snap.unset("mysqlrouter.tls-key-path")
 
-    @staticmethod
     def install(
-        *, unit: ops.Unit, model_uuid: str, snap_revision: str, refresh: charm_refresh.Machines
+        self,
+        *,
+        unit: ops.Unit,
+        model_uuid: str,
+        snap_revision: str,
+        refresh: charm_refresh.Machines,
     ) -> None:
         """Ensure snap is installed by this charm
 
@@ -226,7 +246,7 @@ class Snap(container.Container):
         Automatically retries if snap installation fails
         """
         unique_unit_name = f"{model_uuid}_{unit.name}"
-        if _snap.present:
+        if self._snap.present:
             _raise_if_snap_installed_not_by_this_charm(unit=unit, model_uuid=model_uuid)
             return
         # Install snap
@@ -246,16 +266,15 @@ class Snap(container.Container):
             reraise=True,
         ):
             with attempt:
-                _snap.ensure(state=snap_lib.SnapState.Present, revision=snap_revision)
+                self._snap.ensure(state=snap_lib.SnapState.Present, revision=snap_revision)
         refresh.update_snap_revision()
-        _snap.hold()
-        _installed_by_unit.write_text(unique_unit_name)
-        logger.debug(f"Wrote {unique_unit_name=} to {_installed_by_unit.name=}")
+        self._snap.hold()
+        self._snap_unit_path.write_text(unique_unit_name)
+        logger.debug(f"Wrote {unique_unit_name=} to {self._snap_unit_path.name=}")
         logger.info(f"Installed snap revision {repr(snap_revision)}")
 
-    @classmethod
     def refresh(
-        cls,
+        self,
         *,
         unit: ops.Unit,
         model_uuid: str,
@@ -268,24 +287,24 @@ class Snap(container.Container):
 
         Does not automatically retry if snap installation fails
         """
-        if not _snap.present:
-            cls.install(
+        if not self._snap.present:
+            self.install(
                 unit=unit, model_uuid=model_uuid, snap_revision=snap_revision, refresh=refresh
             )
             return
         _raise_if_snap_installed_not_by_this_charm(unit=unit, model_uuid=model_uuid)
 
-        revision_before_refresh = _snap.revision
+        revision_before_refresh = self._snap.revision
         if revision_before_refresh == snap_revision:
             raise ValueError(f"Cannot refresh snap; {snap_revision=} is already installed")
 
         logger.info(f"Refreshing snap to revision {repr(snap_revision)}")
         unit.status = ops.MaintenanceStatus("Refreshing snap")
         try:
-            _snap.ensure(state=snap_lib.SnapState.Present, revision=snap_revision)
+            self._snap.ensure(state=snap_lib.SnapState.Present, revision=snap_revision)
         except (snap_lib.SnapError, snap_lib.SnapAPIError):
             logger.exception("Snap refresh failed")
-            if _snap.revision == revision_before_refresh:
+            if self._snap.revision == revision_before_refresh:
                 raise container.RefreshFailed
             else:
                 refresh.update_snap_revision()
