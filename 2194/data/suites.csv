@@ -1,0 +1,26 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","58984","test_landscape_client","tests.integration","Sat Jun 07 01:43:24 UTC 2025","passed","Sat Jun 07 01:44:23 UTC 2025","","test_subordinate_charms","",""
+"Tries deploying an arm64 charm on amd64 host.","119271","test_arm_charm_on_amd_host","tests.integration","Sat Jun 07 01:41:44 UTC 2025","passed","Sat Jun 07 01:43:43 UTC 2025","","test_architecture","",""
+"Test encryption when backend database is using TLS.","229406","test_build_deploy_and_relate","tests.integration","Sat Jun 07 01:41:36 UTC 2025","passed","Sat Jun 07 01:45:25 UTC 2025","","test_tls","",""
+"Ensure removal of VIP results in connection through data-integrator.","92893","test_remove_vip","tests.integration","Sat Jun 07 02:01:54 UTC 2025","passed","Sat Jun 07 02:03:27 UTC 2025","","test_hacluster","",""
+"Tries deploying an amd64 charm on arm64 host.","0","test_amd_charm_on_arm_host","tests.integration","Sat Jun 07 01:43:43 UTC 2025","skipped","Sat Jun 07 01:43:43 UTC 2025","","test_architecture","",""
+"Test external connectivity and VIP with data-integrator hacluster.","887308","test_external_connectivity_vip_with_hacluster","tests.integration","Sat Jun 07 01:40:52 UTC 2025","passed","Sat Jun 07 01:55:39 UTC 2025","","test_hacluster","",""
+"Test that exporter endpoint is functional.","193437","test_exporter_endpoint","tests.integration","Sat Jun 07 01:39:59 UTC 2025","passed","Sat Jun 07 01:43:12 UTC 2025","","test_exporter","",""
+"Test that the exporter endpoint works when related with TLS","352920","test_exporter_endpoint","tests.integration","Sat Jun 07 01:40:35 UTC 2025","passed","Sat Jun 07 01:46:28 UTC 2025","","test_exporter_with_tls","",""
+"Ensure that mysqlrouter is externally accessible with TLS integration.","120451","test_tls_along_with_ha_cluster","tests.integration","Sat Jun 07 01:59:54 UTC 2025","passed","Sat Jun 07 02:01:54 UTC 2025","","test_hacluster","",""
+"Test the failover of the hacluster leader.","68415","test_hacluster_failover","tests.integration","Sat Jun 07 01:58:45 UTC 2025","passed","Sat Jun 07 01:59:54 UTC 2025","","test_hacluster","",""
+"Upgrade to an invalid version and test rollback.
+
+    Relies on the charm built in the previous test (test_upgrade_from_edge).
+    Furthermore, the previous test will refresh the charm till revision 102.
+    This test will refresh the charm till the revision in src/snap.py, thus avoiding
+    no-ops.
+    ","133801","test_fail_and_rollback","tests.integration","Sat Jun 07 01:49:53 UTC 2025","passed","Sat Jun 07 01:52:07 UTC 2025","","test_upgrade","",""
+"Simple test to ensure that mysql, mysqlrouter and application charms deploy.","357738","test_deploy_edge","tests.integration","Sat Jun 07 01:40:39 UTC 2025","passed","Sat Jun 07 01:46:37 UTC 2025","","test_upgrade","",""
+"Test the log rotation of mysqlrouter logs.","191850","test_log_rotation","tests.integration","Sat Jun 07 01:39:28 UTC 2025","passed","Sat Jun 07 01:42:40 UTC 2025","","test_log_rotation","",""
+"Test data integrator along with TLS operator","26896","test_external_connectivity_with_data_integrator_and_tls","tests.integration","Sat Jun 07 01:43:44 UTC 2025","passed","Sat Jun 07 01:44:11 UTC 2025","","test_data_integrator","",""
+"Upgrade mysqlrouter while ensuring continuous writes incrementing.","196056","test_upgrade_from_edge","tests.integration","Sat Jun 07 01:46:37 UTC 2025","passed","Sat Jun 07 01:49:53 UTC 2025","","test_upgrade","",""
+"","224100","test_ubuntu_pro","tests.integration","Sat Jun 07 01:39:40 UTC 2025","passed","Sat Jun 07 01:43:24 UTC 2025","","test_subordinate_charms","",""
+"Test encryption when backend database is using TLS.","26809","test_connected_encryption","tests.integration","Sat Jun 07 01:45:25 UTC 2025","passed","Sat Jun 07 01:45:52 UTC 2025","","test_tls","",""
+"Test the database relation.","339180","test_database_relation","tests.integration","Sat Jun 07 01:40:15 UTC 2025","passed","Sat Jun 07 01:45:54 UTC 2025","","test_database","",""
+"Test encryption when backend database is using TLS.","233345","test_external_connectivity_with_data_integrator","tests.integration","Sat Jun 07 01:39:51 UTC 2025","passed","Sat Jun 07 01:43:44 UTC 2025","","test_data_integrator","",""
