@@ -1,0 +1,29 @@
+[32mINFO    [0m integration.helpers:helpers.py:360 Ensure continuous writes are incrementing
+[32mINFO    [0m integration.helpers:helpers.py:312 Retrieving primary unit
+[32mINFO    [0m mysql.connector:authentication.py:66 package: mysql.connector.plugins
+[32mINFO    [0m mysql.connector:authentication.py:67 plugin_name: caching_sha2_password
+[32mINFO    [0m mysql.connector:authentication.py:71 AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:94 Build charm locally
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:99 Update workload version and snap revision in the charm
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:102 Refresh the charm
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:105 Wait for the first unit to be refreshed and the app to move to blocked status
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:125 Running resume-upgrade on the mysql router leader unit
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:128 Waiting for upgrade to complete on all units
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [executing] active: Router 8.0.41 running; Snap rev 139 (outdated); Charmed operator 1+8a9c487-dirty
+  mysql-router/1 [executing] active: Router 8.0.41 running; Snap rev 139 (outdated); Charmed operator 1+8a9c487-dirty
+  mysql-router/2 [executing] active: Router 8.0.41+testupgrade running; Snap rev 121; Charmed operator 1+8a9c487-dirty
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [executing] maintenance: Upgrading snap
+  mysql-router/1 [idle] active: Router 8.0.41+testupgrade running; Snap rev 121; Charmed operator 1+8a9c487-dirty
+  mysql-router/2 [idle] active: Router 8.0.41+testupgrade running; Snap rev 121; Charmed operator 1+8a9c487-dirty
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [idle] active: 
+  mysql-router/1 [idle] active: 
+  mysql-router/2 [idle] active: 
+[32mINFO    [0m integration.helpers:helpers.py:360 Ensure continuous writes are incrementing
+[32mINFO    [0m integration.helpers:helpers.py:312 Retrieving primary unit
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [idle] active: 
+  mysql-router/1 [idle] active: 
+  mysql-router/2 [idle] active:
