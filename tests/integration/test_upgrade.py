@@ -15,6 +15,7 @@ import tomli_w
 from packaging.version import Version
 from pytest_operator.plugin import OpsTest
 
+from . import markers
 from .helpers import (
     APPLICATION_DEFAULT_APP_NAME,
     MYSQL_DEFAULT_APP_NAME,
@@ -34,6 +35,7 @@ MYSQL_ROUTER_APP_NAME = MYSQL_ROUTER_DEFAULT_APP_NAME
 TEST_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 
 
+@markers.amd64_only
 @pytest.mark.abort_on_fail
 async def test_deploy_edge(ops_test: OpsTest, series) -> None:
     """Simple test to ensure that mysql, mysqlrouter and application charms deploy."""
@@ -47,12 +49,15 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
             config={"profile": "testing"},
             series="jammy",
         ),
-        ops_test.model.deploy(
+        ops_test.juju(
+            "deploy",
             MYSQL_ROUTER_APP_NAME,
-            application_name=MYSQL_ROUTER_APP_NAME,
-            num_units=1,
-            channel="dpe/edge",
-            series=series,
+            "-n",
+            1,
+            "--channel",
+            "dpe/edge/test-refresh-v3",
+            "--series",
+            series,
         ),
         ops_test.model.deploy(
             TEST_APP_NAME,
@@ -76,6 +81,7 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
     )
 
 
+@markers.amd64_only
 @pytest.mark.abort_on_fail
 async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) -> None:
     """Upgrade mysqlrouter while ensuring continuous writes incrementing."""
@@ -135,6 +141,7 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
     )
 
 
+@markers.amd64_only
 @pytest.mark.abort_on_fail
 async def test_fail_and_rollback(ops_test: OpsTest, charm, continuous_writes) -> None:
     """Upgrade to an invalid version and test rollback.
