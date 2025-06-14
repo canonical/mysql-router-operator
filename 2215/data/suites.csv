@@ -1,0 +1,26 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"Ensure removal of VIP results in connection through data-integrator.","89537","test_remove_vip","tests.integration","Sat Jun 14 01:50:40 UTC 2025","passed","Sat Jun 14 01:52:09 UTC 2025","","test_hacluster","",""
+"Test that the exporter endpoint works when related with TLS","380676","test_exporter_endpoint","tests.integration","Sat Jun 14 01:34:11 UTC 2025","passed","Sat Jun 14 01:40:31 UTC 2025","","test_exporter_with_tls","",""
+"Test data integrator along with TLS operator","25187","test_external_connectivity_with_data_integrator_and_tls","tests.integration","Sat Jun 14 01:41:06 UTC 2025","passed","Sat Jun 14 01:41:31 UTC 2025","","test_data_integrator","",""
+"Upgrade to an invalid version and test rollback.
+
+    Relies on the charm built in the previous test (test_upgrade_from_edge).
+    Furthermore, the previous test will refresh the charm till revision 102.
+    This test will refresh the charm till the revision in src/snap.py, thus avoiding
+    no-ops.
+    ","113042","test_fail_and_rollback","tests.integration","Sat Jun 14 01:43:57 UTC 2025","passed","Sat Jun 14 01:45:50 UTC 2025","","test_upgrade","",""
+"Test encryption when backend database is using TLS.","262937","test_build_deploy_and_relate","tests.integration","Sat Jun 14 01:35:27 UTC 2025","passed","Sat Jun 14 01:39:50 UTC 2025","","test_tls","",""
+"Test the database relation.","336268","test_database_relation","tests.integration","Sat Jun 14 01:36:58 UTC 2025","passed","Sat Jun 14 01:42:34 UTC 2025","","test_database","",""
+"Test the log rotation of mysqlrouter logs.","206869","test_log_rotation","tests.integration","Sat Jun 14 01:37:39 UTC 2025","passed","Sat Jun 14 01:41:06 UTC 2025","","test_log_rotation","",""
+"Tries deploying an arm64 charm on amd64 host.","103149","test_arm_charm_on_amd_host","tests.integration","Sat Jun 14 01:37:21 UTC 2025","passed","Sat Jun 14 01:39:04 UTC 2025","","test_architecture","",""
+"Simple test to ensure that mysql, mysqlrouter and application charms deploy.","349570","test_deploy_edge","tests.integration","Sat Jun 14 01:35:06 UTC 2025","passed","Sat Jun 14 01:40:56 UTC 2025","","test_upgrade","",""
+"","257977","test_ubuntu_pro","tests.integration","Sat Jun 14 01:35:39 UTC 2025","passed","Sat Jun 14 01:39:57 UTC 2025","","test_subordinate_charms","",""
+"Ensure that mysqlrouter is externally accessible with TLS integration.","140816","test_tls_along_with_ha_cluster","tests.integration","Sat Jun 14 01:48:19 UTC 2025","passed","Sat Jun 14 01:50:40 UTC 2025","","test_hacluster","",""
+"Test encryption when backend database is using TLS.","261787","test_external_connectivity_with_data_integrator","tests.integration","Sat Jun 14 01:36:44 UTC 2025","passed","Sat Jun 14 01:41:06 UTC 2025","","test_data_integrator","",""
+"Test encryption when backend database is using TLS.","26241","test_connected_encryption","tests.integration","Sat Jun 14 01:39:50 UTC 2025","passed","Sat Jun 14 01:40:16 UTC 2025","","test_tls","",""
+"Test the failover of the hacluster leader.","59402","test_hacluster_failover","tests.integration","Sat Jun 14 01:47:20 UTC 2025","passed","Sat Jun 14 01:48:19 UTC 2025","","test_hacluster","",""
+"Upgrade mysqlrouter while ensuring continuous writes incrementing.","181432","test_upgrade_from_edge","tests.integration","Sat Jun 14 01:40:56 UTC 2025","passed","Sat Jun 14 01:43:57 UTC 2025","","test_upgrade","",""
+"Test that exporter endpoint is functional.","250722","test_exporter_endpoint","tests.integration","Sat Jun 14 01:34:05 UTC 2025","passed","Sat Jun 14 01:38:15 UTC 2025","","test_exporter","",""
+"Tries deploying an amd64 charm on arm64 host.","0","test_amd_charm_on_arm_host","tests.integration","Sat Jun 14 01:39:04 UTC 2025","skipped","Sat Jun 14 01:39:04 UTC 2025","","test_architecture","",""
+"Test external connectivity and VIP with data-integrator hacluster.","757656","test_external_connectivity_vip_with_hacluster","tests.integration","Sat Jun 14 01:34:42 UTC 2025","passed","Sat Jun 14 01:47:20 UTC 2025","","test_hacluster","",""
+"","61273","test_landscape_client","tests.integration","Sat Jun 14 01:39:57 UTC 2025","passed","Sat Jun 14 01:40:59 UTC 2025","","test_subordinate_charms","",""
