@@ -60,7 +60,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
             GRAFANA_AGENT_APP_NAME,
             application_name=GRAFANA_AGENT_APP_NAME,
             num_units=0,
-            channel="latest/stable",
+            channel="1/stable",
             series=series,
         ),
     )
