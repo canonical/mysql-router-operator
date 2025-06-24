@@ -6,13 +6,14 @@ package-mode = false
 requires-poetry = ">=2.0.0"
 
 [tool.poetry.dependencies]
-python = "^3.8.6"  # ^3.8.6 required by juju
+python = "^3.9.0"  # ^3.9.0 required by tomli-w
 # breaking change in ops 2.10.0: https://github.com/canonical/operator/pull/1091#issuecomment-1888644075
 ops = "^2.9.0, <2.10"
 tenacity = "^9.0.0"
 poetry-core = "^1.9.1"
 jinja2 = "^3.1.4"
 requests = "^2.32.3"
+charm-refresh = "^3.0.0.1"
 
 [tool.poetry.group.charm-libs.dependencies]
 # data_platform_libs/v0/data_interfaces.py
@@ -54,6 +55,14 @@ mysql-connector-python = "~8.0.33"
 tenacity = "^9.0.0"
 ops = "^2.9.0"
 allure-pytest-default-results = "^0.1.2"
+tomli = "^2.2.1"
+tomli-w = "^1.2.0"
+
+[tool.poetry.group.build-refresh-version]
+optional = true
+
+[tool.poetry.group.build-refresh-version.dependencies]
+charm-refresh-build-version = "^0.2.0"
 
 [tool.coverage.run]
 branch = true

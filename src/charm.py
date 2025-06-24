@@ -13,33 +13,57 @@ from architecture import WrongArchitectureWarningCharm, is_wrong_architecture
 if is_wrong_architecture() and __name__ == "__main__":
     ops.main.main(WrongArchitectureWarningCharm)
 
+import dataclasses
 import logging
 import socket
 import typing
 
+import charm_refresh
+import ops.log
 import tenacity
 from charms.tempo_coordinator_k8s.v0.charm_tracing import trace_charm
 
 import abstract_charm
 import logrotate
 import machine_logrotate
-import machine_upgrade
 import machine_workload
 import relations.database_providers_wrapper
 import relations.hacluster
 import snap
-import upgrade
 import workload
 
 logger = logging.getLogger(__name__)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+
+@dataclasses.dataclass(eq=False)
+class _MachinesRouterRefresh(abstract_charm.RouterRefresh, charm_refresh.CharmSpecificMachines):
+    _charm: abstract_charm.MySQLRouterCharm
+
+    def refresh_snap(
+        self, *, snap_name: str, snap_revision: str, refresh: charm_refresh.Machines
+    ) -> None:
+        # TODO: issue on relation-broken event since event not passed? mitigated by regular event handler?
+        self._charm.get_workload(event=None, refresh=refresh).refresh(
+            event=None,
+            unit=self._charm.unit,
+            model_uuid=self._charm.model.uuid,
+            snap_revision=snap_revision,
+            refresh=refresh,
+            tls=self._charm._tls_certificate_saved,
+            exporter_config=self._charm._cos_exporter_config(event=None),
+        )
+        # `reconcile()` will run on every event, which will set
+        # `refresh.next_unit_allowed_to_refresh = True`
+        # (This method will run in the charm's __init__, before `reconcile()` is called by ops)
 
 
 @trace_charm(
     tracing_endpoint="tracing_endpoint",
     extra_types=(
         logrotate.LogRotate,
-        machine_upgrade.Upgrade,
-        machine_workload.AuthenticatedMachineWorkload,
+        machine_workload.RunningMachineWorkload,
         relations.cos.COSRelation,
         relations.database_providers_wrapper.RelationEndpoint,
         relations.database_requires.RelationEndpoint,
@@ -53,19 +77,37 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
+        # Show logger name (module name) in logs
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers:
+            if isinstance(handler, ops.log.JujuLogHandler):
+                handler.setFormatter(logging.Formatter("{name}:{message}", style="{"))
+
         # DEPRECATED shared-db: Enable legacy "mysql-shared" interface
         self._database_provides = relations.database_providers_wrapper.RelationEndpoint(
             self, self._database_provides
         )
-        self._authenticated_workload_type = machine_workload.AuthenticatedMachineWorkload
+        self._running_workload_type = machine_workload.RunningMachineWorkload
         self._ha_cluster = relations.hacluster.HACluster(self)
-        self.framework.observe(self.on.install, self._on_install)
-        self.framework.observe(self.on.remove, self._on_remove)
-        self.framework.observe(self.on.upgrade_charm, self._on_upgrade_charm)
-        self.framework.observe(
-            self.on[machine_upgrade.FORCE_ACTION_NAME].action, self._on_force_upgrade_action
-        )
-        self.framework.observe(self.on.config_changed, self.reconcile)
+        try:
+            self.refresh = charm_refresh.Machines(
+                _MachinesRouterRefresh(
+                    workload_name="Router", charm_name="mysql-router", _charm=self
+                )
+            )
+        except charm_refresh.UnitTearingDown:
+            # MySQL server charm will clean up users & router metadata when the MySQL Router app or
+            # unit(s) tear down
+            self.unit.status = ops.MaintenanceStatus("Tearing down")
+            snap.uninstall()
+            self._reconcile_allowed = False
+        except charm_refresh.PeerRelationNotReady:
+            self.unit.status = ops.MaintenanceStatus("Waiting for peer relation")
+            if self.unit.is_leader():
+                self.app.status = ops.MaintenanceStatus("Waiting for peer relation")
+            self._reconcile_allowed = False
+        else:
+            self._reconcile_allowed = True
 
     @property
     def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
@@ -77,13 +119,6 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def _container(self) -> snap.Snap:
         return snap.Snap(unit_name=self.unit.name)
-
-    @property
-    def _upgrade(self) -> typing.Optional[machine_upgrade.Upgrade]:
-        try:
-            return machine_upgrade.Upgrade(self)
-        except upgrade.PeerRelationNotReady:
-            pass
 
     @property
     def _status(self) -> ops.StatusBase:
@@ -179,56 +214,6 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             raise
         else:
             logger.debug("MySQL Router is ready")
-
-    # =======================
-    #  Handlers
-    # =======================
-
-    def _on_install(self, _) -> None:
-        snap.install(unit=self.unit, model_uuid=self.model.uuid)
-        self.unit.set_workload_version(self.get_workload(event=None).version)
-
-    def _on_remove(self, _) -> None:
-        snap.uninstall()
-
-    def _on_upgrade_charm(self, _) -> None:
-        if self._unit_lifecycle.authorized_leader:
-            if not self._upgrade.in_progress:
-                logger.info("Charm upgraded. MySQL Router version unchanged")
-            self._upgrade.upgrade_resumed = False
-            # Only call `reconcile` on leader unit to avoid race conditions with `upgrade_resumed`
-            self.reconcile()
-
-    def _on_resume_upgrade_action(self, event: ops.ActionEvent) -> None:
-        super()._on_resume_upgrade_action(event)
-        # If next to upgrade, upgrade leader unit
-        self.reconcile()
-
-    def _on_force_upgrade_action(self, event: ops.ActionEvent) -> None:
-        if not self._upgrade or not self._upgrade.in_progress:
-            message = "No upgrade in progress"
-            logger.debug(f"Force upgrade event failed: {message}")
-            event.fail(message)
-            return
-        if not self._upgrade.upgrade_resumed:
-            message = f"Run `juju run {self.app.name}/leader resume-upgrade` before trying to force upgrade"
-            logger.debug(f"Force upgrade event failed: {message}")
-            event.fail(message)
-            return
-        if self._upgrade.unit_state is not upgrade.UnitState.OUTDATED:
-            message = "Unit already upgraded"
-            logger.debug(f"Force upgrade event failed: {message}")
-            event.fail(message)
-            return
-
-        logger.warning("Forcing upgrade")
-        event.log(f"Forcefully upgrading {self.unit.name}")
-        self._upgrade.upgrade_unit(
-            event=event, workload_=self.get_workload(event=None), tls=self._tls_certificate_saved
-        )
-        self.reconcile()
-        event.set_results({"result": f"Forcefully upgraded {self.unit.name}"})
-        logger.warning("Forced upgrade")
 
 
 if __name__ == "__main__":

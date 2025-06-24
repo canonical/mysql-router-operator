@@ -11,6 +11,7 @@ import socket
 import string
 import typing
 
+import charm_refresh
 import ops
 import requests
 import tenacity
@@ -67,25 +68,45 @@ class Workload:
         """
         return self._container.ready
 
-    @property
-    def version(self) -> str:
-        """MySQL Router version"""
-        version = self._container.run_mysql_router(["--version"])
-        for component in version.split():
-            if component.startswith("8"):
-                return component
-        return ""
-
-    def upgrade(
-        self, *, event, unit: ops.Unit, tls: bool, exporter_config: "relations.cos.ExporterConfig"
+    def install(
+        self,
+        *,
+        unit: ops.Unit,
+        model_uuid: str,
+        snap_revision: str,
+        refresh: charm_refresh.Machines,
     ) -> None:
-        """Upgrade MySQL Router.
+        """Ensure snap is installed by this charm
+
+        Only applies to machine charm
+
+        If snap is not installed, install it
+        If snap is installed, check that it was installed by this charm & raise an exception otherwise
+
+        Automatically retries if snap installation fails
+        """
+        self._container.install(
+            unit=unit, model_uuid=model_uuid, snap_revision=snap_revision, refresh=refresh
+        )
+
+    def refresh(
+        self,
+        *,
+        event,
+        unit: ops.Unit,
+        model_uuid: str,
+        snap_revision: str,
+        refresh: charm_refresh.Machines,
+        tls: bool,
+        exporter_config: "relations.cos.ExporterConfig",
+    ) -> None:
+        """Refresh MySQL Router
 
         Only applies to machine charm
         """
-        logger.debug("Upgrading MySQL Router")
-        self._container.upgrade(unit=unit)
-        logger.debug("Upgraded MySQL Router")
+        self._container.refresh(
+            unit=unit, model_uuid=model_uuid, snap_revision=snap_revision, refresh=refresh
+        )
 
     @property
     def _tls_config_file_data(self) -> str:
@@ -186,7 +207,7 @@ class Workload:
             return ops.WaitingStatus()
 
 
-class AuthenticatedWorkload(Workload):
+class RunningWorkload(Workload):
     """Workload with connection to MySQL cluster"""
 
     def __init__(
@@ -420,8 +441,16 @@ class AuthenticatedWorkload(Workload):
                 "Router was manually removed from MySQL ClusterSet. Remove & re-deploy unit"
             )
 
-    def upgrade(
-        self, *, event, unit: ops.Unit, tls: bool, exporter_config: "relations.cos.ExporterConfig"
+    def refresh(
+        self,
+        *,
+        event,
+        unit: ops.Unit,
+        model_uuid: str,
+        snap_revision: str,
+        refresh: charm_refresh.Machines,
+        tls: bool,
+        exporter_config: "relations.cos.ExporterConfig",
     ) -> None:
         enabled = self._container.mysql_router_service_enabled
         exporter_enabled = self._container.mysql_router_exporter_service_enabled
@@ -430,12 +459,27 @@ class AuthenticatedWorkload(Workload):
         if enabled:
             logger.debug("Disabling MySQL Router service before upgrade")
             self._disable_router()
-        super().upgrade(event=event, unit=unit, tls=tls, exporter_config=exporter_config)
-        if enabled:
-            logger.debug("Re-enabling MySQL Router service after upgrade")
-            self._enable_router(event=event, tls=tls, unit_name=unit.name)
-        if exporter_enabled:
-            self._enable_exporter(tls=tls, exporter_config=exporter_config)
+        try:
+            super().refresh(
+                event=event,
+                unit=unit,
+                model_uuid=model_uuid,
+                snap_revision=snap_revision,
+                refresh=refresh,
+                tls=tls,
+                exporter_config=exporter_config,
+            )
+        except container.RefreshFailed:
+            message = "Re-enabling MySQL Router service after failed snap refresh"
+            raise
+        else:
+            message = "Re-enabling MySQL Router service after refresh"
+        finally:
+            if enabled:
+                logger.debug(message)
+                self._enable_router(event=event, tls=tls, unit_name=unit.name)
+            if exporter_enabled:
+                self._enable_exporter(tls=tls, exporter_config=exporter_config)
 
     def _wait_until_http_server_authenticates(self) -> None:
         """Wait until active connection with router HTTP server using monitoring credentials."""

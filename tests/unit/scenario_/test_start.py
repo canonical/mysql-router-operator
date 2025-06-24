@@ -13,7 +13,7 @@ def test_start_sets_status_if_no_relations(leader):
     context = scenario.Context(charm.MachineSubordinateRouterCharm)
     input_state = scenario.State(
         leader=leader,
-        relations=[scenario.PeerRelation(endpoint="upgrade-version-a")],
+        relations=[scenario.PeerRelation(endpoint="refresh-v-three")],
     )
     output_state = context.run("start", input_state)
     if leader:
