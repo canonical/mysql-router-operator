@@ -8,7 +8,7 @@ requires-poetry = ">=2.0.0"
 [tool.poetry.dependencies]
 python = "^3.8.6"  # ^3.8.6 required by juju
 # breaking change in ops 2.10.0: https://github.com/canonical/operator/pull/1091#issuecomment-1888644075
-ops = "^2.9.0, <2.10"
+ops = "<2.16"
 tenacity = "^9.0.0"
 poetry-core = "^1.9.1"
 jinja2 = "^3.1.4"
