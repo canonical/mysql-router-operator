@@ -1,0 +1,26 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"Tries deploying an amd64 charm on arm64 host.","0","test_amd_charm_on_arm_host","tests.integration","Wed Jun 25 01:37:40 UTC 2025","skipped","Wed Jun 25 01:37:40 UTC 2025","","test_architecture","",""
+"","181785","test_ubuntu_pro","tests.integration","Wed Jun 25 01:42:01 UTC 2025","broken","Wed Jun 25 01:45:02 UTC 2025","","test_subordinate_charms","",""
+"Test external connectivity and VIP with data-integrator hacluster.","729925","test_external_connectivity_vip_with_hacluster","tests.integration","Wed Jun 25 01:39:52 UTC 2025","passed","Wed Jun 25 01:52:02 UTC 2025","","test_hacluster","",""
+"Upgrade mysqlrouter while ensuring continuous writes incrementing.","164122","test_upgrade_from_edge","tests.integration","Wed Jun 25 01:46:34 UTC 2025","passed","Wed Jun 25 01:49:19 UTC 2025","","test_upgrade","",""
+"Test encryption when backend database is using TLS.","262408","test_external_connectivity_with_data_integrator","tests.integration","Wed Jun 25 01:39:38 UTC 2025","passed","Wed Jun 25 01:44:00 UTC 2025","","test_data_integrator","",""
+"Test that exporter endpoint is functional.","242395","test_exporter_endpoint","tests.integration","Wed Jun 25 01:40:07 UTC 2025","passed","Wed Jun 25 01:44:09 UTC 2025","","test_exporter","",""
+"Test encryption when backend database is using TLS.","219344","test_build_deploy_and_relate","tests.integration","Wed Jun 25 01:42:12 UTC 2025","passed","Wed Jun 25 01:45:51 UTC 2025","","test_tls","",""
+"Ensure that mysqlrouter is externally accessible with TLS integration.","116887","test_tls_along_with_ha_cluster","tests.integration","Wed Jun 25 01:57:53 UTC 2025","passed","Wed Jun 25 01:59:50 UTC 2025","","test_hacluster","",""
+"Test the failover of the hacluster leader.","351143","test_hacluster_failover","tests.integration","Wed Jun 25 01:52:02 UTC 2025","passed","Wed Jun 25 01:57:53 UTC 2025","","test_hacluster","",""
+"Test data integrator along with TLS operator","25535","test_external_connectivity_with_data_integrator_and_tls","tests.integration","Wed Jun 25 01:44:00 UTC 2025","passed","Wed Jun 25 01:44:26 UTC 2025","","test_data_integrator","",""
+"Test that the exporter endpoint works when related with TLS","340756","test_exporter_endpoint","tests.integration","Wed Jun 25 01:42:29 UTC 2025","passed","Wed Jun 25 01:48:10 UTC 2025","","test_exporter_with_tls","",""
+"Test the database relation.","302905","test_database_relation","tests.integration","Wed Jun 25 01:41:35 UTC 2025","passed","Wed Jun 25 01:46:38 UTC 2025","","test_database","",""
+"Simple test to ensure that mysql, mysqlrouter and application charms deploy.","314351","test_deploy_edge","tests.integration","Wed Jun 25 01:41:20 UTC 2025","passed","Wed Jun 25 01:46:34 UTC 2025","","test_upgrade","",""
+"Test the log rotation of mysqlrouter logs.","234544","test_log_rotation","tests.integration","Wed Jun 25 01:39:08 UTC 2025","passed","Wed Jun 25 01:43:03 UTC 2025","","test_log_rotation","",""
+"","2165","test_landscape_client","tests.integration","Wed Jun 25 01:45:03 UTC 2025","broken","Wed Jun 25 01:45:05 UTC 2025","","test_subordinate_charms","",""
+"Tries deploying an arm64 charm on amd64 host.","108665","test_arm_charm_on_amd_host","tests.integration","Wed Jun 25 01:35:51 UTC 2025","passed","Wed Jun 25 01:37:40 UTC 2025","","test_architecture","",""
+"Ensure removal of VIP results in connection through data-integrator.","81748","test_remove_vip","tests.integration","Wed Jun 25 01:59:50 UTC 2025","passed","Wed Jun 25 02:01:12 UTC 2025","","test_hacluster","",""
+"Test encryption when backend database is using TLS.","26526","test_connected_encryption","tests.integration","Wed Jun 25 01:45:51 UTC 2025","passed","Wed Jun 25 01:46:18 UTC 2025","","test_tls","",""
+"Upgrade to an invalid version and test rollback.
+
+    Relies on the charm built in the previous test (test_upgrade_from_edge).
+    Furthermore, the previous test will refresh the charm till revision 102.
+    This test will refresh the charm till the revision in src/snap.py, thus avoiding
+    no-ops.
+    ","103839","test_fail_and_rollback","tests.integration","Wed Jun 25 01:49:19 UTC 2025","passed","Wed Jun 25 01:51:02 UTC 2025","","test_upgrade","",""
