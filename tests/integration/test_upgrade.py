@@ -34,7 +34,6 @@ MYSQL_ROUTER_APP_NAME = MYSQL_ROUTER_DEFAULT_APP_NAME
 TEST_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 
 
-@markers.amd64_only
 @pytest.mark.abort_on_fail
 async def test_deploy_edge(ops_test: OpsTest, series) -> None:
     """Simple test to ensure that mysql, mysqlrouter and application charms deploy."""
@@ -54,7 +53,7 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
             "-n",
             1,
             "--channel",
-            "dpe/edge/test-refresh-v3",
+            "dpe/edge/test-refresh-v3-8.0.40", # TODO remove after refresh v3 merged
             "--series",
             series,
         ),
@@ -84,7 +83,6 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
     )
 
 
-@markers.amd64_only
 @pytest.mark.abort_on_fail
 async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) -> None:
     """Upgrade mysqlrouter while ensuring continuous writes incrementing."""
@@ -165,7 +163,6 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
     )
 
 
-@markers.amd64_only
 @pytest.mark.abort_on_fail
 async def test_fail_and_rollback(ops_test: OpsTest, charm, continuous_writes) -> None:
     """Upgrade to an invalid version and test rollback.
