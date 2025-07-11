@@ -52,7 +52,7 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
             "-n",
             1,
             "--channel",
-            "dpe/edge/test-refresh-v3-8.0.40",  # TODO remove after refresh v3 merged
+            "dpe/edge/test-refresh-v3-8.0.41",  # TODO remove after refresh v3 merged
             "--series",
             series,
         ),
