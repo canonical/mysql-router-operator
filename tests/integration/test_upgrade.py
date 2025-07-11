@@ -14,7 +14,6 @@ import tomli
 import tomli_w
 from pytest_operator.plugin import OpsTest
 
-from . import markers
 from .helpers import (
     APPLICATION_DEFAULT_APP_NAME,
     MYSQL_DEFAULT_APP_NAME,
@@ -53,7 +52,7 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
             "-n",
             1,
             "--channel",
-            "dpe/edge/test-refresh-v3-8.0.40", # TODO remove after refresh v3 merged
+            "dpe/edge/test-refresh-v3-8.0.40",  # TODO remove after refresh v3 merged
             "--series",
             series,
         ),
