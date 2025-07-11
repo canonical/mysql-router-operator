@@ -320,14 +320,14 @@ charm-api = ">=0.1.1"
 
 [[package]]
 name = "charm-refresh"
-version = "3.0.0.1"
-description = "In-place rolling refreshes of stateful charmed applications "
+version = "3.0.0.6"
+description = "In-place rolling refreshes (upgrades) of stateful charmed applications "
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "charm_refresh-3.0.0.1-py3-none-any.whl", hash = "sha256:d67f37c4f66bf94e2c778ef53935c0cc6fb48b6635f58b910130760ba71e7c8d"},
-    {file = "charm_refresh-3.0.0.1.tar.gz", hash = "sha256:066bd8a8c96bbfa519f286c8f1ed4d4f80c83b22b8d1929301cba80420bd0079"},
+    {file = "charm_refresh-3.0.0.6-py3-none-any.whl", hash = "sha256:36e1736b08358b02833bfa55e21a05d6f9493a447457ebeef82575a599fe7f90"},
+    {file = "charm_refresh-3.0.0.6.tar.gz", hash = "sha256:a97fc970f2c1393b749047b5088225acffbd5b4fea1dce493f31e45ebceb4117"},
 ]
 
 [package.dependencies]
@@ -2546,4 +2546,4 @@ test = ["big-O", "importlib-resources ; python_version < \"3.9\"", "jaraco.funct
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "ca2d312e60eea90431168a1a96a1a68c433d3c1582fbeedff6d5e9a67084fe80"
+content-hash = "7b82467d3f357557c751bec9c069d35f3691d59108397936848d2fa3e687dfec"
