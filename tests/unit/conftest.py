@@ -54,20 +54,6 @@ class _MockRefresh:
 
 @pytest.fixture(autouse=True)
 def patch(monkeypatch):
-    def _tomli_load(*args, **kwargs) -> dict:
-        return {
-            "charm_major": 1,
-            "workload": "8.0.0",
-            "charm": "v8.0/1.0.0",
-            "snap": {
-                "name": "charmed-mysql",
-                "revisions": {
-                    "x86_64": "1",
-                    "aarch64": "1",
-                },
-            },
-        }
-
     monkeypatch.setattr(
         "charm.MachineSubordinateRouterCharm.wait_until_mysql_router_ready",
         lambda *args, **kwargs: None,
@@ -79,7 +65,7 @@ def patch(monkeypatch):
     )
     monkeypatch.setattr("mysql_shell.Shell.is_router_in_cluster_set", lambda *args, **kwargs: True)
     monkeypatch.setattr("charm_refresh.Machines", _MockRefresh)
-    monkeypatch.setattr("charm_refresh._main.tomli.load", _tomli_load)
+    monkeypatch.setattr("charm_refresh.snap_name", lambda: "charmed-mysql")
     monkeypatch.setattr(
         "relations.database_requires.RelationEndpoint.does_relation_exist",
         lambda *args, **kwargs: True,
