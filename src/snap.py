@@ -34,18 +34,18 @@ def _raise_if_snap_installed_not_by_this_charm(*, unit: ops.Unit, model_uuid: st
     Assumes snap is installed
     """
     snap_name = charm_refresh.snap_name()
-    snap_unit_path = pathlib.Path(
+    installed_by_unit = pathlib.Path(
         "/var/snap", snap_name, "common", "installed_by_mysql_router_charm_unit"
     )
 
     if not (
-        snap_unit_path.exists()
-        and snap_unit_path.read_text() == _unique_unit_name(unit=unit, model_uuid=model_uuid)
+        installed_by_unit.exists()
+        and installed_by_unit.read_text() == _unique_unit_name(unit=unit, model_uuid=model_uuid)
     ):
         # The snap could be in use by another charm (e.g. MySQL Server charm, a different MySQL
         # Router charm).
         logger.debug(
-            f"{snap_unit_path.exists() and snap_unit_path.read_text()=} "
+            f"{installed_by_unit.exists() and installed_by_unit.read_text()=} "
             f"{_unique_unit_name(unit=unit, model_uuid=model_uuid)=}"
         )
         logger.error(f"{snap_name} snap already installed on machine. Installation aborted")
@@ -136,7 +136,7 @@ class Snap(container.Container):
 
     def __init__(self, *, unit_name: str) -> None:
         self._snap_name = charm_refresh.snap_name()
-        self._snap_unit_path = pathlib.Path(
+        self._installed_by_unit = pathlib.Path(
             "/var/snap", self._snap_name, "common", "installed_by_mysql_router_charm_unit"
         )
 
@@ -269,8 +269,8 @@ class Snap(container.Container):
                 self._snap.ensure(state=snap_lib.SnapState.Present, revision=snap_revision)
         refresh.update_snap_revision()
         self._snap.hold()
-        self._snap_unit_path.write_text(unique_unit_name)
-        logger.debug(f"Wrote {unique_unit_name=} to {self._snap_unit_path.name=}")
+        self._installed_by_unit.write_text(unique_unit_name)
+        logger.debug(f"Wrote {unique_unit_name=} to {self._installed_by_unit.name=}")
         logger.info(f"Installed snap revision {repr(snap_revision)}")
 
     def refresh(
