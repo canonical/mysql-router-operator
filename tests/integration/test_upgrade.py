@@ -12,7 +12,6 @@ import zipfile
 import pytest
 import tomli
 import tomli_w
-from packaging.version import Version
 from pytest_operator.plugin import OpsTest
 
 from . import markers
@@ -104,7 +103,35 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
     logger.info("Refresh the charm")
     await mysql_router_application.refresh(path=temporary_charm)
 
-    logger.info("Wait for the first unit to be refreshed and the app to move to blocked status")
+    # Refresh will always be incompatible since we are downgrading the workload
+    # Refresh will additionally be incompatible on PR CI (not edge CI) since unrelease charm
+    # versions are always marked as incompatible
+    logger.info("Wait for refresh to block as incompatible")
+    await ops_test.model.block_until(
+        lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT
+    )
+    assert (
+        "incompatible" in mysql_router_application.status_message
+    ), "mysql router application status not indicating that refresh incompatible"
+
+    # Highest to lowest unit number
+    refresh_order = sorted(
+        mysql_router_application.units,
+        key=lambda unit: int(unit.name.split("/")[1]),
+        reverse=True,
+    )
+
+    logger.info("Running force-refresh-start action with check-compatibility=false")
+    await run_action(refresh_order[0], "force-refresh-start", **{"check-compatibility": False})
+
+    logger.info("Wait for app status to update")
+    await ops_test.model.wait_for_idle(
+        [MYSQL_ROUTER_APP_NAME],
+        idle_period=30,
+        timeout=60,
+    )
+
+    logger.info("Wait for refresh to start")
     await ops_test.model.block_until(
         lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT
     )
@@ -120,14 +147,7 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
             timeout=TIMEOUT,
         )
 
-    # Highest to lowest unit number
-    refresh_order = sorted(
-        mysql_router_application.units,
-        key=lambda unit: int(unit.name.split("/")[1]),
-        reverse=True,
-    )
-
-    logger.info("Running resume-refresh on the mysql router leader unit")
+    logger.info("Running resume-refresh")
     await run_action(refresh_order[1], "resume-refresh")
 
     logger.info("Waiting for upgrade to complete on all units")
@@ -206,6 +226,7 @@ def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> N
     # set an old revision of the snap
     versions["snap"]["revisions"]["x86_64"] = "121"
     versions["snap"]["revisions"]["aarch64"] = "122"
+    versions["workload"] = "8.0.39"
 
     with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
         charm_zip.writestr("refresh_versions.toml", tomli_w.dumps(versions))
@@ -216,9 +237,6 @@ def create_invalid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) ->
     with pathlib.Path("refresh_versions.toml").open("rb") as file:
         versions = tomli.load(file)
 
-    old_version = Version(versions["workload"])
-    new_version = Version(f"{old_version.major - 1}.{old_version.minor}.{old_version.micro}")
-    versions["workload"] = str(new_version)
     versions["charm"] = "8.0/0.0.0"
 
     with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
