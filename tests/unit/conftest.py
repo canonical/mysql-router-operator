@@ -1,6 +1,5 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
-
 import pathlib
 import platform
 
@@ -8,6 +7,8 @@ import ops
 import pytest
 import tomli
 from charms.tempo_coordinator_k8s.v0.charm_tracing import charm_tracing_disabled
+
+import snap
 
 
 @pytest.fixture(autouse=True)
@@ -122,10 +123,12 @@ def machine_patch(monkeypatch):
             if "mysqlrouter-exporter" in services:
                 self.services["mysqlrouter-exporter"]["active"] = True
 
-    monkeypatch.setattr("snap.Snap._snap", Snap())
+    monkeypatch.setattr(snap, "_snap", Snap())
 
-    # Use "null" for `json.loads()`
-    monkeypatch.setattr("snap.Snap._run_command", lambda *args, **kwargs: "null")
+    monkeypatch.setattr(
+        "snap.Snap._run_command",
+        lambda *args, **kwargs: "null",  # Use "null" for `json.loads()`
+    )
     monkeypatch.setattr("snap.Snap.install", lambda *args, **kwargs: None)
     monkeypatch.setattr("snap._Path.read_text", lambda *args, **kwargs: "")
     monkeypatch.setattr("snap._Path.write_text", lambda *args, **kwargs: None)
