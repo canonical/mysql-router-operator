@@ -125,12 +125,12 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
     await ops_test.model.wait_for_idle(
         [MYSQL_ROUTER_APP_NAME],
         idle_period=30,
-        timeout=60,
+        timeout=TIMEOUT,
     )
 
     logger.info("Wait for refresh to start")
     await ops_test.model.block_until(
-        lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT
+        lambda: mysql_router_application.status == "blocked", timeout=3*60
     )
     assert (
         "resume-refresh" in mysql_router_application.status_message
