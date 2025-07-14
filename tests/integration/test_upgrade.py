@@ -77,7 +77,11 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
 
     logger.info("Waiting for applications to become active")
     await ops_test.model.wait_for_idle(
-        [MYSQL_APP_NAME, MYSQL_ROUTER_APP_NAME, TEST_APP_NAME], status="active", timeout=TIMEOUT
+        [MYSQL_APP_NAME, MYSQL_ROUTER_APP_NAME, TEST_APP_NAME],
+        status="active",
+        timeout=TIMEOUT,
+        # Temporary workaround for https://github.com/canonical/mysql-operator/issues/654
+        raise_on_error=False,
     )
 
 

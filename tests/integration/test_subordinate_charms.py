@@ -62,6 +62,8 @@ async def test_ubuntu_pro(ops_test, charm, series):
             ],
             status="active",
             raise_on_blocked=True,
+            # Temporary workaround for https://github.com/canonical/mysql-operator/issues/654
+            raise_on_error=False,
             timeout=SLOW_TIMEOUT,
         )
 
