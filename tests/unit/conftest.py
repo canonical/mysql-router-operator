@@ -67,6 +67,9 @@ def patch(monkeypatch):
     monkeypatch.setattr("charm_refresh.Machines", _MockRefresh)
     monkeypatch.setattr("charm_refresh.snap_name", lambda: "charmed-mysql")
     monkeypatch.setattr(
+        "charm_refresh.CharmSpecificCommon.__post_init__", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
         "relations.database_requires.RelationEndpoint.does_relation_exist",
         lambda *args, **kwargs: True,
     )
