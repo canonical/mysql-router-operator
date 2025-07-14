@@ -130,7 +130,7 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
 
     logger.info("Wait for refresh to start")
     await ops_test.model.block_until(
-        lambda: mysql_router_application.status == "blocked", timeout=3*60
+        lambda: mysql_router_application.status == "blocked", timeout=3 * 60
     )
     assert (
         "resume-refresh" in mysql_router_application.status_message
