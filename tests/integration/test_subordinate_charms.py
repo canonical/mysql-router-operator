@@ -5,6 +5,7 @@
 
 import asyncio
 import os
+import subprocess
 
 from .test_database import (
     APPLICATION_APP_NAME,
@@ -18,13 +19,17 @@ LANDSCAPE_CLIENT_APP_NAME = "landscape-client"
 
 
 async def test_ubuntu_pro(ops_test, charm, series):
+    subprocess.check_output([
+        "juju",
+        "deploy",
+        MYSQL_APP_NAME,
+        "--channel=8.0/edge/juju-spaces-endpoints",
+        "--series=jammy",
+        "--config",
+        "profile=testing",
+    ])
+
     await asyncio.gather(
-        ops_test.model.deploy(
-            MYSQL_APP_NAME,
-            channel="8.0/edge",
-            application_name=MYSQL_APP_NAME,
-            config={"profile": "testing"},
-        ),
         ops_test.model.deploy(
             charm,
             application_name=MYSQL_ROUTER_APP_NAME,

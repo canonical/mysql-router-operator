@@ -8,6 +8,7 @@ import pathlib
 import platform
 import re
 import shutil
+import subprocess
 import typing
 import zipfile
 
@@ -43,15 +44,17 @@ TEST_APP_NAME = APPLICATION_DEFAULT_APP_NAME
 async def test_deploy_edge(ops_test: OpsTest, series) -> None:
     """Simple test to ensure that mysql, mysqlrouter and application charms deploy."""
     logger.info("Deploying all applications")
+    subprocess.check_output([
+        "juju",
+        "deploy",
+        MYSQL_APP_NAME,
+        "--channel=8.0/edge/juju-spaces-endpoints",
+        "--series=jammy",
+        "--config",
+        "profile=testing",
+    ])
+
     await asyncio.gather(
-        ops_test.model.deploy(
-            MYSQL_APP_NAME,
-            application_name=MYSQL_APP_NAME,
-            num_units=1,
-            channel="8.0/edge",
-            config={"profile": "testing"},
-            series="jammy",
-        ),
         ops_test.model.deploy(
             MYSQL_ROUTER_APP_NAME,
             application_name=MYSQL_ROUTER_APP_NAME,
