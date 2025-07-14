@@ -84,6 +84,7 @@ class CompleteConnectionInformation(ConnectionInformation):
         endpoints = databag["endpoints"].split(",")
         assert len(endpoints) == 1
         endpoint = endpoints[0]
+        logger.warning(f"FOOBAR: {endpoint}")
         self.host = endpoint.split(":")[0]
         self.port = endpoint.split(":")[1]
         self.username = databag["username"]
