@@ -338,7 +338,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 if self._database_requires.is_relation_breaking(event):
                     if self.refresh.in_progress:
                         logger.warning(
-                            "Modifying relations during an upgrade is not supported. The charm may be in a broken, unrecoverable state. Re-deploy the charm"
+                            "Modifying relations during a refresh is not supported. The charm may be in a broken, unrecoverable state. Re-deploy the charm"
                         )
                     self._database_provides.delete_all_databags()
                 elif (

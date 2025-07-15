@@ -240,16 +240,16 @@ class RunningWorkload(Workload):
         # MySQL Router is bootstrapped without `--directory`—there is one system-wide instance.
         return f"{socket.getfqdn()}::system"
 
-    def _cleanup_after_upgrade_or_potential_container_restart(self) -> None:
-        """Remove Router user after upgrade or (potential) container restart.
+    def _cleanup_after_refresh_or_potential_container_restart(self) -> None:
+        """Remove Router user after refresh or (potential) container restart.
 
         (On Kubernetes, storage is not persisted on container restart—MySQL Router's config file is
         deleted. Therefore, MySQL Router needs to be bootstrapped again.)
         """
         if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
-            logger.debug("Cleaning up after upgrade or container restart")
+            logger.debug("Cleaning up after refresh or container restart")
             self.shell.delete_user(user_info.username)
-            logger.debug("Cleaned up after upgrade or container restart")
+            logger.debug("Cleaned up after refresh or container restart")
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(
@@ -349,7 +349,7 @@ class RunningWorkload(Workload):
     def _enable_router(self, *, event, tls: bool, unit_name: str) -> None:
         """Enable router after setting up all the necessary prerequisites."""
         logger.info("Enabling MySQL Router service")
-        self._cleanup_after_upgrade_or_potential_container_restart()
+        self._cleanup_after_refresh_or_potential_container_restart()
         # create an empty credentials file, if the file does not exist
         self._container.create_router_rest_api_credentials_file()
         self._bootstrap_router(event=event, tls=tls)
@@ -457,7 +457,7 @@ class RunningWorkload(Workload):
         if exporter_enabled:
             self._disable_exporter()
         if enabled:
-            logger.debug("Disabling MySQL Router service before upgrade")
+            logger.debug("Disabling MySQL Router service before refresh")
             self._disable_router()
         try:
             super().refresh(
