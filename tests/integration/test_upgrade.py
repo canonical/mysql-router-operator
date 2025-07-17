@@ -215,8 +215,9 @@ def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> N
 
     Upgrades require a new snap revision to avoid no-oping.
     """
-    with pathlib.Path("refresh_versions.toml").open("rb") as file:
-        versions = tomli.load(file)
+    with zipfile.ZipFile(charm_file, mode="r") as charm_zip:
+        with zipfile.Path(charm_zip, "refresh_versions.toml").open("rb") as file:
+            versions = tomli.load(file)
 
     # charm needs to refresh snap to be able to avoid no-op when upgrading.
     # set an old revision of the snap
@@ -230,8 +231,9 @@ def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> N
 
 def create_invalid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> None:
     """Create an invalid mysql router charm for upgrade."""
-    with pathlib.Path("refresh_versions.toml").open("rb") as file:
-        versions = tomli.load(file)
+    with zipfile.ZipFile(charm_file, mode="r") as charm_zip:
+        with zipfile.Path(charm_zip, "refresh_versions.toml").open("rb") as file:
+            versions = tomli.load(file)
 
     versions["charm"] = "8.0/0.0.0"
 
