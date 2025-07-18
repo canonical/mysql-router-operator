@@ -46,15 +46,12 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
             config={"profile": "testing"},
             series="jammy",
         ),
-        ops_test.juju(
-            "deploy",
+        ops_test.model.deploy(
             MYSQL_ROUTER_APP_NAME,
-            "-n",
-            1,
-            "--channel",
-            "dpe/edge/test-refresh-v3-8.0.41",  # TODO remove after refresh v3 merged
-            "--series",
-            series,
+            application_name=MYSQL_ROUTER_APP_NAME,
+            num_units=1,
+            channel="dpe/edge",
+            series=series,
         ),
         ops_test.model.deploy(
             TEST_APP_NAME,
