@@ -1,0 +1,45 @@
+[32mINFO    [0m integration.helpers:helpers.py:359 Ensure continuous writes are incrementing
+[32mINFO    [0m integration.helpers:helpers.py:311 Retrieving primary unit
+[32mINFO    [0m mysql.connector:authentication.py:66 package: mysql.connector.plugins
+[32mINFO    [0m mysql.connector:authentication.py:67 plugin_name: caching_sha2_password
+[32mINFO    [0m mysql.connector:authentication.py:71 AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:92 Build charm locally
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:97 Update workload version and snap revision in the charm
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:100 Refresh the charm
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:106 Wait for refresh to block as incompatible
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:121 Running force-refresh-start action with check-compatibility=false
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:124 Wait for app status to update
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [executing] active: Router 8.0.41 running; Snap revision 139 (outdated); Charm version dpe/1.1.0
+  mysql-router/1 [executing] active: Router 8.0.41 running; Snap revision 139 (outdated); Charm version dpe/1.1.0
+  mysql-router/2 [executing] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.1.0
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [idle] active: Router 8.0.41 running; Snap revision 139 (outdated); Charm version dpe/1.1.0
+  mysql-router/1 [idle] active: Router 8.0.41 running; Snap revision 139 (outdated); Charm version dpe/1.1.0
+  mysql-router/2 [idle] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.1.0
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:131 Wait for refresh to start
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:139 Wait for first unit to upgrade
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [idle] active: Router 8.0.41 running; Snap revision 139 (outdated); Charm version dpe/1.1.0
+  mysql-router/1 [idle] active: Router 8.0.41 running; Snap revision 139 (outdated); Charm version dpe/1.1.0
+  mysql-router/2 [idle] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.1.0
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:147 Running resume-refresh
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:150 Waiting for upgrade to complete on all units
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [executing] active: Router 8.0.41 running; Snap revision 139 (outdated); Charm version dpe/1.1.0
+  mysql-router/1 [idle] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.1.0
+  mysql-router/2 [executing] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.1.0
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [executing] active: 
+  mysql-router/1 [executing] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.1.0
+  mysql-router/2 [executing] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.1.0
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [idle] active: 
+  mysql-router/1 [idle] active: 
+  mysql-router/2 [idle] active: 
+[32mINFO    [0m integration.helpers:helpers.py:359 Ensure continuous writes are incrementing
+[32mINFO    [0m integration.helpers:helpers.py:311 Retrieving primary unit
+[32mINFO    [0m juju.model:model.py:3211 Waiting for model:
+  mysql-router/0 [idle] active: 
+  mysql-router/1 [idle] active: 
+  mysql-router/2 [idle] active:
