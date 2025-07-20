@@ -1,0 +1,1942 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:862 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  3.6.8    unsupported  01:49:14Z
+
+App             Version          Status       Scale  Charm           Channel      Rev  Exposed  Message
+mysql           8.0.41-0ubun...  active           1  mysql           8.0/edge     391  no       
+mysql-router    8.0.39           maintenance      3  mysql-router                   0  no       Refreshing. To pause refresh, run `juju config mysql-router pause_after_unit_refresh=all`
+mysql-test-app  0.0.2            active           3  mysql-test-app  latest/edge   73  no       Last written value=39723
+
+Unit               Workload  Agent  Machine  Public address  Ports           Message
+mysql-test-app/0*  active    idle   0        10.147.114.97                   Last written value=39723
+  mysql-router/0*  active    idle            10.147.114.97                   Router 8.0.41 running; Snap revision 139 (outdated); Charm version dpe/1.1.0
+mysql-test-app/1   active    idle   1        10.147.114.18                   
+  mysql-router/1   error     idle            10.147.114.18                   hook failed: "update-status"
+mysql-test-app/2   active    idle   2        10.147.114.200                  
+  mysql-router/2   active    idle            10.147.114.200                  Router 8.0.39 running; Snap revision 121; Charm version dpe/1.1.0
+mysql/0*           active    idle   3        10.147.114.212  3306,33060/tcp  Primary
+
+Machine  State    Address         Inst id        Base          AZ  Message
+0        started  10.147.114.97   juju-bb1429-0  ubuntu@22.04      Running
+1        started  10.147.114.18   juju-bb1429-1  ubuntu@22.04      Running
+2        started  10.147.114.200  juju-bb1429-2  ubuntu@22.04      Running
+3        started  10.147.114.212  juju-bb1429-3  ubuntu@22.04      Running
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:868 Juju error logs:
+
+machine-0: 01:31:00 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-0: 01:31:00 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-0: 01:31:01 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 01:31:11 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-1: 01:32:43 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 01:32:43 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-1: 01:32:44 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-1: 01:32:48 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-3: 01:33:02 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 01:33:02 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-0: 01:33:02 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-2: 01:33:12 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 01:33:12 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-2: 01:33:12 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-2: 01:33:18 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+unit-mysql-router-1: 01:34:52 ERROR unit.mysql-router/1.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/1'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:34:52 ERROR unit.mysql-router/1.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:34:53 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-0: 01:34:54 ERROR unit.mysql-router/0.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    session.run_sql("DROP USER IF EXISTS `relation-8_d000be9b1b304f9-9`")
+
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:34:54 ERROR unit.mysql-router/0.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/abstract_charm.py", line 350, in reconcile
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_providers_wrapper.py", line 77, in reconcile_users
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 303, in reconcile_users
+    relation.create_database_and_user(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 123, in create_database_and_user
+    shell.delete_user(username, must_exist=False)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 207, in delete_user
+    self._run_sql([statement])
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 113, in _run_sql
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:34:54 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-2: 01:34:55 ERROR unit.mysql-router/2.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/2'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:34:55 ERROR unit.mysql-router/2.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:34:56 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-1: 01:35:00 ERROR unit.mysql-router/1.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/1'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:35:00 ERROR unit.mysql-router/1.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:35:01 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-0: 01:35:01 ERROR unit.mysql-router/0.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    session.run_sql("DROP USER IF EXISTS `relation-8_d000be9b1b304f9-9`")
+
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:35:01 ERROR unit.mysql-router/0.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/abstract_charm.py", line 350, in reconcile
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_providers_wrapper.py", line 77, in reconcile_users
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 303, in reconcile_users
+    relation.create_database_and_user(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 123, in create_database_and_user
+    shell.delete_user(username, must_exist=False)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 207, in delete_user
+    self._run_sql([statement])
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 113, in _run_sql
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:35:01 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-2: 01:35:03 ERROR unit.mysql-router/2.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/2'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:35:03 ERROR unit.mysql-router/2.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:35:04 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-1: 01:35:13 ERROR unit.mysql-router/1.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/1'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:35:13 ERROR unit.mysql-router/1.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:35:13 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-0: 01:35:13 ERROR unit.mysql-router/0.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    session.run_sql("DROP USER IF EXISTS `relation-8_d000be9b1b304f9-9`")
+
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:35:13 ERROR unit.mysql-router/0.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/abstract_charm.py", line 350, in reconcile
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_providers_wrapper.py", line 77, in reconcile_users
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 303, in reconcile_users
+    relation.create_database_and_user(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 123, in create_database_and_user
+    shell.delete_user(username, must_exist=False)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 207, in delete_user
+    self._run_sql([statement])
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 113, in _run_sql
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:35:14 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-2: 01:35:16 ERROR unit.mysql-router/2.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/2'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:35:16 ERROR unit.mysql-router/2.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:35:17 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-0: 01:35:35 ERROR unit.mysql-router/0.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    session.run_sql("DROP USER IF EXISTS `relation-8_d000be9b1b304f9-9`")
+
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:35:35 ERROR unit.mysql-router/0.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/abstract_charm.py", line 350, in reconcile
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_providers_wrapper.py", line 77, in reconcile_users
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 303, in reconcile_users
+    relation.create_database_and_user(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 123, in create_database_and_user
+    shell.delete_user(username, must_exist=False)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 207, in delete_user
+    self._run_sql([statement])
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 113, in _run_sql
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:35:36 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-1: 01:35:36 ERROR unit.mysql-router/1.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/1'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:35:36 ERROR unit.mysql-router/1.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:35:36 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-2: 01:35:40 ERROR unit.mysql-router/2.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/2'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:35:40 ERROR unit.mysql-router/2.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:35:40 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-0: 01:36:16 ERROR unit.mysql-router/0.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    session.run_sql("DROP USER IF EXISTS `relation-8_d000be9b1b304f9-9`")
+
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:36:16 ERROR unit.mysql-router/0.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/abstract_charm.py", line 350, in reconcile
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_providers_wrapper.py", line 77, in reconcile_users
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 303, in reconcile_users
+    relation.create_database_and_user(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 123, in create_database_and_user
+    shell.delete_user(username, must_exist=False)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 207, in delete_user
+    self._run_sql([statement])
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 113, in _run_sql
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:36:16 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-1: 01:36:18 ERROR unit.mysql-router/1.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/1'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:36:18 ERROR unit.mysql-router/1.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-1: 01:36:18 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-2: 01:36:24 ERROR unit.mysql-router/2.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    import json
+
+    result = session.run_sql(
+        "SELECT USER, ATTRIBUTE->>'$.router_id' FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE ATTRIBUTE->'$.created_by_user'='relation-8_d000be9b1b304f9' AND ATTRIBUTE->'$.created_by_juju_unit'='mysql-router/2'"
+    )
+    rows = result.fetch_all()
+    # mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+    # dict), but do not serialize to JSON correctly.
+    # Cast to str & load from JSON str before serializing
+    rows = json.loads(str(rows))
+    with open("/tmp/mysqlsh_output.json", "w") as file:
+        json.dump(rows, file)
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:36:24 ERROR unit.mysql-router/2.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 352, in _enable_router
+    self._cleanup_after_upgrade_or_potential_container_restart()
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/workload.py", line 249, in _cleanup_after_upgrade_or_potential_container_restart
+    if user_info := self.shell.get_mysql_router_user_for_unit(self._charm.unit.name):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 167, in get_mysql_router_user_for_unit
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-2: 01:36:24 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-0: 01:37:35 ERROR unit.mysql-router/0.juju-log backend-database:8: mysql_shell:Failed to run MySQL Shell script:
+import json
+import mysqlsh
+import traceback
+
+try:
+    # Disable wizards in this script, since it will be invoked without --no-wizard
+    shell.options.set('useWizards', False)
+    session.run_sql("DROP USER IF EXISTS `relation-8_d000be9b1b304f9-9`")
+
+except mysqlsh.DBError as exception:
+    error = {
+        "message": str(exception),
+        "code": exception.code,
+        "traceback_message": "".join(traceback.format_exception(exception)),
+    }
+else:
+    error = None
+with open("/tmp/mysqlsh_error.json", "w") as file:
+    json.dump(error, file)
+
+stderr:
+[31mERROR: [0mFailed to retrieve the password: Process "mysql_config_editor" finished with exit code 1: mysql_config_editor: Can't create/write to file '/root/snap/charmed-mysql/139/.mylogin.cnf' (OS errno 13 - Permission denied)
+couldn't create the login file : Permission denied
+mysql_config_editor: Error on close of '<fd out of range>' (OS errno 9 - Bad file descriptor)
+operation failed. : Bad file descriptor
+MySQL Error 2005: No such host is known ''
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:37:35 ERROR unit.mysql-router/0.juju-log backend-database:8: root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 325, in _run_command
+    output = subprocess.run(
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/data_platform_libs/v0/data_interfaces.py", line 3141, in _on_relation_changed_event
+    getattr(self.on, "database_created").emit(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/abstract_charm.py", line 350, in reconcile
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_providers_wrapper.py", line 77, in reconcile_users
+    self._database_provides.reconcile_users(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 303, in reconcile_users
+    relation.create_database_and_user(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/relations/database_provides.py", line 123, in create_database_and_user
+    shell.delete_user(username, must_exist=False)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 207, in delete_user
+    self._run_sql([statement])
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 113, in _run_sql
+    self._run_code(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/mysql_shell/__init__.py", line 74, in _run_code
+    self._container.run_mysql_shell(
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/container.py", line 242, in run_mysql_shell
+    return self._run_command(args, timeout=timeout, input=input)
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-0/charm/src/snap.py", line 334, in _run_command
+    raise container.CalledProcessError(
+container.CalledProcessError: Command '['charmed-mysql.mysqlsh', '--passwords-from-stdin', '--uri', 'relation-8_d000be9b1b304f9@:3306', '--python', '--file', '/tmp/mysqlsh_script.py']' returned non-zero exit status 1.
+unit-mysql-router-0: 01:37:35 ERROR juju.worker.uniter.operation hook "backend-database-relation-changed" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-1: 01:49:13 ERROR unit.mysql-router/1.juju-log workload:Failed to bootstrap router
+logged_command=['--bootstrap', 'relation-8_d000be9b1b304f9:***@10.147.114.212:3306', '--strict', '--force', '--conf-set-option', 'http_server.bind_address=127.0.0.1', '--conf-set-option', 'http_auth_backend:default_auth_backend.backend=file', '--conf-set-option', 'http_auth_backend:default_auth_backend.filename=/etc/mysqlrouter/rest_api_credentials', '--conf-use-gr-notifications', '--conf-use-sockets', '--conf-set-option', 'DEFAULT.server_ssl_mode=PREFERRED', '--conf-skip-tcp']
+stderr:
+FATAL ERROR ENCOUNTERED, attempting to undo new accounts that were created
+
+ERROR: As part of cleanup after bootstrap failure, we tried to erase account(s)
+that we created.  Unfortunately the cleanup failed with error:
+
+  Error executing MySQL query "DROP USER IF EXISTS 'mysql_router1_p7yvc1x'@'%'": Lost connection to MySQL server during query (2013)
+You may want to clean up the accounts yourself, here is the full list of
+accounts that were created:
+  'mysql_router1_p7yvc1x'@'%'
+Undoing creating new users failed: Error executing MySQL query "DROP USER IF EXISTS 'mysql_router1_p7yvc1x'@'%'": Lost connection to MySQL server during query (2013)
+Error: Keyring decryption failed.
+
+
+unit-mysql-router-1: 01:49:13 ERROR unit.mysql-router/1.juju-log root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 436, in main
+    _emit_charm_event(charm, dispatcher.event_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/main.py", line 144, in _emit_charm_event
+    event_to_emit.emit(*args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 351, in emit
+    framework._emit(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 853, in _emit
+    self._reemit(event_path)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/venv/lib/python3.10/site-packages/ops/framework.py", line 942, in _reemit
+    custom_handler(event)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/abstract_charm.py", line 361, in reconcile
+    workload_.reconcile(
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 420, in reconcile
+    self._enable_router(event=event, tls=tls, unit_name=unit_name)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 355, in _enable_router
+    self._bootstrap_router(event=event, tls=tls)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 738, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/machine_workload.py", line 70, in _bootstrap_router
+    super()._bootstrap_router(event=event, tls=tls)
+  File "/var/lib/juju/agents/unit-mysql-router-1/charm/src/workload.py", line 319, in _bootstrap_router
+    raise Exception("Failed to bootstrap router") from None
+Exception: Failed to bootstrap router
+unit-mysql-router-1: 01:49:13 ERROR juju.worker.uniter.operation hook "update-status" (via hook dispatching script: dispatch) failed: exit status 1
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:947 Forgetting model main...
