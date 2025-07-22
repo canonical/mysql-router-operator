@@ -123,9 +123,8 @@ class _RelationThatRequestedUser(_Relation):
         shell.delete_user(username, must_exist=False)
         logger.debug("Deleted user if exists before creating user")
 
-        password = shell.create_application_database_and_user(
-            username=username, database=self._database
-        )
+        ________ = shell.create_application_database(database=self._database)
+        password = shell.create_application_user(database=self._database, username=username)
 
         rw_endpoint = (
             exposed_read_write_endpoints
