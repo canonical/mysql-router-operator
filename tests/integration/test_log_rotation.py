@@ -120,9 +120,9 @@ async def test_log_rotation(ops_test: OpsTest, charm, series) -> None:
 
     assert len(ls_la_output) == 1, f"❌ files other than log files exist {ls_la_output}"
     directories = [line.split()[-1] for line in ls_la_output]
-    assert directories == [
-        "mysqlrouter.log"
-    ], f"❌ file other than logs files exist: {ls_la_output}"
+    assert directories == ["mysqlrouter.log"], (
+        f"❌ file other than logs files exist: {ls_la_output}"
+    )
 
     logger.info("Executing logrotate")
     return_code, stdout, _ = await ops_test.juju(
@@ -145,9 +145,9 @@ async def test_log_rotation(ops_test: OpsTest, charm, series) -> None:
         ops_test, unit.name, f"{CHARMED_MYSQL_COMMON_DIRECTORY}/var/log/mysqlrouter/"
     )
 
-    assert (
-        len(ls_la_output) == 2
-    ), f"❌ unexpected files/directories in log directory: {ls_la_output}"
+    assert len(ls_la_output) == 2, (
+        f"❌ unexpected files/directories in log directory: {ls_la_output}"
+    )
     directories = [line.split()[-1] for line in ls_la_output]
     assert sorted(directories) == sorted([
         "mysqlrouter.log",
@@ -158,9 +158,9 @@ async def test_log_rotation(ops_test: OpsTest, charm, series) -> None:
     file_contents = await read_contents_from_file_in_unit(
         ops_test, unit, f"{CHARMED_MYSQL_COMMON_DIRECTORY}/var/log/mysqlrouter/mysqlrouter.log"
     )
-    assert (
-        "test mysqlrouter content" not in file_contents
-    ), "❌ log file mysqlrouter.log not rotated"
+    assert "test mysqlrouter content" not in file_contents, (
+        "❌ log file mysqlrouter.log not rotated"
+    )
 
     ls_la_output = await ls_la_in_unit(
         ops_test,

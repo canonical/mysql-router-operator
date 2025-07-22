@@ -55,13 +55,13 @@ def assert_complete_local_app_databag(
         assert len(secret.contents) == 0  # Only 1 revision should exist
         assert len(contents.pop("password")) > 0
         assert contents == {
-            "username": f'{complete_requires.remote_app_data["username"]}-{provides.relation_id}'
+            "username": f"{complete_requires.remote_app_data['username']}-{provides.relation_id}"
         }
     else:
         assert len(local_app_data.pop("password")) > 0
         assert (
             local_app_data.pop("username")
-            == f'{complete_requires.remote_app_data["username"]}-{provides.relation_id}'
+            == f"{complete_requires.remote_app_data['username']}-{provides.relation_id}"
         )
     assert local_app_data == {
         "database": provides.remote_app_data["database"],

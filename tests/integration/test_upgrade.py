@@ -104,9 +104,9 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
     await ops_test.model.block_until(
         lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT
     )
-    assert (
-        "incompatible" in mysql_router_application.status_message
-    ), "mysql router application status not indicating that refresh incompatible"
+    assert "incompatible" in mysql_router_application.status_message, (
+        "mysql router application status not indicating that refresh incompatible"
+    )
 
     # Highest to lowest unit number
     refresh_order = sorted(
@@ -129,9 +129,9 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
     await ops_test.model.block_until(
         lambda: mysql_router_application.status == "blocked", timeout=3 * 60
     )
-    assert (
-        "resume-refresh" in mysql_router_application.status_message
-    ), "mysql router application status not indicating that user should resume refresh"
+    assert "resume-refresh" in mysql_router_application.status_message, (
+        "mysql router application status not indicating that user should resume refresh"
+    )
 
     logger.info("Wait for first unit to upgrade")
     async with ops_test.fast_forward("60s"):
@@ -185,9 +185,9 @@ async def test_fail_and_rollback(ops_test: OpsTest, charm, continuous_writes) ->
     await ops_test.model.block_until(
         lambda: mysql_router_application.status == "blocked", timeout=TIMEOUT
     )
-    assert (
-        "incompatible" in mysql_router_application.status_message
-    ), "mysql router application status not indicating faulty charm incompatible"
+    assert "incompatible" in mysql_router_application.status_message, (
+        "mysql router application status not indicating faulty charm incompatible"
+    )
 
     logger.info("Ensure continuous writes while in failure state")
     await ensure_all_units_continuous_writes_incrementing(ops_test)

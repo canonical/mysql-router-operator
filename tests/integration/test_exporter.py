@@ -133,9 +133,9 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
         with attempt:
             response = requests.get(f"http://{unit_address}:9152/metrics", stream=False)
             response.raise_for_status()
-            assert (
-                "mysqlrouter_route_health" in response.text
-            ), "❌ did not find expected metric in response"
+            assert "mysqlrouter_route_health" in response.text, (
+                "❌ did not find expected metric in response"
+            )
             response.close()
 
     logger.info("Removing relation between mysqlrouter and grafana agent")
@@ -152,8 +152,8 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
             try:
                 requests.get(f"http://{unit_address}:9152/metrics", stream=False)
             except requests.exceptions.ConnectionError as e:
-                assert "[Errno 111] Connection refused" in str(
-                    e
-                ), "❌ expected connection refused error"
+                assert "[Errno 111] Connection refused" in str(e), (
+                    "❌ expected connection refused error"
+                )
             else:
                 assert False, "❌ can connect to metrics endpoint without relation with cos"

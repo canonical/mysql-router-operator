@@ -388,9 +388,9 @@ async def ensure_all_units_continuous_writes_incrementing(
                     max_written_value = await get_max_written_value_in_database(
                         ops_test, unit, server_config_credentials
                     )
-                    assert (
-                        max_written_value > last_max_written_value
-                    ), "Continuous writes not incrementing"
+                    assert max_written_value > last_max_written_value, (
+                        "Continuous writes not incrementing"
+                    )
 
                     # ensure that the unit contains all values up to the max written value
                     all_written_values = set(
@@ -402,9 +402,9 @@ async def ensure_all_units_continuous_writes_incrementing(
                         )
                     )
                     numbers = set(range(1, max_written_value))
-                    assert (
-                        numbers <= all_written_values
-                    ), f"Missing numbers in database for unit {unit.name}"
+                    assert numbers <= all_written_values, (
+                        f"Missing numbers in database for unit {unit.name}"
+                    )
 
                     last_max_written_value = max_written_value
 

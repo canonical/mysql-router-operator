@@ -142,11 +142,11 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
     @property
     def _read_write_endpoints(self) -> str:
-        return f'file://{self._container.path("/run/mysqlrouter/mysql.sock")}'
+        return f"file://{self._container.path('/run/mysqlrouter/mysql.sock')}"
 
     @property
     def _read_only_endpoints(self) -> str:
-        return f'file://{self._container.path("/run/mysqlrouter/mysqlro.sock")}'
+        return f"file://{self._container.path('/run/mysqlrouter/mysqlro.sock')}"
 
     @property
     def _exposed_read_write_endpoints(self) -> typing.Optional[str]:
