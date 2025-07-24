@@ -97,6 +97,13 @@ backends:
           username: runner
           variants:
             - -juju29_ubuntu22
+      - self-hosted-linux-s390x-noble-medium:
+          username: ubuntu
+          environment:
+            # pkg-config needed to build cryptography to install poetry
+            CONCIERGE_EXTRA_DEBS: pipx,pkg-config
+          variants:
+            - -juju29_ubuntu22
 
 suites:
   tests/spread/:
@@ -116,7 +123,7 @@ prepare: |
   cd "$SPREAD_PATH"
   snap install --classic concierge
 
-  # Install charmcraft & pipx (on lxd-vm backend)
+  # Install charmcraft & pipx on lxd-vm backend and install pipx on IS-hosted runners
   concierge prepare --trace
 
   pipx install tox poetry
