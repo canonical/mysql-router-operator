@@ -1,13 +1,15 @@
 # https://canonical-charm-refresh.readthedocs-hosted.com/latest/refresh-versions-toml/
 
 charm_major = 1
-workload = "8.0.41"
+workload = "8.0.42"
 
 [snap]
 name = "charmed-mysql"
 
 [snap.revisions]
 # amd64
-x86_64 = "139"
+x86_64 = "148"
 # arm64
-aarch64 = "138"
+aarch64 = "150"
+# s390x
+s390x = "149"
