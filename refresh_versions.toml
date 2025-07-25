@@ -8,8 +8,8 @@ name = "charmed-mysql"
 
 [snap.revisions]
 # amd64
-x86_64 = "148"
+x86_64 = "151"
 # arm64
-aarch64 = "150"
+aarch64 = "153"
 # s390x
-s390x = "149"
+s390x = "152"
