@@ -97,7 +97,7 @@ backends:
           username: runner
           variants:
             - -juju29_ubuntu22
-      - self-hosted-linux-s390x-noble-medium:
+      - self-hosted-linux-s390x-noble-edge:
           username: ubuntu
           environment:
             # pkg-config needed to build cryptography to install poetry
