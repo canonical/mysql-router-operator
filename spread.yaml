@@ -100,8 +100,11 @@ backends:
       - self-hosted-linux-s390x-noble-edge:
           username: ubuntu
           environment:
-            # pkg-config needed to build cryptography to install poetry
-            CONCIERGE_EXTRA_DEBS: pipx,pkg-config
+            # Several python packages (e.g. cryptography, bcrypt) do not have s390x builds on PyPI,
+            # so they must be built from source. pkg-config & rust toolchain needed
+            # (These packages are being built when installing poetry or integration test Python
+            # dependencies)
+            CONCIERGE_EXTRA_DEBS: pipx,pkg-config,rustup
           variants:
             - -juju29_ubuntu22
 
@@ -126,6 +129,13 @@ prepare: |
 
   # Install charmcraft & pipx on lxd-vm backend and install pipx on IS-hosted runners
   ~/go/bin/concierge prepare --trace
+
+  if [[ $SPREAD_SYSTEM == *"s390x"* ]]
+  then
+    rustup set profile minimal
+    # TODO add renovate comment for rust version
+    rustup default 1.88.0
+  fi
 
   pipx install tox poetry
 prepare-each: |
