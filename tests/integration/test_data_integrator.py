@@ -64,7 +64,7 @@ async def test_external_connectivity_with_data_integrator(
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,
                 application_name=DATA_INTEGRATOR_APP_NAME,
-                channel="latest/stable",
+                channel="latest/edge",  # Use edge for s390x
                 series=series,
                 config=data_integrator_config,
             ),
