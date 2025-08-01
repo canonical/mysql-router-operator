@@ -29,7 +29,7 @@ TEST_TABLE = "testtable"
 
 if juju_.is_3_or_higher:
     tls_app_name = "self-signed-certificates"
-    tls_channel = "latest/edge" if architecture.architecture == "arm64" else "latest/stable"
+    tls_channel = "latest/edge" if architecture.architecture == "s390x" else "latest/stable"
     tls_config = {"ca-common-name": "Test CA"}
 else:
     tls_app_name = "tls-certificates-operator"
