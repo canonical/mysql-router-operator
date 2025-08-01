@@ -138,7 +138,6 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
         application_name=tls_app_name,
         channel=tls_channel,
         config=tls_config,
-        series="jammy",
     )
     await ops_test.model.wait_for_idle([tls_app_name], status="active", timeout=SLOW_TIMEOUT)
 
