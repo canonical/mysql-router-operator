@@ -1,0 +1,10 @@
+[32mINFO    [0m integration.helpers:helpers.py:359 Ensure continuous writes are incrementing
+[32mINFO    [0m integration.helpers:helpers.py:311 Retrieving primary unit
+[32mINFO    [0m mysql.connector:authentication.py:66 package: mysql.connector.plugins
+[32mINFO    [0m mysql.connector:authentication.py:67 plugin_name: caching_sha2_password
+[32mINFO    [0m mysql.connector:authentication.py:71 AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:85 Build charm locally
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:90 Update workload version and snap revision in the charm
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:93 Refresh the charm
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:99 Wait for refresh to block as incompatible
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:114 Running force-refresh-start action with check-compatibility=false
