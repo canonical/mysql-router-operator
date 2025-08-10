@@ -1,0 +1,75 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  3.6.8    unsupported  02:10:42Z
+
+App             Version          Status   Scale  Charm           Channel      Rev  Exposed  Message
+mysql           8.0.42-0ubun...  active       1  mysql           8.0/edge     407  no       
+mysql-router    8.0.39           blocked      3  mysql-router                   0  no       Refresh incompatible. Rollback with `juju refresh --revision 1027`
+mysql-test-app  0.0.2            active       3  mysql-test-app  latest/edge   82  no       Last written value=5559
+
+Unit               Workload  Agent      Machine  Public address  Ports           Message
+mysql-test-app/0*  active    idle       0        10.36.116.176                   Last written value=5559
+  mysql-router/0*  active    executing           10.36.116.176                   (upgrade-charm) 
+mysql-test-app/1   active    idle       1        10.36.116.184                   
+  mysql-router/2   error     idle                10.36.116.184                   hook failed: "upgrade-charm"
+mysql-test-app/2   active    idle       2        10.36.116.45                    
+  mysql-router/1   active    executing           10.36.116.45                    (upgrade-charm) 
+mysql/0*           active    idle       3        10.36.116.249   3306,33060/tcp  Primary
+
+Machine  State    Address        Inst id        Base          AZ  Message
+0        started  10.36.116.176  juju-8dd212-0  ubuntu@22.04      Running
+1        started  10.36.116.184  juju-8dd212-1  ubuntu@22.04      Running
+2        started  10.36.116.45   juju-8dd212-2  ubuntu@22.04      Running
+3        started  10.36.116.249  juju-8dd212-3  ubuntu@22.04      Running
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+machine-0: 02:04:48 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-0: 02:04:48 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-0: 02:04:48 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 02:04:50 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-2: 02:06:29 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 02:06:29 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-2: 02:06:30 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-1: 02:06:34 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-1: 02:06:51 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 02:06:51 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-1: 02:06:51 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-2: 02:06:55 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-3: 02:07:04 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 02:07:04 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-0: 02:07:04 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-2: 02:10:39 ERROR unit.mysql-router/2.juju-log root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 424, in main
+    charm = charm_class(framework)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 439, in wrap_init
+    original_init(self, framework, *args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/charm.py", line 93, in __init__
+    self.refresh = charm_refresh.Machines(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/charm_refresh/_main.py", line 3359, in __init__
+    self._start_refresh()
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/charm_refresh/_main.py", line 2376, in _start_refresh
+    original_versions.workload_container == self._pinned_workload_container_version
+AssertionError
+unit-mysql-router-2: 02:10:39 ERROR juju.worker.uniter.operation hook "upgrade-charm" (via hook dispatching script: dispatch) failed: exit status 1
+unit-mysql-router-2: 02:10:41 ERROR unit.mysql-router/2.juju-log root:Uncaught exception while in charm code:
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/charm.py", line 220, in <module>
+    ops.main.main(MachineSubordinateRouterCharm)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/ops/main.py", line 424, in main
+    charm = charm_class(framework)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 439, in wrap_init
+    original_init(self, framework, *args, **kwargs)
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/src/charm.py", line 93, in __init__
+    self.refresh = charm_refresh.Machines(
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/charm_refresh/_main.py", line 3359, in __init__
+    self._start_refresh()
+  File "/var/lib/juju/agents/unit-mysql-router-2/charm/venv/lib/python3.10/site-packages/charm_refresh/_main.py", line 2376, in _start_refresh
+    original_versions.workload_container == self._pinned_workload_container_version
+AssertionError
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...
