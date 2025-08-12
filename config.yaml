@@ -6,7 +6,7 @@ options:
     description: |
       Virtual IP to use to front mysql router units. Used only in case of external node connection.
     type: string
-  pause_after_unit_refresh:
+  pause-after-unit-refresh:
     description: |
       Wait for manual confirmation to resume refresh after these units refresh
 
