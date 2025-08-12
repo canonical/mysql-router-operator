@@ -45,7 +45,7 @@ codespell = "^2.4.1"
 pytest = "^8.4.1"
 pytest-xdist = "^3.8.0"
 pytest-cov = "^6.2.1"
-ops-scenario = "^6.0.3, <6.0.4"  # 6.0.4 requires ops >= 2.12
+ops-scenario = "^8.1.0, <8.1.1"  # 6.0.4 requires ops >= 2.12
 
 [tool.poetry.group.integration.dependencies]
 pytest = "^8.4.1"
