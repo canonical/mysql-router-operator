@@ -1,0 +1,77 @@
+[32mINFO    [0m integration.helpers:helpers.py:359 Ensure continuous writes are incrementing
+[32mINFO    [0m integration.helpers:helpers.py:311 Retrieving primary unit
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:174 Creating invalid upgrade charm
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:177 Refreshing mysql router with an invalid charm
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:180 Wait for upgrade to fail
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:188 Ensure continuous writes while in failure state
+[32mINFO    [0m integration.helpers:helpers.py:359 Ensure continuous writes are incrementing
+[32mINFO    [0m integration.helpers:helpers.py:311 Retrieving primary unit
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:191 Re-refresh the charm
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:194 Wait for the charm to be rolled back
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  mysql-router/0 [executing] active: Router 8.0.39 running; Snap revision 121 (outdated); Charm version 8.0/0.0.0
+  mysql-router/1 [executing] active: Router 8.0.39 running; Snap revision 121 (outdated); Charm version 8.0/0.0.0
+  mysql-router/2 [executing] active: Router 8.0.39 running; Snap revision 121 (outdated); Charm version 8.0/0.0.0
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  mysql-router/0 [executing] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.15.0
+  mysql-router/1 [executing] active: Router 8.0.39 running; Snap revision 121 (outdated); Charm version 8.0/0.0.0
+  mysql-router/2 [executing] active: Router 8.0.39 running; Snap revision 121 (outdated); Charm version 8.0/0.0.0
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  mysql-router/0 [executing] active: 
+  mysql-router/1 [executing] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.15.0
+  mysql-router/2 [executing] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.15.0
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  mysql-router/0 [idle] active: 
+  mysql-router/1 [executing] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.15.0
+  mysql-router/2 [executing] active: Router 8.0.39 running; Snap revision 121; Charm version dpe/1.15.0
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  mysql-router/0 [idle] active: 
+  mysql-router/1 [idle] active: 
+  mysql-router/2 [idle] active: 
+[32mINFO    [0m integration.test_upgrade:test_upgrade.py:199 Ensure continuous writes after rollback procedure
+[32mINFO    [0m integration.helpers:helpers.py:359 Ensure continuous writes are incrementing
+[32mINFO    [0m integration.helpers:helpers.py:311 Retrieving primary unit
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  3.6.8    unsupported  02:49:42Z
+
+App             Version          Status  Scale  Charm           Channel      Rev  Exposed  Message
+mysql           8.0.42-0ubun...  active      1  mysql           8.0/edge     407  no       
+mysql-router    8.0.39           active      3  mysql-router                   2  no       
+mysql-test-app  0.0.2            active      3  mysql-test-app  latest/edge   82  no       
+
+Unit               Workload  Agent  Machine  Public address  Ports           Message
+mysql-test-app/0   active    idle   0        10.57.37.219                    
+  mysql-router/1   active    idle            10.57.37.219                    
+mysql-test-app/1*  active    idle   1        10.57.37.181                    Last written value=4197
+  mysql-router/0*  active    idle            10.57.37.181                    
+mysql-test-app/2   active    idle   2        10.57.37.185                    
+  mysql-router/2   active    idle            10.57.37.185                    
+mysql/0*           active    idle   3        10.57.37.68     3306,33060/tcp  Primary
+
+Machine  State    Address       Inst id        Base          AZ  Message
+0        started  10.57.37.219  juju-9b7eb6-0  ubuntu@22.04      Running
+1        started  10.57.37.181  juju-9b7eb6-1  ubuntu@22.04      Running
+2        started  10.57.37.185  juju-9b7eb6-2  ubuntu@22.04      Running
+3        started  10.57.37.68   juju-9b7eb6-3  ubuntu@22.04      Running
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+machine-1: 02:34:24 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 02:34:24 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-1: 02:34:25 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 02:34:27 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-0: 02:36:08 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-0: 02:36:08 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-0: 02:36:08 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-1: 02:36:12 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-2: 02:36:42 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 02:36:42 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-test-app-2: 02:36:43 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-3: 02:36:45 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 02:36:45 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-0: 02:36:45 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-2: 02:36:46 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...
