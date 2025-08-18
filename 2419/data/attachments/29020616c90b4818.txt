@@ -1,0 +1,88 @@
+[33mWARNING [0m juju.client.connection:connection.py:493 Receiver: Connection closed, reconnecting
+[33mWARNING [0m juju.client.connection:connection.py:493 Receiver: Connection closed, reconnecting
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model    Controller     Cloud/Region         Version  SLA          Timestamp
+testing  concierge-lxd  localhost/localhost  3.6.8    unsupported  02:08:11Z
+
+App              Version          Status   Scale  Charm            Channel        Rev  Exposed  Message
+data-integrator                   active       4  data-integrator  latest/stable  179  no       
+hacluster        2.1.2            waiting      4  hacluster        2.4/stable     131  no       Resource: res_mysql-router_f3afafe10fb3c0_vip not yet configured
+mysql            8.0.42-0ubun...  active       1  mysql            8.0/edge       411  no       
+mysql-router     8.0.42           active       4  mysql-router                      0  no       
+
+Unit                Workload  Agent      Machine  Public address  Ports           Message
+data-integrator/0   active    executing  0        10.94.158.84                    
+  hacluster/4       waiting   executing           10.94.158.84                    Resource: res_mysql-router_f3afafe10fb3c0_vip not yet configured
+  mysql-router/1    active    idle                10.94.158.84    6446-6447/tcp   
+data-integrator/1   active    idle       1        10.94.158.58                    
+  hacluster/5       waiting   idle                10.94.158.58                    Resource: res_mysql-router_f3afafe10fb3c0_vip not yet configured
+  mysql-router/0    active    executing           10.94.158.58    6446-6447/tcp   (leader-settings-changed) 
+data-integrator/2   active    idle       2        10.94.158.25                    
+  hacluster/3       waiting   executing           10.94.158.25                    Resource: res_mysql-router_f3afafe10fb3c0_vip not yet configured
+  mysql-router/2    active    executing           10.94.158.25    6446-6447/tcp   
+data-integrator/3*  active    idle       3        10.94.158.246                   
+  hacluster/0*      waiting   idle                10.94.158.246                   Resource: res_mysql-router_f3afafe10fb3c0_vip not yet configured
+  mysql-router/3*   active    idle                10.94.158.246   6446-6447/tcp   
+mysql/0             active    idle       4        10.94.158.155   3306,33060/tcp  Primary
+
+Machine  State    Address        Inst id        Base          AZ  Message
+0        started  10.94.158.84   juju-e598e4-0  ubuntu@22.04      Running
+1        started  10.94.158.58   juju-e598e4-1  ubuntu@22.04      Running
+2        started  10.94.158.25   juju-e598e4-2  ubuntu@22.04      Running
+3        started  10.94.158.246  juju-e598e4-3  ubuntu@22.04      Running
+4        started  10.94.158.155  juju-e598e4-4  ubuntu@22.04      Running
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+machine-1: 01:54:31 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 01:54:31 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-data-integrator-1: 01:54:31 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-0: 01:54:33 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-0: 01:56:50 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-0: 01:56:50 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-data-integrator-0: 01:56:50 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-1: 01:56:54 ERROR juju.worker.meterstatus error running "meter-status-changed": exit status 1
+machine-2: 01:57:06 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 01:57:06 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-data-integrator-2: 01:57:06 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-2: 01:57:12 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-3: 01:57:39 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 01:57:40 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-data-integrator-3: 01:57:40 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-mysql-router-3: 01:57:45 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-4: 01:57:55 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-4: 01:57:55 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-mysql-0: 01:57:55 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+unit-hacluster-3: 02:01:17 ERROR juju.worker.dependency "uniter" manifold worker returned unexpected error: preparing operation "install ch:amd64/hacluster-131" for hacluster/3: failed to download charm "ch:amd64/hacluster-131" from API server: download request with archiveSha256 length 0 not valid
+unit-hacluster-0: 02:01:17 ERROR juju.worker.dependency "uniter" manifold worker returned unexpected error: preparing operation "install ch:amd64/hacluster-131" for hacluster/0: failed to download charm "ch:amd64/hacluster-131" from API server: download request with archiveSha256 length 0 not valid
+unit-hacluster-3: 02:01:17 ERROR juju.worker.meterstatus error running "meter-status-changed": charm missing from disk
+machine-1: 02:07:17 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: codec.ReadHeader error: error receiving message: read tcp 10.94.158.58:51974->10.94.158.59:17070: read: connection reset by peer
+machine-1: 02:07:17 ERROR juju.api.watcher error trying to stop watcher: write tcp 10.94.158.58:52006->10.94.158.59:17070: write: connection reset by peer
+machine-1: 02:07:17 ERROR juju.api.watcher error trying to stop watcher: write tcp 10.94.158.58:52024->10.94.158.59:17070: write: connection reset by peer
+machine-1: 02:07:17 ERROR juju.api.watcher error trying to stop watcher: write tcp 10.94.158.58:52024->10.94.158.59:17070: write: connection reset by peer
+machine-1: 02:07:17 ERROR juju.api.watcher error trying to stop watcher: write tcp 10.94.158.58:52024->10.94.158.59:17070: write: connection reset by peer
+machine-1: 02:07:17 ERROR juju.api.watcher error trying to stop watcher: write tcp 10.94.158.58:52024->10.94.158.59:17070: write: connection reset by peer
+machine-1: 02:07:20 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-1" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-2: 02:07:20 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: codec.ReadHeader error: error receiving message: read tcp 10.94.158.25:38340->10.94.158.59:17070: read: connection reset by peer
+machine-2: 02:07:24 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-2" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-1: 02:07:24 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-1" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-3: 02:07:25 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: codec.ReadHeader error: error receiving message: read tcp 10.94.158.246:47952->10.94.158.59:17070: read: connection reset by peer
+machine-2: 02:07:27 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-2" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-1: 02:07:28 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-1" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-3: 02:07:29 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-3" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-2: 02:07:32 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-2" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-3: 02:07:32 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-3" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-1: 02:07:33 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-1" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-3: 02:07:37 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-3" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-2: 02:07:37 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-2" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-1: 02:07:40 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-1" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-3: 02:07:42 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-3" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-2: 02:07:43 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-2" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-1: 02:07:48 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-1" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-3: 02:07:49 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-3" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-2: 02:07:50 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-2" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-1: 02:07:57 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-1" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+machine-2: 02:08:00 ERROR juju.worker.dependency "api-caller" manifold worker returned unexpected error: [c87a57] "machine-2" cannot open api: unable to connect to API: dial tcp 10.94.158.59:17070: connect: connection refused
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...
