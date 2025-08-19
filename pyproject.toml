@@ -62,7 +62,7 @@ tomli-w = "^1.2.0"
 optional = true
 
 [tool.poetry.group.build-refresh-version.dependencies]
-charm-refresh-build-version = "^0.2.0"
+charm-refresh-build-version = {git = "https://github.com/canonical/charm-refresh-build-version", rev = "fallback-on-fork"}
 
 [tool.coverage.run]
 branch = true
