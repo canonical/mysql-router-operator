@@ -57,6 +57,17 @@ jobs:
     name: Build charm
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v32.2.3
 
+  release:
+    name: Release charm to Charmhub branch
+    needs:
+      - build
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm_pr.yaml@v32.2.3
+    with:
+      track: 'dpe'
+      artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
+    secrets:
+      charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
+
   integration-test:
     name: Integration test charm
     needs:
