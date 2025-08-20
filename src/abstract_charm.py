@@ -321,6 +321,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
             f"{self.refresh.in_progress=}, "
             f"{self._cos_relation.is_relation_breaking(event)=}"
         )
+        self.refresh.next_unit_allowed_to_refresh = True
         if isinstance(self.refresh, charm_refresh.Machines):
             workload_.install(
                 unit=self.unit,
