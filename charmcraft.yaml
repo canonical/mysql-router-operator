@@ -92,8 +92,7 @@ parts:
       python3 -m venv ../refresh-version-venv
       source ../refresh-version-venv/bin/activate
       poetry install --only build-refresh-version
-      git tag -d vdpe/1.0.0 vdpe/1.1.0 vdpe/1.2.0 vdpe/1.3.0 vdpe/1.4.0 vdpe/1.5.0 vdpe/1.6.0 vdpe/1.7.0 vdpe/1.8.0 vdpe/1.9.0 vdpe/1.10.0 vdpe/1.11.0 vdpe/1.12.0 vdpe/1.13.0 vdpe/1.14.0 vdpe/1.15.0 vdpe/1.16.0 vdpe/1.17.0 vdpe/1.18.0
-      TERM=foo write-charm-version
+      write-charm-version
 
       craftctl default
     stage:
