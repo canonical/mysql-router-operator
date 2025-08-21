@@ -55,7 +55,7 @@ jobs:
 
   build:
     name: Build charm
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@check-refresh-tag-build
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@check-refresh-tag-build-delete-git
 
   integration-test:
     name: Integration test charm
