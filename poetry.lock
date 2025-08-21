@@ -435,8 +435,8 @@ tomlkit = ">=0.13.2"
 [package.source]
 type = "git"
 url = "https://github.com/canonical/charm-refresh-build-version"
-reference = "fallback-on-fork"
-resolved_reference = "1979365948d65f67a2dea30e2050ec08b04dd56f"
+reference = "fallback-on-fork-no-restore"
+resolved_reference = "6b2270f0e171eb6cc6fc40606a80b269d7d72f4e"
 
 [[package]]
 name = "charset-normalizer"
