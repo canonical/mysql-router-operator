@@ -114,7 +114,7 @@ def test_incomplete_requires(incomplete_requires, complete_provides_s):
         assert state.app_status == ops.WaitingStatus(
             f"Waiting for {incomplete_requires.remote_app_name} app on backend-database endpoint"
         )
-        for index, provides in enumerate(complete_provides_s, 1):
+        for index, _ in enumerate(complete_provides_s, 1):
             assert state.relations[index].local_app_data == {}
 
 
@@ -144,7 +144,7 @@ def test_complete_requires_and_provides_unsupported_extra_user_role(
             assert_complete_local_app_databag(
                 local_app_data, state.secrets, complete_requires, provides, juju_has_secrets
             )
-        for index, provides in enumerate(
+        for index, _ in enumerate(
             unsupported_extra_user_role_provides_s, 1 + len(complete_provides_s)
         ):
             assert state.relations[index].local_app_data == {}
@@ -156,7 +156,7 @@ def test_incomplete_provides(complete_requires, incomplete_provides_s):
         assert state.app_status == ops.WaitingStatus(
             f"Waiting for {incomplete_provides_s[0].remote_app_name} app on database endpoint"
         )
-        for index, provides in enumerate(incomplete_provides_s, 1):
+        for index, _ in enumerate(incomplete_provides_s, 1):
             assert state.relations[index].local_app_data == {}
 
 
@@ -187,5 +187,5 @@ def test_complete_provides_and_incomplete_provides(
             assert_complete_local_app_databag(
                 local_app_data, state.secrets, complete_requires, provides, juju_has_secrets
             )
-        for index, provides in enumerate(incomplete_provides_s, 1 + len(complete_provides_s)):
+        for index, _ in enumerate(incomplete_provides_s, 1 + len(complete_provides_s)):
             assert state.relations[index].local_app_data == {}

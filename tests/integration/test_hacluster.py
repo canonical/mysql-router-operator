@@ -68,7 +68,9 @@ async def ensure_database_accessible_from_vip(
 
 
 async def generate_next_available_ip(
-    ops_test: OpsTest, starting_ip: str, exclude_ips: list[str] = []
+    ops_test: OpsTest,
+    starting_ip: str,
+    exclude_ips: list[str] = [],  # noqa: B006
 ) -> str:
     """Compute and return the next available IP in the model's subnet."""
     all_ip_addresses = [

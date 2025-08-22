@@ -45,4 +45,6 @@ class RemoteDatabag(dict):
             logger.debug(
                 f"Required {key=} missing from databag for {self._app_name=} on {self._endpoint_name=}"
             )
-            raise IncompleteDatabag(app_name=self._app_name, endpoint_name=self._endpoint_name)
+            raise IncompleteDatabag(
+                app_name=self._app_name, endpoint_name=self._endpoint_name
+            ) from None

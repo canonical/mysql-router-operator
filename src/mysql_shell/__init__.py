@@ -62,11 +62,11 @@ class Shell:
     def _run_code(self, code: str) -> None:
         """Connect to MySQL cluster and run Python code."""
         template = _jinja_env.get_template("try_except_wrapper.py.jinja")
-        error_file = self._container.path("/tmp/mysqlsh_error.json")
+        error_file = self._container.path("/tmp/mysqlsh_error.json")  # noqa: S108
 
         script = template.render(code=code, error_filepath=error_file.relative_to_container)
 
-        temporary_script_file = self._container.path("/tmp/mysqlsh_script.py")
+        temporary_script_file = self._container.path("/tmp/mysqlsh_script.py")  # noqa: S108
         temporary_script_file.write_text(script)
 
         try:
@@ -100,7 +100,7 @@ class Shell:
         except ShellDBError as e:
             if e.code == 2003:
                 logger.exception(server_exceptions.ConnectionError_.MESSAGE)
-                raise server_exceptions.ConnectionError_
+                raise server_exceptions.ConnectionError from None
             else:
                 logger.exception(
                     f"Failed to run MySQL Shell script:\n{script}\n\nMySQL client error {e.code}\nMySQL Shell traceback:\n{e.traceback_message}\n"
@@ -114,7 +114,7 @@ class Shell:
             _jinja_env.get_template("run_sql.py.jinja").render(statements=sql_statements)
         )
 
-    def _get_attributes(self, additional_attributes: dict = None) -> str:
+    def _get_attributes(self, additional_attributes: typing.Optional[dict] = None) -> str:
         """Attributes for (MySQL) users created by this charm
 
         If the relation with the MySQL charm is broken, the MySQL charm will use this attribute
@@ -163,7 +163,7 @@ class Shell:
         again.
         """
         logger.debug(f"Getting MySQL Router user for {unit_name=}")
-        output_file = self._container.path("/tmp/mysqlsh_output.json")
+        output_file = self._container.path("/tmp/mysqlsh_output.json")  # noqa: S108
         self._run_code(
             _jinja_env.get_template("get_mysql_router_user_for_unit.py.jinja").render(
                 username=self.username,
@@ -210,7 +210,7 @@ class Shell:
     def is_router_in_cluster_set(self, router_id: str) -> bool:
         """Check if MySQL Router is part of InnoDB ClusterSet."""
         logger.debug(f"Checking if {router_id=} in cluster set")
-        output_file = self._container.path("/tmp/mysqlsh_output.json")
+        output_file = self._container.path("/tmp/mysqlsh_output.json")  # noqa: S108
         self._run_code(
             _jinja_env.get_template("get_routers_in_cluster_set.py.jinja").render(
                 output_filepath=output_file.relative_to_container
@@ -226,7 +226,7 @@ class Shell:
 
 
 _jinja_env = jinja2.Environment(
-    autoescape=False,
+    autoescape=False,  # noqa: S701
     trim_blocks=True,
     loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent / "templates"),
     undefined=jinja2.StrictUndefined,

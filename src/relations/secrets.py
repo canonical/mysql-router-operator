@@ -21,16 +21,20 @@ Scopes = typing.Literal[APP_SCOPE, UNIT_SCOPE]
 class RelationSecrets:
     """MySQLRouter secrets on a specific peer relation"""
 
-    _SECRET_INTERNAL_LABEL = "internal-secret"
-    _SECRET_DELETED_LABEL = "None"
+    _SECRET_INTERNAL_LABEL = "internal-secret"  # noqa: S105
+    _SECRET_DELETED_LABEL = "None"  # noqa: S105
 
     def __init__(
         self,
         charm: "abstract_charm.MySQLRouterCharm",
         relation_name: str,
-        app_secret_fields: typing.List[str] = [],
-        unit_secret_fields: typing.List[str] = [],
+        app_secret_fields: typing.Optional[typing.List[str]] = None,
+        unit_secret_fields: typing.Optional[typing.List[str]] = None,
     ) -> None:
+        if unit_secret_fields is None:
+            unit_secret_fields = []
+        if app_secret_fields is None:
+            app_secret_fields = []
         self._charm = charm
         self._relation_name = relation_name
 

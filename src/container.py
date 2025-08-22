@@ -132,7 +132,9 @@ class Container(abc.ABC):
         """MySQL Router exporter service status"""
 
     @abc.abstractmethod
-    def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
+    def update_mysql_router_service(
+        self, *, enabled: bool, tls: typing.Optional[bool] = None
+    ) -> None:
         """Update and restart MySQL Router service.
 
         Args:
@@ -148,10 +150,10 @@ class Container(abc.ABC):
         *,
         enabled: bool,
         config: "relations.cos.ExporterConfig" = None,
-        tls: bool = None,
-        key_filename: str = None,
-        certificate_filename: str = None,
-        certificate_authority_filename: str = None,
+        tls: typing.Optional[bool] = None,
+        key_filename: typing.Optional[str] = None,
+        certificate_filename: typing.Optional[str] = None,
+        certificate_authority_filename: typing.Optional[str] = None,
     ) -> None:
         """Update and restart the MySQL Router exporter service.
 
@@ -207,7 +209,7 @@ class Container(abc.ABC):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int],
-        input: str = None,  # noqa: A002 Match subprocess.run()
+        input: typing.Optional[str] = None,  # noqa: A002 Match subprocess.run()
     ) -> str:
         """Run command in container.
 
@@ -216,7 +218,9 @@ class Container(abc.ABC):
         """
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def run_mysql_router(self, args: typing.List[str], *, timeout: int = None) -> str:
+    def run_mysql_router(
+        self, args: typing.List[str], *, timeout: typing.Optional[int] = None
+    ) -> str:
         """Run MySQL Router command.
 
         Raises:
@@ -230,8 +234,8 @@ class Container(abc.ABC):
         self,
         args: typing.List[str],
         *,
-        timeout: int = None,
-        input: str = None,  # noqa: A002 Match subprocess.run()
+        timeout: typing.Optional[int] = None,
+        input: typing.Optional[str] = None,  # noqa: A002 Match subprocess.run()
     ) -> str:
         """Run MySQL Shell command.
 

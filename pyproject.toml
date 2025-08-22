@@ -32,20 +32,20 @@ opentelemetry-exporter-otlp-proto-http = "1.21.0"
 optional = true
 
 [tool.poetry.group.format.dependencies]
-ruff = "^0.12.4"
+ruff = "^0.12.7"
 
 [tool.poetry.group.lint]
 optional = true
 
 [tool.poetry.group.lint.dependencies]
-ruff = "^0.12.4"
+ruff = "^0.12.7"
 codespell = "^2.4.1"
 
 [tool.poetry.group.unit.dependencies]
 pytest = "^8.4.1"
 pytest-xdist = "^3.8.0"
 pytest-cov = "^6.2.1"
-ops-scenario = "^6.0.3, <6.0.4"  # 6.0.4 requires ops >= 2.12
+ops-scenario = "^6.0.3, <6.0.4" # 6.0.4 requires ops >= 2.12
 
 [tool.poetry.group.integration.dependencies]
 pytest = "^8.4.1"
@@ -84,23 +84,47 @@ line-length = 99
 
 [tool.ruff.lint]
 explicit-preview-rules = true
-select = ["A", "E", "W", "F", "C", "N", "D", "I", "CPY001"]
+select = [
+  "A",
+  "E",
+  "W",
+  "F",
+  "C",
+  "N",
+  "D",
+  "I",
+  "B",
+  "CPY001",
+  "RUF",
+  "S",
+  "SIM",
+  "UP",
+  "TC",
+]
 ignore = [
-    # Missing docstring in public method (pydocstyle doesn't look for docstrings in super class
-    # https://github.com/PyCQA/pydocstyle/issues/309) TODO: add pylint check? https://github.com/PyCQA/pydocstyle/issues/309#issuecomment-1284142716
-    "D102",
-    "D105", # Missing docstring in magic method
-    "D107", # Missing docstring in __init__
-    "D403", # First word of the first line should be capitalized (false positive on "MySQL")
-    "D415", # Docstring first line punctuation (doesn't make sense for properties)
-    "E501", # Line too long (because using black creates errors with this)
-    "N818", # Exception name should be named with an Error suffix
-    "W505", # Doc line too long (so that strings in comments aren't split across lines)
+  # Missing docstring in public method (pydocstyle doesn't look for docstrings in super class
+  # https://github.com/PyCQA/pydocstyle/issues/309) TODO: add pylint check? https://github.com/PyCQA/pydocstyle/issues/309#issuecomment-1284142716
+  "D102",
+  "D105", # Missing docstring in magic method
+  "D107", # Missing docstring in __init__
+  "D403", # First word of the first line should be capitalized (false positive on "MySQL")
+  "D415", # Docstring first line punctuation (doesn't make sense for properties)
+  "E501", # Line too long (because using black creates errors with this)
+  "N818", # Exception name should be named with an Error suffix
+  "W505", # Doc line too long (so that strings in comments aren't split across lines)
+  "S101",
 ]
 
 [tool.ruff.lint.per-file-ignores]
 # D100, D101, D102, D103: Ignore missing docstrings in tests
-"tests/*" = ["D1"]
+"tests/*" = [
+  "D1",
+  "D417",
+  # Asserts
+  "B011",
+  # Disable security checks for tests
+  "S",
+]
 
 [tool.ruff.lint.flake8-copyright]
 # Check for properly formatted copyright header in each file

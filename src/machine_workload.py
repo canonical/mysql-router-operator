@@ -28,7 +28,7 @@ class RunningMachineWorkload(workload.RunningWorkload):
         if self._charm.is_externally_accessible(event=event):
             command.extend([
                 "--conf-bind-address",
-                "0.0.0.0",
+                "0.0.0.0",  # noqa: S104
             ])
         else:
             command.extend([

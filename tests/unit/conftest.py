@@ -3,6 +3,7 @@
 
 import pathlib
 import platform
+from typing import Optional
 
 import ops
 import pytest
@@ -101,7 +102,7 @@ def machine_patch(monkeypatch):
         def hold(self, *_, **__):
             return
 
-        def start(self, services: list[str] = None, *_, **__):
+        def start(self, services: Optional[list[str]], *_, **__):
             for service in services:
                 assert service in ("mysqlrouter-service", "mysqlrouter-exporter")
 
@@ -110,7 +111,7 @@ def machine_patch(monkeypatch):
             if "mysqlrouter-exporter" in services:
                 self.services["mysqlrouter-exporter"]["active"] = True
 
-        def stop(self, services: list[str] = None, *_, **__):
+        def stop(self, services: Optional[list[str]], *_, **__):
             for service in services:
                 assert service in ("mysqlrouter-service", "mysqlrouter-exporter")
 
@@ -119,7 +120,7 @@ def machine_patch(monkeypatch):
             if "mysqlrouter-exporter" in services:
                 self.services["mysqlrouter-exporter"]["active"] = False
 
-        def restart(self, services: list[str] = []):
+        def restart(self, services: list[str] = []):  # noqa: B006
             if "mysqlrouter-service" in services:
                 self.services["mysqlrouter-service"]["active"] = True
             if "mysqlrouter-exporter" in services:

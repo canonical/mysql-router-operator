@@ -3,6 +3,7 @@
 
 """Relation(s) to one or more application charms"""
 
+import contextlib
 import logging
 import typing
 
@@ -221,30 +222,24 @@ class RelationEndpoint:
     def _shared_users(self) -> typing.List[_RelationWithSharedUser]:
         shared_users = []
         for relation in self._interface.relations:
-            try:
+            with contextlib.suppress(_UserNotShared):
                 shared_users.append(
                     _RelationWithSharedUser(relation=relation, interface=self._interface)
                 )
-            except _UserNotShared:
-                pass
         return shared_users
 
     def external_connectivity(self, event) -> bool:
         """Whether any of the relations are marked as external."""
         requested_users = []
         for relation in self._interface.relations:
-            try:
+            with contextlib.suppress(
+                _RelationBreaking, remote_databag.IncompleteDatabag, _UnsupportedExtraUserRole
+            ):
                 requested_users.append(
                     _RelationThatRequestedUser(
                         relation=relation, interface=self._interface, event=event
                     )
                 )
-            except (
-                _RelationBreaking,
-                remote_databag.IncompleteDatabag,
-                _UnsupportedExtraUserRole,
-            ):
-                pass
         return any(relation.external_connectivity for relation in requested_users)
 
     def update_endpoints(
@@ -285,18 +280,14 @@ class RelationEndpoint:
         )
         requested_users = []
         for relation in self._interface.relations:
-            try:
+            with contextlib.suppress(
+                _RelationBreaking, remote_databag.IncompleteDatabag, _UnsupportedExtraUserRole
+            ):
                 requested_users.append(
                     _RelationThatRequestedUser(
                         relation=relation, interface=self._interface, event=event
                     )
                 )
-            except (
-                _RelationBreaking,
-                remote_databag.IncompleteDatabag,
-                _UnsupportedExtraUserRole,
-            ):
-                pass
         logger.debug(f"State of reconcile users {requested_users=}, {self._shared_users=}")
         for relation in requested_users:
             if relation not in self._shared_users:

@@ -256,9 +256,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         if status := workload_.status:
             statuses.append(status)
         # only in machine charms
-        if self._ha_cluster:
-            if status := self._ha_cluster.get_unit_juju_status():
-                statuses.append(status)
+        if self._ha_cluster and (status := self._ha_cluster.get_unit_juju_status()):
+            statuses.append(status)
         refresh_lower_priority = self.refresh.unit_status_lower_priority(
             workload_is_running=isinstance(workload_, workload.RunningWorkload)
         )

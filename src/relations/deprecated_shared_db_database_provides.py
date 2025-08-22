@@ -6,6 +6,7 @@
 Uses DEPRECATED "mysql-shared" relation interface
 """
 
+import contextlib
 import logging
 import typing
 
@@ -13,10 +14,10 @@ import ops
 
 import mysql_shell
 import relations.remote_databag as remote_databag
-import status_exception
 
 if typing.TYPE_CHECKING:
     import abstract_charm
+    import status_exception
 
 
 class LogPrefix(logging.LoggerAdapter):
@@ -231,7 +232,7 @@ class RelationEndpoint(ops.Object):
         logger.debug("Synchronizing unit databags")
         requested_users = []
         for relation in self._relations:
-            try:
+            with contextlib.suppress(remote_databag.IncompleteDatabag):
                 requested_users.append(
                     _UnitThatNeedsUser(
                         relation=relation,
@@ -239,8 +240,6 @@ class RelationEndpoint(ops.Object):
                         peer_relation_app_databag=self._peer_app_databag,
                     )
                 )
-            except remote_databag.IncompleteDatabag:
-                pass
         for relation in requested_users:
             if password := self._peer_app_databag.get(relation.peer_databag_password_key):
                 relation.set_databag(password=password)
@@ -253,15 +252,13 @@ class RelationEndpoint(ops.Object):
     def _shared_users(self) -> typing.List[_RelationWithSharedUser]:
         shared_users = []
         for relation in self._relations:
-            try:
+            with contextlib.suppress(_UserNotShared):
                 shared_users.append(
                     _RelationWithSharedUser(
                         relation=relation,
                         peer_relation_app_databag=self._peer_app_databag,
                     )
                 )
-            except _UserNotShared:
-                pass
         return shared_users
 
     def reconcile_users(
@@ -279,7 +276,7 @@ class RelationEndpoint(ops.Object):
         logger.debug(f"Reconciling users {event=}")
         requested_users = []
         for relation in self._relations:
-            try:
+            with contextlib.suppress(_RelationBreaking, remote_databag.IncompleteDatabag):
                 requested_users.append(
                     _RelationThatRequestedUser(
                         relation=relation,
@@ -288,11 +285,6 @@ class RelationEndpoint(ops.Object):
                         event=event,
                     )
                 )
-            except (
-                _RelationBreaking,
-                remote_databag.IncompleteDatabag,
-            ):
-                pass
         logger.debug(f"State of reconcile users {requested_users=}, {self._shared_users=}")
         for relation in requested_users:
             if relation not in self._shared_users:

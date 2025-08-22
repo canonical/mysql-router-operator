@@ -290,7 +290,7 @@ async def get_primary_unit(
     for k, v in results["status"]["defaultreplicaset"]["topology"].items():
         if v["memberrole"] == "primary":
             unit_name = f"{app_name}/{k.split('-')[-1]}"
-            primary_unit = [unit for unit in units if unit.name == unit_name][0]
+            primary_unit = next(unit for unit in units if unit.name == unit_name)
             break
 
     if not primary_unit:

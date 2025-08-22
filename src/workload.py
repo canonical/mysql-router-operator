@@ -182,9 +182,9 @@ class Workload:
         tls: bool,
         unit_name: str,
         exporter_config: "relations.cos.ExporterConfig",
-        key: str = None,
-        certificate: str = None,
-        certificate_authority: str = None,
+        key: typing.Optional[str] = None,
+        certificate: typing.Optional[str] = None,
+        certificate_authority: typing.Optional[str] = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
         if tls and not (key and certificate and certificate_authority):
@@ -384,9 +384,9 @@ class RunningWorkload(Workload):
         tls: bool,
         unit_name: str,
         exporter_config: "relations.cos.ExporterConfig",
-        key: str = None,
-        certificate: str = None,
-        certificate_authority: str = None,
+        key: typing.Optional[str] = None,
+        certificate: typing.Optional[str] = None,
+        certificate_authority: typing.Optional[str] = None,
     ) -> None:
         """Reconcile all workloads (router, exporter, tls)."""
         if tls and not (key and certificate and certificate_authority):
@@ -493,10 +493,10 @@ class RunningWorkload(Workload):
                 wait=tenacity.wait_fixed(5),
             ):
                 with attempt:
-                    response = requests.get(
+                    response = requests.get(  #  noqa: S113
                         f"https://127.0.0.1:{self._cos.HTTP_SERVER_PORT}/api/20190715/routes",
                         auth=(self._cos.MONITORING_USERNAME, self._cos.get_monitoring_password()),
-                        verify=False,  # do not verify tls certs as default certs do not have 127.0.0.1 in its list of IP SANs
+                        verify=False,  # noqa: S501 do not verify tls certs as default certs do not have 127.0.0.1 in its list of IP SANs
                     )
                     response.raise_for_status()
                     if "bootstrap_rw" not in response.text:

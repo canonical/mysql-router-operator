@@ -40,7 +40,7 @@ class COSRelation:
     _PEER_RELATION_NAME = "cos"
 
     MONITORING_USERNAME = "monitoring"
-    _MONITORING_PASSWORD_KEY = "monitoring-password"
+    _MONITORING_PASSWORD_KEY = "monitoring-password"  # noqa: S105
 
     _TRACING_PROTOCOL = "otlp_http"
 

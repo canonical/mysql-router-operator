@@ -57,7 +57,7 @@ class RedactedConnectionInformation(ConnectionInformation):
         self.host = host
         self.port = port
         self.username = username
-        self.password = "***"
+        self.password = "***"  # noqa: S105
 
 
 class CompleteConnectionInformation(ConnectionInformation):

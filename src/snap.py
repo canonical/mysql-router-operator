@@ -78,8 +78,8 @@ class _Path(pathlib.PosixPath, container.Path):
                 "/var/log/mysqlrouter"
             ):
                 parent = f"/var/snap/{snap_name}/common"
-            elif str(path).startswith("/tmp"):
-                parent = f"/tmp/snap-private-tmp/snap.{snap_name}"
+            elif str(path).startswith("/tmp"):  # noqa: S108
+                parent = f"/tmp/snap-private-tmp/snap.{snap_name}"  # noqa: S108
             else:
                 parent = None
             if parent:
@@ -163,7 +163,9 @@ class Snap(container.Container):
     def mysql_router_exporter_service_enabled(self) -> bool:
         return self._snap.services[self._EXPORTER_SERVICE_NAME]["active"]
 
-    def update_mysql_router_service(self, *, enabled: bool, tls: bool = None) -> None:
+    def update_mysql_router_service(
+        self, *, enabled: bool, tls: typing.Optional[bool] = None
+    ) -> None:
         super().update_mysql_router_service(enabled=enabled, tls=tls)
 
         if tls:
@@ -186,10 +188,10 @@ class Snap(container.Container):
         *,
         enabled: bool,
         config: "relations.cos.ExporterConfig" = None,
-        tls: bool = None,
-        key_filename: str = None,
-        certificate_filename: str = None,
-        certificate_authority_filename: str = None,
+        tls: typing.Optional[bool] = None,
+        key_filename: typing.Optional[str] = None,
+        certificate_filename: typing.Optional[str] = None,
+        certificate_authority_filename: typing.Optional[str] = None,
     ) -> None:
         super().update_mysql_router_exporter_service(
             enabled=enabled,
@@ -250,7 +252,7 @@ class Snap(container.Container):
             _raise_if_snap_installed_not_by_this_charm(unit=unit, model_uuid=model_uuid)
             return
         # Install snap
-        logger.info(f"Installing snap revision {repr(snap_revision)}")
+        logger.info(f"Installing snap revision {snap_revision!r}")
         unit.status = ops.MaintenanceStatus("Installing snap")
 
         def _set_retry_status(_) -> None:
@@ -271,7 +273,7 @@ class Snap(container.Container):
         self._snap.hold()
         self._installed_by_unit.write_text(unique_unit_name)
         logger.debug(f"Wrote {unique_unit_name=} to {self._installed_by_unit.name=}")
-        logger.info(f"Installed snap revision {repr(snap_revision)}")
+        logger.info(f"Installed snap revision {snap_revision!r}")
 
     def refresh(
         self,
@@ -298,20 +300,20 @@ class Snap(container.Container):
         if revision_before_refresh == snap_revision:
             raise ValueError(f"Cannot refresh snap; {snap_revision=} is already installed")
 
-        logger.info(f"Refreshing snap to revision {repr(snap_revision)}")
+        logger.info(f"Refreshing snap to revision {snap_revision!r}")
         unit.status = ops.MaintenanceStatus("Refreshing snap")
         try:
             self._snap.ensure(state=snap_lib.SnapState.Present, revision=snap_revision)
-        except (snap_lib.SnapError, snap_lib.SnapAPIError):
+        except (snap_lib.SnapError, snap_lib.SnapAPIError) as e:
             logger.exception("Snap refresh failed")
             if self._snap.revision == revision_before_refresh:
-                raise container.RefreshFailed
+                raise container.RefreshFailed from e
             else:
                 refresh.update_snap_revision()
                 raise
         else:
             refresh.update_snap_revision()
-        logger.info(f"Refreshed snap to revision {repr(snap_revision)}")
+        logger.info(f"Refreshed snap to revision {snap_revision!r}")
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _run_command(
@@ -319,10 +321,10 @@ class Snap(container.Container):
         command: typing.List[str],
         *,
         timeout: typing.Optional[int] = 30,
-        input: str = None,  # noqa: A002 Match subprocess.run()
+        input: typing.Optional[str] = None,  # noqa: A002 Match subprocess.run()
     ) -> str:
         try:
-            output = subprocess.run(
+            output = subprocess.run(  # noqa: S603
                 command,
                 input=input,
                 capture_output=True,
@@ -333,7 +335,7 @@ class Snap(container.Container):
         except subprocess.CalledProcessError as e:
             raise container.CalledProcessError(
                 returncode=e.returncode, cmd=e.cmd, output=e.output, stderr=e.stderr
-            )
+            ) from None
         return output
 
     def path(self, *args, **kwargs) -> _Path:
