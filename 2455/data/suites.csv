@@ -1,0 +1,26 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"Ensure that mysqlrouter is externally accessible with TLS integration.","183907","test_tls_along_with_ha_cluster","tests.integration","Sat Aug 23 01:47:32 UTC 2025","passed","Sat Aug 23 01:50:35 UTC 2025","","test_hacluster","",""
+"Test that exporter endpoint is functional.","","test_exporter_endpoint","tests.integration","","unknown","","","test_exporter","",""
+"Ensure removal of VIP results in connection through data-integrator.","167669","test_remove_vip","tests.integration","Sat Aug 23 01:50:35 UTC 2025","passed","Sat Aug 23 01:53:23 UTC 2025","","test_hacluster","",""
+"","158562","test_landscape_client","tests.integration","Sat Aug 23 01:31:42 UTC 2025","passed","Sat Aug 23 01:34:20 UTC 2025","","test_subordinate_charms","",""
+"Tries deploying an amd64 charm on arm64 host.","","test_amd_charm_on_arm_host","tests.integration","","unknown","","","test_architecture","",""
+"Test encryption when backend database is using TLS.","300196","test_external_connectivity_with_data_integrator","tests.integration","Sat Aug 23 01:27:34 UTC 2025","passed","Sat Aug 23 01:32:34 UTC 2025","","test_data_integrator","",""
+"Test encryption when backend database is using TLS.","47054","test_connected_encryption","tests.integration","Sat Aug 23 01:33:01 UTC 2025","passed","Sat Aug 23 01:33:48 UTC 2025","","test_tls","",""
+"Test the log rotation of mysqlrouter logs.","","test_log_rotation","tests.integration","","unknown","","","test_log_rotation","",""
+"Test the database relation.","455606","test_database_relation","tests.integration","Sat Aug 23 01:27:59 UTC 2025","passed","Sat Aug 23 01:35:35 UTC 2025","","test_database","",""
+"Upgrade mysqlrouter while ensuring continuous writes incrementing.","334844","test_upgrade_from_edge","tests.integration","Sat Aug 23 01:34:46 UTC 2025","passed","Sat Aug 23 01:40:20 UTC 2025","","test_upgrade","",""
+"Test that the exporter endpoint works when related with TLS","432994","test_exporter_endpoint","tests.integration","Sat Aug 23 01:27:24 UTC 2025","passed","Sat Aug 23 01:34:37 UTC 2025","","test_exporter_with_tls","",""
+"Tries deploying an arm64 charm on amd64 host.","","test_arm_charm_on_amd_host","tests.integration","","unknown","","","test_architecture","",""
+"Test data integrator along with TLS operator","35955","test_external_connectivity_with_data_integrator_and_tls","tests.integration","Sat Aug 23 01:32:34 UTC 2025","passed","Sat Aug 23 01:33:10 UTC 2025","","test_data_integrator","",""
+"","259556","test_ubuntu_pro","tests.integration","Sat Aug 23 01:27:22 UTC 2025","passed","Sat Aug 23 01:31:42 UTC 2025","","test_subordinate_charms","",""
+"Simple test to ensure that mysql, mysqlrouter and application charms deploy.","446297","test_deploy_edge","tests.integration","Sat Aug 23 01:27:19 UTC 2025","passed","Sat Aug 23 01:34:46 UTC 2025","","test_upgrade","",""
+"Test the failover of the hacluster leader.","62926","test_hacluster_failover","tests.integration","Sat Aug 23 01:46:29 UTC 2025","passed","Sat Aug 23 01:47:32 UTC 2025","","test_hacluster","",""
+"Test external connectivity and VIP with data-integrator hacluster.","1147168","test_external_connectivity_vip_with_hacluster","tests.integration","Sat Aug 23 01:27:21 UTC 2025","passed","Sat Aug 23 01:46:29 UTC 2025","","test_hacluster","",""
+"Test encryption when backend database is using TLS.","303445","test_build_deploy_and_relate","tests.integration","Sat Aug 23 01:27:58 UTC 2025","passed","Sat Aug 23 01:33:01 UTC 2025","","test_tls","",""
+"Upgrade to an invalid version and test rollback.
+
+    Relies on the charm built in the previous test (test_upgrade_from_edge).
+    Furthermore, the previous test will refresh the charm till revision 102.
+    This test will refresh the charm till the revision in src/snap.py, thus avoiding
+    no-ops.
+    ","174184","test_fail_and_rollback","tests.integration","Sat Aug 23 01:40:20 UTC 2025","passed","Sat Aug 23 01:43:15 UTC 2025","","test_upgrade","",""
