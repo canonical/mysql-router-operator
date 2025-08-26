@@ -11,3 +11,6 @@ amd64_only = pytest.mark.skipif(
 arm64_only = pytest.mark.skipif(
     architecture.architecture != "arm64", reason="Requires arm64 architecture"
 )
+s390x_only = pytest.mark.skipif(
+    architecture.architecture != "s390x", reason="Requires s390x architecture"
+)

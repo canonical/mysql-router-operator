@@ -81,4 +81,34 @@ async def test_amd_charm_on_arm_host(ops_test: OpsTest, charm, series) -> None:
     )
 
 
-# TODO: add s390x test
+@markers.s390x_only
+async def test_amd_charm_on_s390x_host(ops_test: OpsTest, charm, series) -> None:
+    """Tries deploying an amd64 charm on s390x host."""
+    charm = charm.replace("s390x", "amd64")
+
+    await asyncio.gather(
+        ops_test.model.deploy(
+            charm,
+            application_name=MYSQL_ROUTER_APP_NAME,
+            num_units=0,
+            series=series,
+        ),
+        ops_test.model.deploy(
+            MYSQL_TEST_APP_NAME,
+            application_name=MYSQL_TEST_APP_NAME,
+            num_units=1,
+            channel="latest/edge",
+            series=series,
+        ),
+    )
+
+    await ops_test.model.relate(
+        f"{MYSQL_ROUTER_APP_NAME}:database",
+        f"{MYSQL_TEST_APP_NAME}:database",
+    )
+
+    await ops_test.model.wait_for_idle(
+        apps=[MYSQL_ROUTER_APP_NAME],
+        status="error",
+        raise_on_error=False,
+    )

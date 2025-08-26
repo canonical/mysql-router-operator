@@ -35,7 +35,7 @@ TEST_DATABASE = "testdatabase"
 
 if juju_.is_3_or_higher:
     tls_app_name = "self-signed-certificates"
-    tls_channel = "latest/edge" if architecture.architecture == "arm64" else "latest/stable"
+    tls_channel = "1/edge" if architecture.architecture == "s390x" else "latest/stable"
     tls_config = {"ca-common-name": "Test CA"}
 else:
     tls_app_name = "tls-certificates-operator"
@@ -111,7 +111,7 @@ async def test_external_connectivity_vip_with_hacluster(ops_test: OpsTest, charm
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,
                 application_name=DATA_INTEGRATOR_APP_NAME,
-                channel="latest/stable",
+                channel="latest/edge",  # Use edge for s390x
                 series=series,
                 config={"database-name": TEST_DATABASE},
                 num_units=4,

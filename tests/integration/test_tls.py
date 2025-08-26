@@ -26,7 +26,7 @@ RETRY_TIMEOUT = 60
 
 if juju_.is_3_or_higher:
     tls_app_name = "self-signed-certificates"
-    tls_channel = "latest/edge" if architecture.architecture == "arm64" else "latest/stable"
+    tls_channel = "1/edge" if architecture.architecture == "s390x" else "latest/stable"
     tls_config = {"ca-common-name": "Test CA"}
 else:
     tls_app_name = "tls-certificates-operator"
@@ -61,7 +61,6 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, charm, series) -> None
                 application_name=tls_app_name,
                 channel=tls_channel,
                 config=tls_config,
-                series="jammy",
             ),
             ops_test.model.deploy(
                 TEST_APP_NAME,
