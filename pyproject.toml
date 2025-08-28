@@ -62,7 +62,7 @@ tomli-w = "^1.2.0"
 optional = true
 
 [tool.poetry.group.build-refresh-version.dependencies]
-charm-refresh-build-version = "^0.2.0"
+charm-refresh-build-version = "^0.4.0"
 
 [tool.coverage.run]
 branch = true

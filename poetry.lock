@@ -420,14 +420,14 @@ tomli = ">=2.0.1"
 
 [[package]]
 name = "charm-refresh-build-version"
-version = "0.2.0"
+version = "0.4.0"
 description = "Write `charm` version in refresh_versions.toml from git tag"
 optional = false
 python-versions = ">=3.8"
 groups = ["build-refresh-version"]
 files = [
-    {file = "charm_refresh_build_version-0.2.0-py3-none-any.whl", hash = "sha256:5a6965772e74549dddfa91eb6c9114605eb9f437ef98e610d7fb428bbd3a934c"},
-    {file = "charm_refresh_build_version-0.2.0.tar.gz", hash = "sha256:1ec97659f669f18fc1ff759b5e535ea4dba716c509116b05d8dc4d1f3e7d49a8"},
+    {file = "charm_refresh_build_version-0.4.0-py3-none-any.whl", hash = "sha256:94b666380b8800fae278e23601ef41e5049d469af1413aefda3ba9a3ee8fc04f"},
+    {file = "charm_refresh_build_version-0.4.0.tar.gz", hash = "sha256:4fcf083ef25c5516fc98caa2879f95beffcb34b60121043b8d3216c8dfaaa41b"},
 ]
 
 [package.dependencies]
@@ -2857,4 +2857,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "f2c411b5b151c44368a3417a9bc76d41225dfa08dd108ea2922f73f8bc72c667"
+content-hash = "ad4b65c3575d52656f2158560c804014e1e5f4f4af0ec8ee344a9d13ffd25970"
