@@ -8,12 +8,12 @@ description: |
 
   This charm supports MySQL Router 8.0 in in bare-metal/virtual-machines.
 docs: https://discourse.charmhub.io/t/charmed-mysql-router-documentation/12131
-source: https://github.com/canonical/mysql-router-operator
-issues: https://github.com/canonical/mysql-router-operator/issues
+source: https://github.com/canonical/mysql-router-operators
+issues: https://github.com/canonical/mysql-router-operators/issues
 website:
   - https://ubuntu.com/data/mysql
   - https://charmhub.io/mysql-router
-  - https://github.com/canonical/mysql-router-operator
+  - https://github.com/canonical/mysql-router-operators
   - https://chat.charmhub.io/charmhub/channels/data-platform
 maintainers:
   - Canonical Data Platform <data-platform@lists.launchpad.net>
