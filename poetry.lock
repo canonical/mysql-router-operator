@@ -555,6 +555,20 @@ files = [
 ]
 
 [[package]]
+name = "common"
+version = "0.1.0"
+description = ""
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "../common"
+
+[[package]]
 name = "cosl"
 version = "1.0.0"
 description = "Utils for COS Lite charms"
@@ -2857,4 +2871,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "ad4b65c3575d52656f2158560c804014e1e5f4f4af0ec8ee344a9d13ffd25970"
+content-hash = "695f29fd3254bf134114fe3411fb4f1960a57b9878c728a42cc92c81049f55e4"
