@@ -1,0 +1,11 @@
+/requirements.txt
+/requirements-last-build.txt
+
+venv/
+build/
+*.charm
+.tox/
+.coverage
+coverage.xml
+__pycache__/
+*.py[cod]

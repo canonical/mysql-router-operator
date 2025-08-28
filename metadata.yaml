@@ -1,0 +1,62 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+name: mysql-router
+display-name: MySQL Router
+summary: Charmed MySQL Router VM operator
+description: |
+  Enables effective access to a MySQL cluster with Group Replication.
+
+  This charm supports MySQL Router 8.0 in in bare-metal/virtual-machines.
+docs: https://discourse.charmhub.io/t/charmed-mysql-router-documentation/12131
+source: https://github.com/canonical/mysql-router-operator
+issues: https://github.com/canonical/mysql-router-operator/issues
+website:
+  - https://ubuntu.com/data/mysql
+  - https://charmhub.io/mysql-router
+  - https://github.com/canonical/mysql-router-operator
+  - https://chat.charmhub.io/charmhub/channels/data-platform
+maintainers:
+  - Canonical Data Platform <data-platform@lists.launchpad.net>
+subordinate: true
+provides:
+  database:
+    interface: mysql_client
+    scope: container
+  # DEPRECATED shared-db: Legacy "mysql-shared" interface
+  shared-db:
+    interface: mysql-shared
+    scope: container
+  cos-agent:
+    interface: cos_agent
+    limit: 1
+requires:
+  backend-database:
+    interface: mysql_client
+    limit: 1
+  # Workaround: Subordinate charms are required to have at least one `requires` endpoint with
+  # `scope: container`
+  juju-info:
+    interface: juju-info
+    scope: container
+  certificates:
+    interface: tls-certificates
+    optional: true
+    limit: 1
+  tracing:
+    interface: tracing
+    optional: true
+    limit: 1
+  ha:
+    interface: hacluster
+    limit: 1
+    optional: true
+peers:
+  tls:
+    interface: tls
+  cos:
+    interface: cos
+  refresh-v-three:
+    interface: refresh
+  # DEPRECATED shared-db: Workaround for legacy "mysql-shared" interface using unit databags instead of app databag
+  deprecated-shared-db-credentials:
+    interface: _deprecated_shared_db_peers

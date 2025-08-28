@@ -1,0 +1,15 @@
+# Copyright 2024 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+options:
+  vip:
+    description: |
+      Virtual IP to use to front mysql router units. Used only in case of external node connection.
+    type: string
+  pause-after-unit-refresh:
+    description: |
+      Wait for manual confirmation to resume refresh after these units refresh
+
+      Allowed values: "all", "first", "none"
+    type: string
+    default: first
