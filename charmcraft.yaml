@@ -98,6 +98,5 @@ parts:
 
       craftctl default
     stage:
-      - LICENSE
       - refresh_versions.toml
       - templates
