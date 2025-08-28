@@ -9,20 +9,20 @@ import logging
 import pathlib
 import typing
 
-import workload
+import common.workload
 
 if typing.TYPE_CHECKING:
-    import relations.database_requires
+    import common.relations.database_requires
 
 logger = logging.getLogger(__name__)
 
 
-class RunningMachineWorkload(workload.RunningWorkload):
+class RunningMachineWorkload(common.workload.RunningWorkload):
     """Workload with connection to MySQL cluster and with Unix sockets enabled"""
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(
-        self, *, event, connection_info: "relations.database_requires.ConnectionInformation"
+        self, *, event, connection_info: "common.relations.database_requires.ConnectionInformation"
     ) -> typing.List[str]:
         command = super()._get_bootstrap_command(event=event, connection_info=connection_info)
         if self._charm.is_externally_accessible(event=event):

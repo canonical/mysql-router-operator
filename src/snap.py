@@ -11,13 +11,12 @@ import typing
 
 import charm_refresh
 import charms.operator_libs_linux.v2.snap as snap_lib
+import common.container
 import ops
 import tenacity
 
-import container
-
 if typing.TYPE_CHECKING:
-    import relations.cos
+    import common.relations.cos
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +61,7 @@ def uninstall():
     logger.debug(f"Ensured {snap_name=} is uninstalled")
 
 
-class _Path(pathlib.PosixPath, container.Path):
+class _Path(pathlib.PosixPath, common.container.Path):
     def __new__(cls, *args, **kwargs):
         path = super().__new__(cls, *args, **kwargs)
         snap_name = charm_refresh.snap_name()
@@ -128,7 +127,7 @@ class _Path(pathlib.PosixPath, container.Path):
         shutil.rmtree(self)
 
 
-class Snap(container.Container):
+class Snap(common.container.Container):
     """Workload snap container"""
 
     _SERVICE_NAME = "mysqlrouter-service"
@@ -185,7 +184,7 @@ class Snap(container.Container):
         self,
         *,
         enabled: bool,
-        config: "relations.cos.ExporterConfig" = None,
+        config: "common.relations.cos.ExporterConfig" = None,
         tls: bool = None,
         key_filename: str = None,
         certificate_filename: str = None,
@@ -305,7 +304,7 @@ class Snap(container.Container):
         except (snap_lib.SnapError, snap_lib.SnapAPIError):
             logger.exception("Snap refresh failed")
             if self._snap.revision == revision_before_refresh:
-                raise container.RefreshFailed
+                raise common.container.RefreshFailed
             else:
                 refresh.update_snap_revision()
                 raise
@@ -331,7 +330,7 @@ class Snap(container.Container):
                 encoding="utf-8",
             ).stdout
         except subprocess.CalledProcessError as e:
-            raise container.CalledProcessError(
+            raise common.container.CalledProcessError(
                 returncode=e.returncode, cmd=e.cmd, output=e.output, stderr=e.stderr
             )
         return output

@@ -1,9 +1,8 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+import common.workload
 import pytest
-
-import workload
 
 
 @pytest.mark.parametrize(
@@ -185,4 +184,6 @@ require_realm=default_auth_realm
     ],
 )
 def test_parse_username_from_config(config_file_text, username):
-    assert workload.RunningWorkload._parse_username_from_config(config_file_text) == username
+    assert (
+        common.workload.RunningWorkload._parse_username_from_config(config_file_text) == username
+    )

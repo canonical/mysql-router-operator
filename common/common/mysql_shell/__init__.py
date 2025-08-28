@@ -14,12 +14,10 @@ import typing
 
 import jinja2
 
-import container
-import server_exceptions
-import utils
+from .. import container, server_exceptions, utils
 
 if typing.TYPE_CHECKING:
-    import relations.database_requires
+    from ..relations import database_requires
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +51,7 @@ class Shell:
     """MySQL Shell connected to MySQL cluster"""
 
     _container: container.Container
-    _connection_info: "relations.database_requires.CompleteConnectionInformation"
+    _connection_info: "database_requires.CompleteConnectionInformation"
 
     @property
     def username(self):

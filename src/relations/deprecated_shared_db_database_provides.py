@@ -9,14 +9,13 @@ Uses DEPRECATED "mysql-shared" relation interface
 import logging
 import typing
 
+import common.mysql_shell
+import common.relations.remote_databag as remote_databag
+import common.status_exception
 import ops
 
-import mysql_shell
-import relations.remote_databag as remote_databag
-import status_exception
-
 if typing.TYPE_CHECKING:
-    import abstract_charm
+    import common.abstract_charm
 
 
 class LogPrefix(logging.LoggerAdapter):
@@ -137,7 +136,7 @@ class _RelationThatRequestedUser(_UnitThatNeedsUser):
     def create_database_and_user(
         self,
         *,
-        shell: mysql_shell.Shell,
+        shell: common.mysql_shell.Shell,
     ) -> None:
         """Create database & user and update databag."""
         # Delete user if exists
@@ -180,7 +179,7 @@ class _RelationWithSharedUser(_Relation):
         self._peer_app_databag.pop(self.peer_databag_password_key)
         logger.debug(f"Deleted databag {self._id=}")
 
-    def delete_user(self, *, shell: mysql_shell.Shell) -> None:
+    def delete_user(self, *, shell: common.mysql_shell.Shell) -> None:
         """Delete user and update databag."""
         username = self._peer_app_databag[self._peer_databag_username_key]
         logger.debug(f"Deleting user {username=}")
@@ -198,7 +197,7 @@ class RelationEndpoint(ops.Object):
     _NAME = "shared-db"
     _CREDENTIALS_PEER_RELATION_ENDPOINT_NAME = "deprecated-shared-db-credentials"
 
-    def __init__(self, charm_: "abstract_charm.MySQLRouterCharm") -> None:
+    def __init__(self, charm_: "common.abstract_charm.MySQLRouterCharm") -> None:
         super().__init__(charm_, self._NAME)
         self._relations = charm_.model.relations[self._NAME]
         if self._relations:
@@ -268,7 +267,7 @@ class RelationEndpoint(ops.Object):
         self,
         *,
         event,
-        shell: mysql_shell.Shell,
+        shell: common.mysql_shell.Shell,
     ) -> None:
         """Create requested users and delete inactive users.
 
@@ -323,7 +322,7 @@ class RelationEndpoint(ops.Object):
         requested_users = []
         exception_reporting_priority = (remote_databag.IncompleteDatabag,)
         # TODO python3.10 min version: Use `list` instead of `typing.List`
-        exceptions: typing.List[status_exception.StatusException] = []
+        exceptions: typing.List[common.status_exception.StatusException] = []
         for relation in self._relations:
             try:
                 requested_users.append(

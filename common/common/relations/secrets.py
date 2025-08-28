@@ -6,10 +6,10 @@
 import logging
 import typing
 
-import charms.data_platform_libs.v0.data_interfaces as data_interfaces
+from .._charm_libs.charms.data_platform_libs.v0 import data_interfaces
 
 if typing.TYPE_CHECKING:
-    import abstract_charm
+    from .. import abstract_charm
 
 logger = logging.getLogger(__name__)
 

@@ -16,15 +16,11 @@ import ops
 import requests
 import tenacity
 
-import container
-import mysql_shell
-import server_exceptions
+from . import container, mysql_shell, server_exceptions
 
 if typing.TYPE_CHECKING:
-    import abstract_charm
-    import logrotate
-    import relations.cos
-    import relations.database_requires
+    from . import abstract_charm, logrotate
+    from .relations import cos, database_requires
 
 logger = logging.getLogger(__name__)
 
@@ -46,11 +42,11 @@ class Workload:
         *,
         container_: container.Container,
         logrotate_: "logrotate.LogRotate",
-        cos: "relations.cos.COSRelation",
+        cos_: "cos.COSRelation",
     ) -> None:
         self._container = container_
         self._logrotate = logrotate_
-        self._cos = cos
+        self._cos = cos_
         self._router_data_directory = self._container.path("/var/lib/mysqlrouter")
         self._tls_key_file = self._container.router_config_directory / "custom-key.pem"
         self._tls_certificate_file = (
@@ -98,7 +94,7 @@ class Workload:
         snap_revision: str,
         refresh: charm_refresh.Machines,
         tls: bool,
-        exporter_config: "relations.cos.ExporterConfig",
+        exporter_config: "cos.ExporterConfig",
     ) -> None:
         """Refresh MySQL Router
 
@@ -114,7 +110,9 @@ class Workload:
 
         Config file enables TLS on MySQL Router.
         """
-        template = string.Template(pathlib.Path("templates/tls.cnf").read_text(encoding="utf-8"))
+        template = string.Template(
+            (pathlib.Path(__file__).parent / "templates/tls.cnf").read_text(encoding="utf-8")
+        )
         config_string = template.substitute(
             tls_ssl_key_file=self._tls_key_file,
             tls_ssl_cert_file=self._tls_certificate_file,
@@ -181,7 +179,7 @@ class Workload:
         event,
         tls: bool,
         unit_name: str,
-        exporter_config: "relations.cos.ExporterConfig",
+        exporter_config: "cos.ExporterConfig",
         key: str = None,
         certificate: str = None,
         certificate_authority: str = None,
@@ -215,13 +213,13 @@ class RunningWorkload(Workload):
         *,
         container_: container.Container,
         logrotate_: "logrotate.LogRotate",
-        connection_info: "relations.database_requires.CompleteConnectionInformation",
-        cos: "relations.cos.COSRelation",
+        connection_info: "database_requires.CompleteConnectionInformation",
+        cos_: "cos.COSRelation",
         charm_: "abstract_charm.MySQLRouterCharm",
     ) -> None:
-        super().__init__(container_=container_, logrotate_=logrotate_, cos=cos)
+        super().__init__(container_=container_, logrotate_=logrotate_, cos_=cos_)
         self._connection_info = connection_info
-        self._cos = cos
+        self._cos = cos_
         self._charm = charm_
 
     @property
@@ -253,7 +251,7 @@ class RunningWorkload(Workload):
 
     # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(
-        self, *, event, connection_info: "relations.database_requires.ConnectionInformation"
+        self, *, event, connection_info: "database_requires.ConnectionInformation"
     ) -> typing.List[str]:
         return [
             "--bootstrap",
@@ -273,6 +271,15 @@ class RunningWorkload(Workload):
             "--conf-set-option",
             f"http_auth_backend:default_auth_backend.filename={self._container.rest_api_credentials_file.relative_to_container}",
             "--conf-use-gr-notifications",
+            "--conf-set-option",
+            "metadata_cache:bootstrap.ttl=5",
+            # destination_status added to workaround MySQL Router bug
+            # https://bugs.mysql.com/bug.php?id=118059
+            # TODO: Remove once fixed on upstream
+            "--conf-set-option",
+            "destination_status.error_quarantine_threshold=3",
+            "--conf-set-option",
+            "destination_status.error_quarantine_interval=5",
         ]
 
     def _bootstrap_router(self, *, event, tls: bool) -> None:
@@ -361,9 +368,7 @@ class RunningWorkload(Workload):
         logger.info("Enabled MySQL Router service")
         self._charm.wait_until_mysql_router_ready(event=event)
 
-    def _enable_exporter(
-        self, *, tls: bool, exporter_config: "relations.cos.ExporterConfig"
-    ) -> None:
+    def _enable_exporter(self, *, tls: bool, exporter_config: "cos.ExporterConfig") -> None:
         """Enable the mysqlrouter exporter."""
         logger.debug("Enabling MySQL Router exporter service")
         self.setup_monitoring_user()
@@ -383,7 +388,7 @@ class RunningWorkload(Workload):
         event,
         tls: bool,
         unit_name: str,
-        exporter_config: "relations.cos.ExporterConfig",
+        exporter_config: "cos.ExporterConfig",
         key: str = None,
         certificate: str = None,
         certificate_authority: str = None,
@@ -450,7 +455,7 @@ class RunningWorkload(Workload):
         snap_revision: str,
         refresh: charm_refresh.Machines,
         tls: bool,
-        exporter_config: "relations.cos.ExporterConfig",
+        exporter_config: "cos.ExporterConfig",
     ) -> None:
         enabled = self._container.mysql_router_service_enabled
         exporter_enabled = self._container.mysql_router_exporter_service_enabled

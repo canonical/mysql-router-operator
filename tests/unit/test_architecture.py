@@ -2,7 +2,7 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-from architecture import is_wrong_architecture
+from common.architecture import is_wrong_architecture
 
 TEST_MANIFEST = """
     bases:

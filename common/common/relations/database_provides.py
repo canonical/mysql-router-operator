@@ -6,15 +6,14 @@
 import logging
 import typing
 
-import charms.data_platform_libs.v0.data_interfaces as data_interfaces
 import ops
 
-import mysql_shell
-import relations.remote_databag as remote_databag
-import status_exception
+from .. import mysql_shell, status_exception
+from .._charm_libs.charms.data_platform_libs.v0 import data_interfaces
+from . import remote_databag
 
 if typing.TYPE_CHECKING:
-    import abstract_charm
+    from .. import abstract_charm
 
 logger = logging.getLogger(__name__)
 

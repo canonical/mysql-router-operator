@@ -398,14 +398,14 @@ charm-api = ">=0.1.1"
 
 [[package]]
 name = "charm-refresh"
-version = "3.1.0.0"
+version = "3.1.0.2"
 description = "In-place rolling refreshes (upgrades) of stateful charmed applications"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "charm_refresh-3.1.0.0-py3-none-any.whl", hash = "sha256:c673077b56700bb255a05b81e215e6de042707f2037f84579ae513a48e37c80c"},
-    {file = "charm_refresh-3.1.0.0.tar.gz", hash = "sha256:20c61a4365d762fa8fd378b4e57312d94e7e52c9100bcf1ffdcbdefc68271467"},
+    {file = "charm_refresh-3.1.0.2-py3-none-any.whl", hash = "sha256:963ed20704b38af3b5f76e03e07da6e36e9f8a8cac7f49c77bf3c047cb954dea"},
+    {file = "charm_refresh-3.1.0.2.tar.gz", hash = "sha256:dce60c3fb6f237713e4365007a10db7ba363b76faf3a31577b5456ed61831cfd"},
 ]
 
 [package.dependencies]
@@ -563,6 +563,14 @@ python-versions = ">=3.10"
 groups = ["main"]
 files = []
 develop = true
+
+[package.dependencies]
+charm-api = ">=0.1.2"
+charm-refresh = ">=3.1.0.2"
+jinja2 = ">=3.1.6"
+ops = ">=2.9.0"
+requests = ">=2.32.4"
+tenacity = ">=9.1.2"
 
 [package.source]
 type = "directory"
@@ -1638,18 +1646,6 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["coverage", "pytest", "pytest-benchmark"]
-
-[[package]]
-name = "poetry-core"
-version = "2.1.3"
-description = "Poetry PEP 517 Build Backend"
-optional = false
-python-versions = "<4.0,>=3.9"
-groups = ["main"]
-files = [
-    {file = "poetry_core-2.1.3-py3-none-any.whl", hash = "sha256:2c704f05016698a54ca1d327f46ce2426d72eaca6ff614132c8477c292266771"},
-    {file = "poetry_core-2.1.3.tar.gz", hash = "sha256:0522a015477ed622c89aad56a477a57813cace0c8e7ff2a2906b7ef4a2e296a4"},
-]
 
 [[package]]
 name = "prompt-toolkit"
@@ -2871,4 +2867,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "695f29fd3254bf134114fe3411fb4f1960a57b9878c728a42cc92c81049f55e4"
+content-hash = "cbcf8f38b77fae48c30aacabf447b671920151530f01b4fef26b41327afeda10"

@@ -6,10 +6,10 @@
 import logging
 import typing
 
-import charms.data_platform_libs.v0.data_interfaces as data_interfaces
 import ops
 
-import status_exception
+from .. import status_exception
+from .._charm_libs.charms.data_platform_libs.v0 import data_interfaces
 
 logger = logging.getLogger(__name__)
 

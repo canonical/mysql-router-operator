@@ -5,8 +5,8 @@
 
 import logging
 
-import container
-import logrotate
+import common.container
+import common.logrotate
 
 logger = logging.getLogger(__name__)
 
@@ -14,12 +14,12 @@ CHARMED_MYSQL_COMMON_DIRECTORY = "/var/snap/charmed-mysql/common"
 ROOT_USER = "root"
 
 
-class LogRotate(logrotate.LogRotate):
+class LogRotate(common.logrotate.LogRotate):
     """logrotate cron configuration"""
 
     _SYSTEM_USER = "snap_daemon"
 
-    def __init__(self, *, container_: container.Container):
+    def __init__(self, *, container_: common.container.Container):
         super().__init__(container_=container_)
         self._cron_file = self._container.path("/etc/cron.d/flush_mysqlrouter_logs")
 

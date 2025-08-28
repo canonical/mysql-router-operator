@@ -103,4 +103,3 @@ parts:
       craftctl default
     stage:
       - refresh_versions.toml
-      - templates

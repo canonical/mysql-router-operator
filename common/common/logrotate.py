@@ -12,7 +12,7 @@ import pathlib
 
 import jinja2
 
-import container
+from . import container
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,9 @@ class LogRotate(abc.ABC):
         """Enable logrotate."""
         logger.debug("Creating logrotate config file")
 
-        template = jinja2.Template(pathlib.Path("templates/logrotate.j2").read_text())
+        template = jinja2.Template(
+            (pathlib.Path(__file__).parent / "templates/logrotate.j2").read_text()
+        )
 
         log_file_path = self._container.path("/var/log/mysqlrouter/mysqlrouter.log")
         rendered = template.render(

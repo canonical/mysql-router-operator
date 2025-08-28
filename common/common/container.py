@@ -12,7 +12,7 @@ import charm_refresh
 import ops
 
 if typing.TYPE_CHECKING:
-    import relations.cos
+    from .relations import cos
 
 
 class Path(pathlib.PurePosixPath, abc.ABC):
@@ -147,7 +147,7 @@ class Container(abc.ABC):
         self,
         *,
         enabled: bool,
-        config: "relations.cos.ExporterConfig" = None,
+        config: "cos.ExporterConfig" = None,
         tls: bool = None,
         key_filename: str = None,
         certificate_filename: str = None,

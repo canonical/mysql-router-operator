@@ -5,7 +5,7 @@
 
 import ops
 
-import status_exception
+from . import status_exception
 
 
 class Error(status_exception.StatusException):

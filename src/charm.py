@@ -6,12 +6,11 @@
 
 """MySQL Router machine charm"""
 
+import common.architecture
 import ops
 
-from architecture import WrongArchitectureWarningCharm, is_wrong_architecture
-
-if is_wrong_architecture() and __name__ == "__main__":
-    ops.main.main(WrongArchitectureWarningCharm)
+if common.architecture.is_wrong_architecture() and __name__ == "__main__":
+    ops.main.main(common.architecture.WrongArchitectureWarningCharm)
 
 import dataclasses
 import logging
@@ -19,18 +18,22 @@ import socket
 import typing
 
 import charm_refresh
+import common.abstract_charm
+import common.logrotate
+import common.relations.cos
+import common.relations.database_requires
+import common.relations.tls
+import common.workload
 import ops.log
 import tenacity
 from charms.tempo_coordinator_k8s.v0.charm_tracing import trace_charm
 
-import abstract_charm
-import logrotate
 import machine_logrotate
 import machine_workload
 import relations.database_providers_wrapper
 import relations.hacluster
+import relations.machines_cos
 import snap
-import workload
 
 logger = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -38,8 +41,10 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
 @dataclasses.dataclass(eq=False)
-class _MachinesRouterRefresh(abstract_charm.RouterRefresh, charm_refresh.CharmSpecificMachines):
-    _charm: abstract_charm.MySQLRouterCharm
+class _MachinesRouterRefresh(
+    common.abstract_charm.RouterRefresh, charm_refresh.CharmSpecificMachines
+):
+    _charm: common.abstract_charm.MySQLRouterCharm
 
     def refresh_snap(
         self, *, snap_name: str, snap_revision: str, refresh: charm_refresh.Machines
@@ -62,17 +67,17 @@ class _MachinesRouterRefresh(abstract_charm.RouterRefresh, charm_refresh.CharmSp
 @trace_charm(
     tracing_endpoint="tracing_endpoint",
     extra_types=(
-        logrotate.LogRotate,
+        common.logrotate.LogRotate,
+        common.workload.Workload,
+        common.relations.database_requires.RelationEndpoint,
+        common.relations.tls.RelationEndpoint,
         machine_workload.RunningMachineWorkload,
-        relations.cos.COSRelation,
+        relations.machines_cos.COSRelation,
         relations.database_providers_wrapper.RelationEndpoint,
-        relations.database_requires.RelationEndpoint,
-        relations.tls.RelationEndpoint,
         snap.Snap,
-        workload.Workload,
     ),
 )
-class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
+class MachineSubordinateRouterCharm(common.abstract_charm.MySQLRouterCharm):
     """MySQL Router machine subordinate charm"""
 
     def __init__(self, *args) -> None:
@@ -126,6 +131,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     @property
     def _logrotate(self) -> machine_logrotate.LogRotate:
         return machine_logrotate.LogRotate(container_=self._container)
+
+    @property
+    def _cos_relation_type(self) -> typing.Type[common.relations.cos.COSRelation]:
+        return relations.machines_cos.COSRelation
 
     def tls_sans_ip(self, *, event) -> typing.Optional[typing.List[str]]:
         sans_ip = ["127.0.0.1"]  # needed for the HTTP server when related with COS

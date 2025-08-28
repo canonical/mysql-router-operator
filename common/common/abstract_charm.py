@@ -11,15 +11,8 @@ import typing
 import charm_refresh
 import ops
 
-import container
-import lifecycle
-import logrotate
-import relations.cos
-import relations.database_provides
-import relations.database_requires
-import relations.tls
-import server_exceptions
-import workload
+from . import container, lifecycle, logrotate, server_exceptions, workload
+from .relations import cos, database_provides, database_requires, tls
 
 logger = logging.getLogger(__name__)
 
@@ -92,11 +85,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
         self._workload_type = workload.Workload
         self._running_workload_type = workload.RunningWorkload
-        self._database_requires = relations.database_requires.RelationEndpoint(self)
-        self._database_provides = relations.database_provides.RelationEndpoint(self)
-        self._cos_relation = relations.cos.COSRelation(self, self._container)
+        self._database_requires = database_requires.RelationEndpoint(self)
+        self._database_provides = database_provides.RelationEndpoint(self)
+        self._cos_relation = self._cos_relation_type(self, self._container)
         self._ha_cluster = None
-        self.tls = relations.tls.RelationEndpoint(self)
+        self.tls = tls.RelationEndpoint(self)
 
         # Observe all events (except custom events)
         for bound_event in self.on.events().values():
@@ -121,6 +114,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     @abc.abstractmethod
     def _logrotate(self) -> logrotate.LogRotate:
         """logrotate"""
+
+    @property
+    @abc.abstractmethod
+    def _cos_relation_type(self) -> typing.Type[cos.COSRelation]:
+        """COSRelation type"""
 
     @abc.abstractmethod
     def _read_write_endpoints(self, *, event) -> str:
@@ -174,7 +172,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """Otlp http endpoint for charm instrumentation."""
         return self._cos_relation.tracing_endpoint
 
-    def _cos_exporter_config(self, event) -> typing.Optional[relations.cos.ExporterConfig]:
+    def _cos_exporter_config(self, event) -> typing.Optional[cos.ExporterConfig]:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
         cos_relation_exists = (
             self._cos_relation.relation_exists
@@ -197,11 +195,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                 container_=self._container,
                 logrotate_=self._logrotate,
                 connection_info=connection_info,
-                cos=self._cos_relation,
+                cos_=self._cos_relation,
                 charm_=self,
             )
         return self._workload_type(
-            container_=self._container, logrotate_=self._logrotate, cos=self._cos_relation
+            container_=self._container, logrotate_=self._logrotate, cos_=self._cos_relation
         )
 
     @staticmethod
