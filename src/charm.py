@@ -127,6 +127,15 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     def _logrotate(self) -> machine_logrotate.LogRotate:
         return machine_logrotate.LogRotate(container_=self._container)
 
+    def tls_sans_ip(self, *, event) -> typing.Optional[typing.List[str]]:
+        sans_ip = ["127.0.0.1"]  # needed for the HTTP server when related with COS
+        if self.is_externally_accessible(event=event):
+            sans_ip.append(self.host_address)
+        return sans_ip
+
+    def tls_sans_dns(self, *, event) -> typing.Optional[typing.List[str]]:
+        return None
+
     @property
     def host_address(self) -> str:
         """The host address for the machine."""

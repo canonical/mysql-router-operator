@@ -138,6 +138,14 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """
 
     @abc.abstractmethod
+    def tls_sans_ip(self, *, event) -> typing.Optional[typing.List[str]]:
+        """TLS IP subject alternative names"""
+
+    @abc.abstractmethod
+    def tls_sans_dns(self, *, event) -> typing.Optional[typing.List[str]]:
+        """TLS DNS subject alternative names"""
+
+    @abc.abstractmethod
     def _status(self, *, event) -> typing.Optional[ops.StatusBase]:
         """Status of the charm."""
 

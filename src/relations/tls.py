@@ -44,8 +44,7 @@ def _generate_private_key() -> str:
     return tls_certificates.generate_private_key().decode("utf-8")
 
 
-# TODO python3.10 min version: Add `(kw_only=True)`
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class _Relation:
     """Relation to TLS certificate provider"""
 
@@ -113,15 +112,14 @@ class _Relation:
 
     def _generate_csr(self, *, event, key: bytes) -> bytes:
         """Generate certificate signing request (CSR)."""
-        sans_ip = ["127.0.0.1"]  # needed for the HTTP server when related with COS
-        if self._charm.is_externally_accessible(event=event):
-            sans_ip.append(self._charm.host_address)
-
         return tls_certificates.generate_csr(
             private_key=key,
-            subject=socket.getfqdn(),
+            # X.509 CommonName has a limit of 64 characters
+            # (https://github.com/pyca/cryptography/issues/10553)
+            subject=socket.getfqdn()[:64],
             organization=self._charm.app.name,
-            sans_ip=sans_ip,
+            sans_ip=self._charm.tls_sans_ip(event=event),
+            sans_dns=self._charm.tls_sans_dns(event=event),
         )
 
     def request_certificate_creation(self, *, event):
