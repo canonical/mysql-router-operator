@@ -122,31 +122,13 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
     def _logrotate(self) -> logrotate.LogRotate:
         """logrotate"""
 
-    @property
     @abc.abstractmethod
-    def _read_write_endpoints(self) -> str:
+    def _read_write_endpoints(self, *, event) -> str:
         """MySQL Router read-write endpoint"""
 
-    @property
     @abc.abstractmethod
-    def _read_only_endpoints(self) -> str:
+    def _read_only_endpoints(self, *, event) -> str:
         """MySQL Router read-only endpoint"""
-
-    @property
-    @abc.abstractmethod
-    def _exposed_read_write_endpoints(self) -> typing.Optional[str]:
-        """The exposed read-write endpoint.
-
-        Only defined in vm charm.
-        """
-
-    @property
-    @abc.abstractmethod
-    def _exposed_read_only_endpoints(self) -> typing.Optional[str]:
-        """The exposed read-only endpoint.
-
-        Only defined in vm charm.
-        """
 
     @abc.abstractmethod
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
@@ -155,9 +137,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         Only defined in vm charm to return True/False. In k8s charm, returns None.
         """
 
-    @property
     @abc.abstractmethod
-    def _status(self) -> ops.StatusBase:
+    def _status(self, *, event) -> typing.Optional[ops.StatusBase]:
         """Status of the charm."""
 
     @property
@@ -240,8 +221,8 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         if self.refresh.app_status_higher_priority:
             return self.refresh.app_status_higher_priority
         statuses = []
-        if self._status:
-            statuses.append(self._status)
+        if status := self._status(event=event):
+            statuses.append(status)
         for endpoint in (self._database_requires, self._database_provides):
             if status := endpoint.get_status(event):
                 statuses.append(status)
@@ -297,7 +278,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """
 
     @abc.abstractmethod
-    def _update_endpoints(self) -> None:
+    def _update_endpoints(self, *, event) -> None:
         """Update the endpoints in the provider relation if necessary."""
 
     # =======================
@@ -349,13 +330,11 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
                     self._reconcile_service()
                     self._database_provides.reconcile_users(
                         event=event,
-                        router_read_write_endpoints=self._read_write_endpoints,
-                        router_read_only_endpoints=self._read_only_endpoints,
-                        exposed_read_write_endpoints=self._exposed_read_write_endpoints,
-                        exposed_read_only_endpoints=self._exposed_read_only_endpoints,
+                        router_read_write_endpoints=self._read_write_endpoints(event=event),
+                        router_read_only_endpoints=self._read_only_endpoints(event=event),
                         shell=workload_.shell,
                     )
-                    self._update_endpoints()
+                    self._update_endpoints(event=event)
 
             if workload_.container_ready:
                 workload_.reconcile(

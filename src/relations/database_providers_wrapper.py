@@ -47,15 +47,11 @@ class RelationEndpoint:
         *,
         router_read_write_endpoints: str,
         router_read_only_endpoints: str,
-        exposed_read_write_endpoints: str,
-        exposed_read_only_endpoints: str,
     ) -> None:
         """Update the endpoints in the provides relationship databags."""
         self._database_provides.update_endpoints(
             router_read_write_endpoints=router_read_write_endpoints,
             router_read_only_endpoints=router_read_only_endpoints,
-            exposed_read_write_endpoints=exposed_read_write_endpoints,
-            exposed_read_only_endpoints=exposed_read_only_endpoints,
         )
 
     def reconcile_users(
@@ -64,8 +60,6 @@ class RelationEndpoint:
         event,
         router_read_write_endpoints: str,
         router_read_only_endpoints: str,
-        exposed_read_write_endpoints: str,
-        exposed_read_only_endpoints: str,
         shell: mysql_shell.Shell,
     ) -> None:
         """Create requested users and delete inactive users.
@@ -78,8 +72,6 @@ class RelationEndpoint:
             event=event,
             router_read_write_endpoints=router_read_write_endpoints,
             router_read_only_endpoints=router_read_only_endpoints,
-            exposed_read_write_endpoints=exposed_read_write_endpoints,
-            exposed_read_only_endpoints=exposed_read_only_endpoints,
             shell=shell,
         )
         self._deprecated_shared_db.reconcile_users(event=event, shell=shell)

@@ -120,8 +120,7 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
     def _container(self) -> snap.Snap:
         return snap.Snap(unit_name=self.unit.name)
 
-    @property
-    def _status(self) -> ops.StatusBase:
+    def _status(self, *, event) -> typing.Optional[ops.StatusBase]:
         pass
 
     @property
@@ -140,21 +139,17 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
 
         return self.config["vip"]
 
-    @property
-    def _read_write_endpoints(self) -> str:
-        return f"file://{self._container.path('/run/mysqlrouter/mysql.sock')}"
+    def _read_write_endpoints(self, *, event) -> str:
+        if self.is_externally_accessible(event=event):
+            return f"{self.host_address}:{self._READ_WRITE_PORT}"
+        else:
+            return f"file://{self._container.path('/run/mysqlrouter/mysql.sock')}"
 
-    @property
-    def _read_only_endpoints(self) -> str:
-        return f"file://{self._container.path('/run/mysqlrouter/mysqlro.sock')}"
-
-    @property
-    def _exposed_read_write_endpoints(self) -> typing.Optional[str]:
-        return f"{self.host_address}:{self._READ_WRITE_PORT}"
-
-    @property
-    def _exposed_read_only_endpoints(self) -> typing.Optional[str]:
-        return f"{self.host_address}:{self._READ_ONLY_PORT}"
+    def _read_only_endpoints(self, *, event) -> str:
+        if self.is_externally_accessible(event=event):
+            return f"{self.host_address}:{self._READ_ONLY_PORT}"
+        else:
+            return f"file://{self._container.path('/run/mysqlrouter/mysqlro.sock')}"
 
     def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
         return self._database_provides.external_connectivity(event)
@@ -170,12 +165,10 @@ class MachineSubordinateRouterCharm(abstract_charm.MySQLRouterCharm):
             ports = []
         self.unit.set_ports(*ports)
 
-    def _update_endpoints(self) -> None:
+    def _update_endpoints(self, *, event) -> None:
         self._database_provides.update_endpoints(
-            router_read_write_endpoints=self._read_write_endpoints,
-            router_read_only_endpoints=self._read_only_endpoints,
-            exposed_read_write_endpoints=self._exposed_read_write_endpoints,
-            exposed_read_only_endpoints=self._exposed_read_only_endpoints,
+            router_read_write_endpoints=self._read_write_endpoints(event=event),
+            router_read_only_endpoints=self._read_only_endpoints(event=event),
         )
 
     def _wait_until_service_reconciled(self) -> None:

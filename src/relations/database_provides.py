@@ -52,6 +52,7 @@ class _Relation:
         # (e.g. when related to `data-integrator` charm)
         # Implements DA073 - Add Expose Flag to the Database Interface
         # https://docs.google.com/document/d/1Y7OZWwMdvF8eEMuVKrqEfuFV3JOjpqLHL7_GPqJpRHU
+        # Ignored on Kubernetes charm in favor of expose-external config option
         self.external_connectivity = self._databag.get("external-node-connectivity") == "true"
 
     def __eq__(self, other) -> bool:
@@ -89,19 +90,19 @@ class _RelationThatRequestedUser(_Relation):
         *,
         username: str,
         password: str,
-        router_read_write_endpoint: str,
-        router_read_only_endpoint: str,
+        router_read_write_endpoints: str,
+        router_read_only_endpoints: str,
     ) -> None:
         """Share connection information with application charm."""
         logger.debug(
-            f"Setting databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+            f"Setting databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoints=}, {router_read_only_endpoints=}"
         )
         self._interface.set_database(self._id, self._database)
         self._interface.set_credentials(self._id, username, password)
-        self._interface.set_endpoints(self._id, router_read_write_endpoint)
-        self._interface.set_read_only_endpoints(self._id, router_read_only_endpoint)
+        self._interface.set_endpoints(self._id, router_read_write_endpoints)
+        self._interface.set_read_only_endpoints(self._id, router_read_only_endpoints)
         logger.debug(
-            f"Set databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoint=}, {router_read_only_endpoint=}"
+            f"Set databag {self._id=} {self._database=}, {username=}, {router_read_write_endpoints=}, {router_read_only_endpoints=}"
         )
 
     def create_database_and_user(
@@ -109,8 +110,6 @@ class _RelationThatRequestedUser(_Relation):
         *,
         router_read_write_endpoints: str,
         router_read_only_endpoints: str,
-        exposed_read_write_endpoints: str,
-        exposed_read_only_endpoints: str,
         shell: mysql_shell.Shell,
     ) -> None:
         """Create database & user and update databag."""
@@ -127,22 +126,11 @@ class _RelationThatRequestedUser(_Relation):
             username=username, database=self._database
         )
 
-        rw_endpoint = (
-            exposed_read_write_endpoints
-            if self.external_connectivity
-            else router_read_write_endpoints
-        )
-        ro_endpoint = (
-            exposed_read_only_endpoints
-            if self.external_connectivity
-            else router_read_only_endpoints
-        )
-
         self._set_databag(
             username=username,
             password=password,
-            router_read_write_endpoint=rw_endpoint,
-            router_read_only_endpoint=ro_endpoint,
+            router_read_write_endpoints=router_read_write_endpoints,
+            router_read_only_endpoints=router_read_only_endpoints,
         )
 
 
@@ -168,28 +156,15 @@ class _RelationWithSharedUser(_Relation):
         *,
         router_read_write_endpoints: str,
         router_read_only_endpoints: str,
-        exposed_read_write_endpoints: str,
-        exposed_read_only_endpoints: str,
     ) -> None:
         """Update the endpoints in the databag."""
         logger.debug(
-            f"Updating endpoints {self._id} {router_read_write_endpoints=}, {router_read_only_endpoints=} {exposed_read_write_endpoints=} {exposed_read_only_endpoints=}"
+            f"Updating endpoints {self._id} {router_read_write_endpoints=} {router_read_only_endpoints=}"
         )
-        rw_endpoint = (
-            exposed_read_write_endpoints
-            if self.external_connectivity
-            else router_read_write_endpoints
-        )
-        ro_endpoint = (
-            exposed_read_only_endpoints
-            if self.external_connectivity
-            else router_read_only_endpoints
-        )
-
-        self._interface.set_endpoints(self._id, rw_endpoint)
-        self._interface.set_read_only_endpoints(self._id, ro_endpoint)
+        self._interface.set_endpoints(self._id, router_read_write_endpoints)
+        self._interface.set_read_only_endpoints(self._id, router_read_only_endpoints)
         logger.debug(
-            f"Updated endpoints {self._id} {router_read_write_endpoints=}, {router_read_only_endpoints=} {exposed_read_write_endpoints=} {exposed_read_only_endpoints=}"
+            f"Updated endpoints {self._id} {router_read_write_endpoints=} {router_read_only_endpoints=}"
         )
 
     def delete_databag(self) -> None:
@@ -230,7 +205,10 @@ class RelationEndpoint:
         return shared_users
 
     def external_connectivity(self, event) -> bool:
-        """Whether any of the relations are marked as external."""
+        """Whether any of the relations are marked as external.
+
+        Only used on machines charm
+        """
         requested_users = []
         for relation in self._interface.relations:
             try:
@@ -252,16 +230,12 @@ class RelationEndpoint:
         *,
         router_read_write_endpoints: str,
         router_read_only_endpoints: str,
-        exposed_read_write_endpoints: str,
-        exposed_read_only_endpoints: str,
     ) -> None:
         """Update endpoints in the databags."""
         for relation in self._shared_users:
             relation.update_endpoints(
                 router_read_write_endpoints=router_read_write_endpoints,
                 router_read_only_endpoints=router_read_only_endpoints,
-                exposed_read_write_endpoints=exposed_read_write_endpoints,
-                exposed_read_only_endpoints=exposed_read_only_endpoints,
             )
 
     def reconcile_users(
@@ -270,8 +244,6 @@ class RelationEndpoint:
         event,
         router_read_write_endpoints: str,
         router_read_only_endpoints: str,
-        exposed_read_write_endpoints: str,
-        exposed_read_only_endpoints: str,
         shell: mysql_shell.Shell,
     ) -> None:
         """Create requested users and delete inactive users.
@@ -303,8 +275,6 @@ class RelationEndpoint:
                 relation.create_database_and_user(
                     router_read_write_endpoints=router_read_write_endpoints,
                     router_read_only_endpoints=router_read_only_endpoints,
-                    exposed_read_write_endpoints=exposed_read_write_endpoints,
-                    exposed_read_only_endpoints=exposed_read_only_endpoints,
                     shell=shell,
                 )
         for relation in self._shared_users:
