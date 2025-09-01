@@ -21,8 +21,8 @@ import utils
 if typing.TYPE_CHECKING:
     import relations.database_requires
 
-ROLE_DML = "charmed_dml"
-ROLE_READ = "charmed_read"
+_ROLE_DML = "charmed_dml"
+_ROLE_READ = "charmed_read"
 
 logger = logging.getLogger(__name__)
 
@@ -128,17 +128,34 @@ class Shell:
             attributes.update(additional_attributes)
         return json.dumps(attributes)
 
+    # TODO python3.10 min version: Use `set` instead of `typing.Set`
+    def _get_mysql_roles(self, name_pattern: str) -> typing.Set[str]:
+        """Returns a set with the MySQL roles."""
+        logger.debug(f"Getting MySQL roles with {name_pattern=}")
+        output_file = self._container.path("/tmp/mysqlsh_output.json")
+        self._run_code(
+            _jinja_env.get_template("get_mysql_roles_with_pattern.py.jinja").render(
+                name_pattern=name_pattern,
+                output_filepath=output_file.relative_to_container,
+            )
+        )
+        with output_file.open("r") as file:
+            rows = json.load(file)
+        output_file.unlink()
+        logger.debug(f"MySQL roles found for {name_pattern=}: {len(rows)}")
+        return set(rows)
+
     def create_application_database(self, *, database: str) -> str:
         """Create database for related database_provides application."""
-        mysql_roles = self.get_mysql_roles("charmed_%")
+        mysql_roles = self._get_mysql_roles("charmed_%")
         statements = [f"CREATE DATABASE IF NOT EXISTS `{database}`"]
-        if ROLE_READ in mysql_roles:
+        if _ROLE_READ in mysql_roles:
             statements.append(
-                f"GRANT SELECT ON `{database}`.* TO {ROLE_READ}",
+                f"GRANT SELECT ON `{database}`.* TO {_ROLE_READ}",
             )
-        if ROLE_DML in mysql_roles:
+        if _ROLE_DML in mysql_roles:
             statements.append(
-                f"GRANT SELECT, INSERT, DELETE, UPDATE ON `{database}`.* TO {ROLE_DML}",
+                f"GRANT SELECT, INSERT, DELETE, UPDATE ON `{database}`.* TO {_ROLE_DML}",
             )
 
         logger.debug(f"Creating {database=}")
@@ -169,23 +186,6 @@ class Shell:
         logger.debug(f"Adding {attributes=} to {username=}")
         self._run_sql([f"ALTER USER `{username}` ATTRIBUTE '{attributes}'"])
         logger.debug(f"Added {attributes=} to {username=}")
-
-    # TODO python3.10 min version: Use `set` instead of `typing.Set`
-    def get_mysql_roles(self, name_pattern: str) -> typing.Set[str]:
-        """Returns a set with the MySQL roles."""
-        logger.debug(f"Getting MySQL roles with {name_pattern=}")
-        output_file = self._container.path("/tmp/mysqlsh_output.json")
-        self._run_code(
-            _jinja_env.get_template("get_mysql_roles_with_pattern.py.jinja").render(
-                name_pattern=name_pattern,
-                output_filepath=output_file.relative_to_container,
-            )
-        )
-        with output_file.open("r") as file:
-            rows = json.load(file)
-        output_file.unlink()
-        logger.debug(f"MySQL roles found for {name_pattern=}: {len(rows)}")
-        return set(rows)
 
     def get_mysql_router_user_for_unit(
         self, unit_name: str
