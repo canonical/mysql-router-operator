@@ -16,7 +16,7 @@ from .juju_ import is_3_or_higher, run_action
 
 logger = logging.getLogger(__name__)
 
-CONTINUOUS_WRITES_DATABASE_NAME = "continuous_writes_database"
+CONTINUOUS_WRITES_DATABASE_NAME = "continuous_writes"
 CONTINUOUS_WRITES_TABLE_NAME = "data"
 
 MYSQL_DEFAULT_APP_NAME = "mysql"
