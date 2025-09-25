@@ -61,6 +61,10 @@ def patch(monkeypatch):
     monkeypatch.setattr("common.workload.RunningWorkload._router_username", "")
     monkeypatch.setattr("common.mysql_shell.Shell._run_code", lambda *args, **kwargs: None)
     monkeypatch.setattr(
+        "common.mysql_shell.Shell._get_mysql_databases", lambda *args, **kwargs: set()
+    )
+    monkeypatch.setattr("common.mysql_shell.Shell._get_mysql_roles", lambda *args, **kwargs: set())
+    monkeypatch.setattr(
         "common.mysql_shell.Shell.get_mysql_router_user_for_unit", lambda *args, **kwargs: None
     )
     monkeypatch.setattr(

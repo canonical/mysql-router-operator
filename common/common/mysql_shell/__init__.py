@@ -19,6 +19,10 @@ from .. import container, server_exceptions, utils
 if typing.TYPE_CHECKING:
     from ..relations import database_requires
 
+_ROLE_DML = "charmed_dml"
+_ROLE_READ = "charmed_read"
+_ROLE_MAX_LENGTH = 32
+
 logger = logging.getLogger(__name__)
 
 
@@ -123,18 +127,97 @@ class Shell:
             attributes.update(additional_attributes)
         return json.dumps(attributes)
 
-    def create_application_database_and_user(self, *, username: str, database: str) -> str:
-        """Create database and user for related database_provides application."""
+    # TODO python3.10 min version: Use `set` instead of `typing.Set`
+    def _get_mysql_databases(self) -> typing.Set[str]:
+        """Returns a set with the MySQL databases."""
+        logger.debug(f"Getting MySQL databases")
+        output_file = self._container.path("/tmp/mysqlsh_output.json")
+        self._run_code(
+            _jinja_env.get_template("get_mysql_databases.py.jinja").render(
+                output_filepath=output_file.relative_to_container,
+            )
+        )
+        with output_file.open("r") as file:
+            rows = json.load(file)
+        output_file.unlink()
+        logger.debug(f"MySQL databases found: {len(rows)}")
+        return {row[0] for row in rows}
+
+    # TODO python3.10 min version: Use `set` instead of `typing.Set`
+    def _get_mysql_roles(self, name_pattern: str) -> typing.Set[str]:
+        """Returns a set with the MySQL roles."""
+        logger.debug(f"Getting MySQL roles with {name_pattern=}")
+        output_file = self._container.path("/tmp/mysqlsh_output.json")
+        self._run_code(
+            _jinja_env.get_template("get_mysql_roles_with_pattern.py.jinja").render(
+                name_pattern=name_pattern,
+                output_filepath=output_file.relative_to_container,
+            )
+        )
+        with output_file.open("r") as file:
+            rows = json.load(file)
+        output_file.unlink()
+        logger.debug(f"MySQL roles found for {name_pattern=}: {len(rows)}")
+        return {row[0] for row in rows}
+
+    def _build_application_database_dba_role(self, database: str) -> str:
+        """Builds the database-level DBA role, given length constraints."""
+        role_prefix = "charmed_dba"
+        role_suffix = "XX"
+
+        role_name_available = _ROLE_MAX_LENGTH - len(role_prefix) - len(role_suffix) - 2
+        role_name_description = database[:role_name_available]
+        role_name_collisions = self._get_mysql_roles(f"{role_prefix}_{role_name_description}_%")
+
+        return "_".join((
+            role_prefix,
+            role_name_description,
+            str(len(role_name_collisions)).zfill(len(role_suffix)),
+        ))
+
+    def _create_application_database(self, *, database: str) -> None:
+        """Create database for related database_provides application."""
+        if database in self._get_mysql_databases():
+            return
+
+        role_name = self._build_application_database_dba_role(database)
+        statements = [
+            f"CREATE ROLE `{role_name}`",
+            f"CREATE DATABASE `{database}`",
+            f"GRANT SELECT, INSERT, DELETE, UPDATE, EXECUTE ON `{database}`.* TO {role_name}",
+            f"GRANT ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE VIEW, DROP, INDEX, LOCK TABLES, REFERENCES, TRIGGER ON `{database}`.* TO {role_name}",
+        ]
+
+        mysql_roles = self._get_mysql_roles("charmed_%")
+        if _ROLE_READ in mysql_roles:
+            statements.append(
+                f"GRANT SELECT ON `{database}`.* TO {_ROLE_READ}",
+            )
+        if _ROLE_DML in mysql_roles:
+            statements.append(
+                f"GRANT SELECT, INSERT, DELETE, UPDATE ON `{database}`.* TO {_ROLE_DML}",
+            )
+
+        logger.debug(f"Creating {database=}")
+        self._run_sql(statements)
+        logger.debug(f"Created {database=}")
+
+    def _create_application_user(self, *, database: str, username: str) -> str:
+        """Create database user for related database_provides application."""
         attributes = self._get_attributes()
-        logger.debug(f"Creating {database=} and {username=} with {attributes=}")
         password = utils.generate_password()
+        logger.debug(f"Creating {username=} with {attributes=}")
         self._run_sql([
-            f"CREATE DATABASE IF NOT EXISTS `{database}`",
             f"CREATE USER `{username}` IDENTIFIED BY '{password}' ATTRIBUTE '{attributes}'",
             f"GRANT ALL PRIVILEGES ON `{database}`.* TO `{username}`",
         ])
-        logger.debug(f"Created {database=} and {username=} with {attributes=}")
+        logger.debug(f"Created {username=} with {attributes=}")
         return password
+
+    def create_application_database(self, *, database: str, username: str) -> str:
+        """Create both the database and the relation user, returning its password."""
+        self._create_application_database(database=database)
+        return self._create_application_user(database=database, username=username)
 
     def add_attributes_to_mysql_router_user(
         self, *, username: str, router_id: str, unit_name: str

@@ -1,0 +1,10 @@
+import json
+
+result = session.run_sql("SHOW DATABASES")
+rows = result.fetch_all()
+# mysqlsh objects are weird—they quack (i.e. duck typing) like standard Python objects (e.g. list,
+# dict), but do not serialize to JSON correctly.
+# Cast to str & load from JSON str before serializing
+rows = json.loads(str(rows))
+with open("{{ output_filepath }}", "w") as file:
+    json.dump(rows, file)

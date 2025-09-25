@@ -147,8 +147,9 @@ class _RelationThatRequestedUser(_UnitThatNeedsUser):
         shell.delete_user(self._username, must_exist=False)
         logger.debug("Deleted user if exists before creating user")
 
-        password = shell.create_application_database_and_user(
-            username=self._username, database=self._database
+        password = shell.create_application_database(
+            database=self._database,
+            username=self._username,
         )
         self._peer_app_databag[self.peer_databag_password_key] = password
         self.set_databag(password=password)
