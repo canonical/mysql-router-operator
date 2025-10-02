@@ -9,3 +9,6 @@ build/
 coverage.xml
 __pycache__/
 *.py[cod]
+
+.terraform
+.terraform.lock.hcl
