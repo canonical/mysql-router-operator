@@ -1,5 +1,5 @@
-variable "model_name" {
-  description = "Name of the juju model to deploy to"
+variable "model" {
+  description = "UUID of the juju model to deploy to"
   type        = string
 }
 
@@ -24,7 +24,7 @@ variable "config" {
 variable "constraints" {
   description = "Juju constraints for the application"
   type        = string
-  default     = "arch=amd64"
+  default     = null
 }
 
 variable "channel" {
