@@ -4,7 +4,6 @@
 """Relation databag for remote application"""
 
 import logging
-import typing
 
 import ops
 
@@ -28,10 +27,7 @@ class RemoteDatabag(dict):
 
     def __init__(
         self,
-        # TODO python3.10 min version: Use `|` instead of `typing.Union`
-        interface: typing.Union[
-            data_interfaces.DatabaseRequires, data_interfaces.DatabaseProvides
-        ],
+        interface: data_interfaces.DatabaseRequires | data_interfaces.DatabaseProvides,
         relation: ops.Relation,
     ) -> None:
         super().__init__(interface.fetch_relation_data()[relation.id])

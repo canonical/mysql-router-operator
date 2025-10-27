@@ -6,9 +6,9 @@
 https://juju.is/docs/sdk/a-charms-life
 """
 
+import collections.abc
 import enum
 import logging
-import typing
 
 import ops
 
@@ -37,7 +37,7 @@ class Unit(ops.Object):
     def __init__(
         self,
         charm: ops.CharmBase,
-        subordinated_relation_endpoint_names: typing.Optional[typing.Iterable[str]],
+        subordinated_relation_endpoint_names: collections.abc.Collection[str] | None,
     ):
         """Unit lifecycle
 

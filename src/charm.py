@@ -12,10 +12,10 @@ import ops
 if common.architecture.is_wrong_architecture() and __name__ == "__main__":
     ops.main.main(common.architecture.WrongArchitectureWarningCharm)
 
+import collections.abc
 import dataclasses
 import logging
 import socket
-import typing
 
 import charm_refresh
 import common.abstract_charm
@@ -115,7 +115,7 @@ class MachineSubordinateRouterCharm(common.abstract_charm.MySQLRouterCharm):
             self._reconcile_allowed = True
 
     @property
-    def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
+    def _subordinate_relation_endpoint_names(self) -> collections.abc.Collection[str] | None:
         return (
             "database",
             "shared-db",  # DEPRECATED shared-db
@@ -125,7 +125,7 @@ class MachineSubordinateRouterCharm(common.abstract_charm.MySQLRouterCharm):
     def _container(self) -> snap.Snap:
         return snap.Snap(unit_name=self.unit.name)
 
-    def _status(self, *, event) -> typing.Optional[ops.StatusBase]:
+    def _status(self, *, event) -> ops.StatusBase | None:
         pass
 
     @property
@@ -133,16 +133,16 @@ class MachineSubordinateRouterCharm(common.abstract_charm.MySQLRouterCharm):
         return machine_logrotate.LogRotate(container_=self._container)
 
     @property
-    def _cos_relation_type(self) -> typing.Type[common.relations.cos.COSRelation]:
+    def _cos_relation_type(self) -> type[common.relations.cos.COSRelation]:
         return relations.machines_cos.COSRelation
 
-    def tls_sans_ip(self, *, event) -> typing.Optional[typing.List[str]]:
+    def tls_sans_ip(self, *, event) -> list[str] | None:
         sans_ip = ["127.0.0.1"]  # needed for the HTTP server when related with COS
         if self.is_externally_accessible(event=event):
             sans_ip.append(self.host_address)
         return sans_ip
 
-    def tls_sans_dns(self, *, event) -> typing.Optional[typing.List[str]]:
+    def tls_sans_dns(self, *, event) -> list[str] | None:
         return None
 
     @property
@@ -169,7 +169,7 @@ class MachineSubordinateRouterCharm(common.abstract_charm.MySQLRouterCharm):
         else:
             return f"file://{self._container.path('/run/mysqlrouter/mysqlro.sock')}"
 
-    def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
+    def is_externally_accessible(self, *, event) -> bool | None:
         return self._database_provides.external_connectivity(event)
 
     def _reconcile_service(self) -> None:

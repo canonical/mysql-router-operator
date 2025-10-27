@@ -113,7 +113,7 @@ class RelationEndpoint:
         charm_.framework.observe(self._interface.on.database_created, charm_.reconcile)
         charm_.framework.observe(self._interface.on.endpoints_changed, charm_.reconcile)
 
-    def get_connection_info(self, *, event) -> typing.Optional[CompleteConnectionInformation]:
+    def get_connection_info(self, *, event) -> CompleteConnectionInformation | None:
         """Information for connection to MySQL cluster"""
         try:
             return CompleteConnectionInformation(interface=self._interface, event=event)
@@ -130,7 +130,7 @@ class RelationEndpoint:
             pass
         return False
 
-    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+    def get_status(self, event) -> ops.StatusBase | None:
         """Report non-active status."""
         try:
             CompleteConnectionInformation(interface=self._interface, event=event)

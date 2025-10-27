@@ -28,8 +28,8 @@ class RelationSecrets:
         self,
         charm: "abstract_charm.MySQLRouterCharm",
         relation_name: str,
-        app_secret_fields: typing.List[str] = [],
-        unit_secret_fields: typing.List[str] = [],
+        app_secret_fields: list[str] = [],
+        unit_secret_fields: list[str] = [],
     ) -> None:
         self._charm = charm
         self._relation_name = relation_name
@@ -54,7 +54,7 @@ class RelationSecrets:
         elif scope == UNIT_SCOPE:
             return self._peer_relation_unit
 
-    def get_value(self, scope: Scopes, key: str) -> typing.Optional[str]:
+    def get_value(self, scope: Scopes, key: str) -> str | None:
         """Get secret from the secret storage."""
         if scope not in typing.get_args(Scopes):
             raise ValueError("Unknown secret scope")
@@ -62,9 +62,7 @@ class RelationSecrets:
         peers = self._charm.model.get_relation(self._relation_name)
         return self._peer_relation_data(scope).fetch_my_relation_field(peers.id, key)
 
-    def set_value(
-        self, scope: Scopes, key: str, value: typing.Optional[str]
-    ) -> typing.Optional[str]:
+    def set_value(self, scope: Scopes, key: str, value: str | None) -> str | None:
         """Set secret from the secret storage."""
         if scope not in typing.get_args(Scopes):
             raise ValueError("Unknown secret scope")

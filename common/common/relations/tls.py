@@ -177,7 +177,7 @@ class RelationEndpoint(ops.Object):
         )
 
     @property
-    def _relation(self) -> typing.Optional[_Relation]:
+    def _relation(self) -> _Relation | None:
         if not self._charm.model.get_relation(self.NAME):
             return
         return _Relation(
@@ -194,21 +194,21 @@ class RelationEndpoint(ops.Object):
         return self._relation.certificate_saved
 
     @property
-    def key(self) -> typing.Optional[str]:
+    def key(self) -> str | None:
         """The TLS private key"""
         if self._relation is None:
             return None
         return self._relation.key
 
     @property
-    def certificate(self) -> typing.Optional[str]:
+    def certificate(self) -> str | None:
         """The TLS certificate"""
         if self._relation is None:
             return None
         return self._relation.certificate
 
     @property
-    def certificate_authority(self) -> typing.Optional[str]:
+    def certificate_authority(self) -> str | None:
         """The TLS certificate authority"""
         if self._relation is None:
             return None

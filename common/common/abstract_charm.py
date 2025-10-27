@@ -4,9 +4,9 @@
 """MySQL Router charm"""
 
 import abc
+import collections.abc
 import dataclasses
 import logging
-import typing
 
 import charm_refresh
 import ops
@@ -99,7 +99,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @property
     @abc.abstractmethod
-    def _subordinate_relation_endpoint_names(self) -> typing.Optional[typing.Iterable[str]]:
+    def _subordinate_relation_endpoint_names(self) -> collections.abc.Collection[str] | None:
         """Subordinate relation endpoint names
 
         Does NOT include relations where charm is principal
@@ -117,7 +117,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
 
     @property
     @abc.abstractmethod
-    def _cos_relation_type(self) -> typing.Type[cos.COSRelation]:
+    def _cos_relation_type(self) -> type[cos.COSRelation]:
         """COSRelation type"""
 
     @abc.abstractmethod
@@ -129,22 +129,22 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         """MySQL Router read-only endpoint"""
 
     @abc.abstractmethod
-    def is_externally_accessible(self, *, event) -> typing.Optional[bool]:
+    def is_externally_accessible(self, *, event) -> bool | None:
         """Whether endpoints should be externally accessible.
 
         Only defined in vm charm to return True/False. In k8s charm, returns None.
         """
 
     @abc.abstractmethod
-    def tls_sans_ip(self, *, event) -> typing.Optional[typing.List[str]]:
+    def tls_sans_ip(self, *, event) -> list[str] | None:
         """TLS IP subject alternative names"""
 
     @abc.abstractmethod
-    def tls_sans_dns(self, *, event) -> typing.Optional[typing.List[str]]:
+    def tls_sans_dns(self, *, event) -> list[str] | None:
         """TLS DNS subject alternative names"""
 
     @abc.abstractmethod
-    def _status(self, *, event) -> typing.Optional[ops.StatusBase]:
+    def _status(self, *, event) -> ops.StatusBase | None:
         """Status of the charm."""
 
     @property
@@ -153,26 +153,26 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         return self.tls.certificate_saved
 
     @property
-    def _tls_key(self) -> typing.Optional[str]:
+    def _tls_key(self) -> str | None:
         """Custom TLS key"""
         return self.tls.key
 
     @property
-    def _tls_certificate_authority(self) -> typing.Optional[str]:
+    def _tls_certificate_authority(self) -> str | None:
         """Custom TLS certificate authority"""
         return self.tls.certificate_authority
 
     @property
-    def _tls_certificate(self) -> typing.Optional[str]:
+    def _tls_certificate(self) -> str | None:
         """Custom TLS certificate"""
         return self.tls.certificate
 
     @property
-    def tracing_endpoint(self) -> typing.Optional[str]:
+    def tracing_endpoint(self) -> str | None:
         """Otlp http endpoint for charm instrumentation."""
         return self._cos_relation.tracing_endpoint
 
-    def _cos_exporter_config(self, event) -> typing.Optional[cos.ExporterConfig]:
+    def _cos_exporter_config(self, event) -> cos.ExporterConfig | None:
         """Returns the exporter config for MySQLRouter exporter if cos relation exists"""
         cos_relation_exists = (
             self._cos_relation.relation_exists
@@ -203,8 +203,7 @@ class MySQLRouterCharm(ops.CharmBase, abc.ABC):
         )
 
     @staticmethod
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _prioritize_statuses(statuses: typing.List[ops.StatusBase]) -> ops.StatusBase:
+    def _prioritize_statuses(statuses: list[ops.StatusBase]) -> ops.StatusBase:
         """Report the highest priority status.
 
         (Statuses of the same type are reported in the order they were added to `statuses`)

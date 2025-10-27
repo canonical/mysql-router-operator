@@ -6,7 +6,6 @@ import json
 import logging
 from hashlib import shake_128
 from ipaddress import IPv4Address, ip_address
-from typing import Optional
 
 import ops
 
@@ -24,7 +23,7 @@ class HACluster(ops.Object):
         self.charm = charm
 
     @property
-    def relation(self) -> Optional[ops.Relation]:
+    def relation(self) -> ops.Relation | None:
         """Returns the relations in this model, or None if hacluster is not initialised."""
         return self.charm.model.get_relation(HACLUSTER_RELATION_NAME)
 
@@ -54,7 +53,7 @@ class HACluster(ops.Object):
         if vip and not self.charm.is_externally_accessible(event=None):
             return ops.BlockedStatus("vip configuration without data-integrator")
 
-    def set_vip(self, vip: Optional[str]) -> None:
+    def set_vip(self, vip: str | None) -> None:
         """Adds the requested virtual IP to the integration."""
         if not self.relation:
             return

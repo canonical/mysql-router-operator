@@ -86,7 +86,7 @@ class RelationEndpoint:
         self._database_provides.delete_all_databags()
         self._deprecated_shared_db.delete_all_databags()
 
-    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+    def get_status(self, event) -> ops.StatusBase | None:
         """Report non-active status."""
         database_provides_status = self._database_provides.get_status(event)
         deprecated_shared_db_status = self._deprecated_shared_db.get_status(event)

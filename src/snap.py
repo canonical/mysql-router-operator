@@ -312,12 +312,11 @@ class Snap(common.container.Container):
             refresh.update_snap_revision()
         logger.info(f"Refreshed snap to revision {repr(snap_revision)}")
 
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _run_command(
         self,
-        command: typing.List[str],
+        command: list[str],
         *,
-        timeout: typing.Optional[int] = 30,
+        timeout: int | None = 30,
         input: str = None,  # noqa: A002 Match subprocess.run()
     ) -> str:
         try:

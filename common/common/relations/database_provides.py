@@ -191,8 +191,7 @@ class RelationEndpoint:
         charm_.framework.observe(self._interface.on.database_requested, charm_.reconcile)
 
     @property
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _shared_users(self) -> typing.List[_RelationWithSharedUser]:
+    def _shared_users(self) -> list[_RelationWithSharedUser]:
         shared_users = []
         for relation in self._interface.relations:
             try:
@@ -297,15 +296,14 @@ class RelationEndpoint:
             relation.delete_databag()
         logger.debug("Deleted all application databags")
 
-    def get_status(self, event) -> typing.Optional[ops.StatusBase]:
+    def get_status(self, event) -> ops.StatusBase | None:
         """Report non-active status."""
         requested_users = []
         exception_reporting_priority = (
             _UnsupportedExtraUserRole,
             remote_databag.IncompleteDatabag,
         )
-        # TODO python3.10 min version: Use `list` instead of `typing.List`
-        exceptions: typing.List[status_exception.StatusException] = []
+        exceptions: list[status_exception.StatusException] = []
         for relation in self._interface.relations:
             try:
                 requested_users.append(

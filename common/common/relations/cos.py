@@ -71,7 +71,7 @@ class COSRelation(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def tracing_endpoint(self) -> typing.Optional[str]:
+    def tracing_endpoint(self) -> str | None:
         """The tracing endpoint."""
 
     def get_monitoring_password(self) -> str:

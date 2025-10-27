@@ -77,13 +77,13 @@ log_cli_level = "INFO"
 [tool.ruff]
 # preview and explicit preview are enabled for CPY001
 preview = true
-target-version = "py38"
+target-version = "py310"
 src = ["src", "."]
 line-length = 99
 
 [tool.ruff.lint]
 explicit-preview-rules = true
-select = ["A", "E", "W", "F", "C", "N", "D", "I", "CPY001"]
+select = ["A", "E", "W", "F", "C", "N", "D", "I", "CPY001", "UP"]
 ignore = [
     # Missing docstring in public method (pydocstyle doesn't look for docstrings in super class
     # https://github.com/PyCQA/pydocstyle/issues/309) TODO: add pylint check? https://github.com/PyCQA/pydocstyle/issues/309#issuecomment-1284142716

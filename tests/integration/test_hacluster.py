@@ -5,7 +5,6 @@
 import asyncio
 import logging
 import subprocess
-import typing
 
 import pytest
 import tenacity
@@ -46,7 +45,7 @@ vip = None
 
 
 async def ensure_database_accessible_from_vip(
-    ops_test: OpsTest, avoid_unit: typing.Optional[str] = None
+    ops_test: OpsTest, avoid_unit: str | None = None
 ) -> None:
     """Ensure that the database is access from the VIP."""
     logger.info("Ensure database accessible via VIP")

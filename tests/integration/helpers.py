@@ -5,7 +5,6 @@ import itertools
 import logging
 import subprocess
 import tempfile
-from typing import Dict, List, Optional
 
 import tenacity
 from juju.unit import Unit
@@ -24,7 +23,7 @@ MYSQL_ROUTER_DEFAULT_APP_NAME = "mysql-router"
 APPLICATION_DEFAULT_APP_NAME = "mysql-test-app"
 
 
-async def get_server_config_credentials(unit: Unit) -> Dict:
+async def get_server_config_credentials(unit: Unit) -> dict:
     """Helper to run an action to retrieve server config credentials from mysql unit.
 
     Must be run with a mysql unit.
@@ -38,7 +37,7 @@ async def get_server_config_credentials(unit: Unit) -> Dict:
     return await run_action(unit, "get-password", username="serverconfig")
 
 
-async def get_inserted_data_by_application(unit: Unit) -> Optional[str]:
+async def get_inserted_data_by_application(unit: Unit) -> str | None:
     """Helper to run an action to retrieve inserted data by the application.
 
     Args:
@@ -54,10 +53,10 @@ async def execute_queries_against_unit(
     unit_address: str,
     username: str,
     password: str,
-    queries: List[str],
+    queries: list[str],
     port: int = 3306,
     commit: bool = False,
-) -> List:
+) -> list:
     """Execute given MySQL queries on a unit.
 
     Args:
@@ -236,9 +235,9 @@ async def stop_running_flush_mysqlrouter_cronjobs(ops_test: OpsTest, unit_name: 
 async def get_tls_certificate_issuer(
     ops_test: OpsTest,
     unit_name: str,
-    socket: Optional[str] = None,
-    host: Optional[str] = None,
-    port: Optional[int] = None,
+    socket: str | None = None,
+    host: str | None = None,
+    port: int | None = None,
 ) -> str:
     connect_args = f"-unix {socket}" if socket else f"-connect {host}:{port}"
     get_tls_certificate_issuer_commands = [
@@ -349,7 +348,7 @@ async def get_max_written_value_in_database(
 
 
 async def ensure_all_units_continuous_writes_incrementing(
-    ops_test: OpsTest, mysql_units: Optional[List[Unit]] = None
+    ops_test: OpsTest, mysql_units: list[Unit] | None = None
 ) -> None:
     """Ensure that continuous writes is incrementing on all units.
 
@@ -419,8 +418,8 @@ def get_juju_status(model_name: str) -> str:
 
 
 async def get_data_integrator_credentials(
-    ops_test: OpsTest, data_integrator_app_name: str, avoid_unit: Optional[str] = None
-) -> Dict:
+    ops_test: OpsTest, data_integrator_app_name: str, avoid_unit: str | None = None
+) -> dict:
     """Helper to get the credentials from the deployed data integrator"""
     for unit in ops_test.model.applications[data_integrator_app_name].units:
         if unit.name != avoid_unit:

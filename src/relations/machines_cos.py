@@ -43,5 +43,5 @@ class COSRelation(common.relations.cos.COSRelation):
         self._tracing_endpoint, _ = charm_tracing_config(self._interface, None)
 
     @property
-    def tracing_endpoint(self) -> typing.Optional[str]:
+    def tracing_endpoint(self) -> str | None:
         return self._tracing_endpoint

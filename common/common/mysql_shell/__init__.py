@@ -26,8 +26,7 @@ _ROLE_MAX_LENGTH = 32
 logger = logging.getLogger(__name__)
 
 
-# TODO python3.10 min version: Add `(kw_only=True)`
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class RouterUserInformation:
     """MySQL Router user information"""
 
@@ -49,8 +48,7 @@ class ShellDBError(Exception):
         self.traceback_message = traceback_message
 
 
-# TODO python3.10 min version: Add `(kw_only=True)`
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class Shell:
     """MySQL Shell connected to MySQL cluster"""
 
@@ -109,8 +107,7 @@ class Shell:
                 )
                 raise
 
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def _run_sql(self, sql_statements: typing.List[str]) -> None:
+    def _run_sql(self, sql_statements: list[str]) -> None:
         """Connect to MySQL cluster and execute SQL."""
         self._run_code(
             _jinja_env.get_template("run_sql.py.jinja").render(statements=sql_statements)
@@ -127,10 +124,9 @@ class Shell:
             attributes.update(additional_attributes)
         return json.dumps(attributes)
 
-    # TODO python3.10 min version: Use `set` instead of `typing.Set`
-    def _get_mysql_databases(self) -> typing.Set[str]:
+    def _get_mysql_databases(self) -> set[str]:
         """Returns a set with the MySQL databases."""
-        logger.debug(f"Getting MySQL databases")
+        logger.debug("Getting MySQL databases")
         output_file = self._container.path("/tmp/mysqlsh_output.json")
         self._run_code(
             _jinja_env.get_template("get_mysql_databases.py.jinja").render(
@@ -143,8 +139,7 @@ class Shell:
         logger.debug(f"MySQL databases found: {len(rows)}")
         return {row[0] for row in rows}
 
-    # TODO python3.10 min version: Use `set` instead of `typing.Set`
-    def _get_mysql_roles(self, name_pattern: str) -> typing.Set[str]:
+    def _get_mysql_roles(self, name_pattern: str) -> set[str]:
         """Returns a set with the MySQL roles."""
         logger.debug(f"Getting MySQL roles with {name_pattern=}")
         output_file = self._container.path("/tmp/mysqlsh_output.json")
@@ -231,9 +226,7 @@ class Shell:
         self._run_sql([f"ALTER USER `{username}` ATTRIBUTE '{attributes}'"])
         logger.debug(f"Added {attributes=} to {username=}")
 
-    def get_mysql_router_user_for_unit(
-        self, unit_name: str
-    ) -> typing.Optional[RouterUserInformation]:
+    def get_mysql_router_user_for_unit(self, unit_name: str) -> RouterUserInformation | None:
         """Get MySQL Router user created by a previous instance of the unit.
 
         Get username & router ID attribute.

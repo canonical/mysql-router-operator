@@ -120,7 +120,7 @@ class Workload:
         return config_string
 
     @property
-    def _custom_certificate(self) -> typing.Optional[str]:
+    def _custom_certificate(self) -> str | None:
         """Whether custom TLS certs are enabled for MySQL Router"""
         if self._tls_key_file.exists() and self._tls_certificate_file.exists():
             return self._tls_certificate_file.read_text()
@@ -197,7 +197,7 @@ class Workload:
         self._disable_tls()
 
     @property
-    def status(self) -> typing.Optional[ops.StatusBase]:
+    def status(self) -> ops.StatusBase | None:
         """Report non-active status."""
         if not self.container_ready:
             return ops.MaintenanceStatus("Waiting for container")
@@ -249,10 +249,9 @@ class RunningWorkload(Workload):
             self.shell.delete_user(user_info.username)
             logger.debug("Cleaned up after refresh or container restart")
 
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _get_bootstrap_command(
         self, *, event, connection_info: "database_requires.ConnectionInformation"
-    ) -> typing.List[str]:
+    ) -> list[str]:
         return [
             "--bootstrap",
             connection_info.username
@@ -433,7 +432,7 @@ class RunningWorkload(Workload):
             self._disable_exporter()
 
     @property
-    def status(self) -> typing.Optional[ops.StatusBase]:
+    def status(self) -> ops.StatusBase | None:
         """Report non-active status."""
         if status := super().status:
             return status

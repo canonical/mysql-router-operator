@@ -55,10 +55,7 @@ class Path(pathlib.PurePosixPath, abc.ABC):
 class CalledProcessError(subprocess.CalledProcessError):
     """Command returned non-zero exit code"""
 
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def __init__(
-        self, *, returncode: int, cmd: typing.List[str], output: str, stderr: str
-    ) -> None:
+    def __init__(self, *, returncode: int, cmd: list[str], output: str, stderr: str) -> None:
         super().__init__(returncode=returncode, cmd=cmd, output=output, stderr=stderr)
 
 
@@ -201,12 +198,11 @@ class Container(abc.ABC):
         """
 
     @abc.abstractmethod
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
     def _run_command(
         self,
-        command: typing.List[str],
+        command: list[str],
         *,
-        timeout: typing.Optional[int],
+        timeout: int | None,
         input: str = None,  # noqa: A002 Match subprocess.run()
     ) -> str:
         """Run command in container.
@@ -215,8 +211,7 @@ class Container(abc.ABC):
             CalledProcessError: Command returns non-zero exit code
         """
 
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
-    def run_mysql_router(self, args: typing.List[str], *, timeout: int = None) -> str:
+    def run_mysql_router(self, args: list[str], *, timeout: int = None) -> str:
         """Run MySQL Router command.
 
         Raises:
@@ -225,10 +220,9 @@ class Container(abc.ABC):
         args.insert(0, self._mysql_router_command)
         return self._run_command(args, timeout=timeout)
 
-    # TODO python3.10 min version: Use `list` instead of `typing.List`
     def run_mysql_shell(
         self,
-        args: typing.List[str],
+        args: list[str],
         *,
         timeout: int = None,
         input: str = None,  # noqa: A002 Match subprocess.run()
@@ -251,9 +245,7 @@ class Container(abc.ABC):
             # create empty credentials file
             self.rest_api_credentials_file.write_text("")
 
-    def set_mysql_router_rest_api_password(
-        self, *, user: str, password: typing.Optional[str]
-    ) -> None:
+    def set_mysql_router_rest_api_password(self, *, user: str, password: str | None) -> None:
         """Set REST API credentials using the mysqlrouter_password command."""
         self.create_router_rest_api_credentials_file()
 

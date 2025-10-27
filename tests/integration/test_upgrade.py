@@ -6,7 +6,6 @@ import logging
 import os
 import pathlib
 import shutil
-import typing
 import zipfile
 
 import pytest
@@ -203,7 +202,7 @@ async def test_fail_and_rollback(ops_test: OpsTest, charm, continuous_writes) ->
     os.remove(temporary_charm)
 
 
-def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> None:
+def create_valid_upgrade_charm(charm_file: str | pathlib.Path) -> None:
     """Create a valid mysql router charm for upgrade.
 
     Upgrades require a new snap revision to avoid no-oping.
@@ -222,7 +221,7 @@ def create_valid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> N
         charm_zip.writestr("refresh_versions.toml", tomli_w.dumps(versions))
 
 
-def create_invalid_upgrade_charm(charm_file: typing.Union[str, pathlib.Path]) -> None:
+def create_invalid_upgrade_charm(charm_file: str | pathlib.Path) -> None:
     """Create an invalid mysql router charm for upgrade."""
     with zipfile.ZipFile(charm_file, mode="r") as charm_zip:
         with zipfile.Path(charm_zip, "refresh_versions.toml").open("rb") as file:
