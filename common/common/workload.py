@@ -132,7 +132,7 @@ class Workload:
             user=self._cos.MONITORING_USERNAME,
             password=None,
         )
-        self._cos._reset_monitoring_password()
+        self._cos.reset_monitoring_password()
         logger.debug("Cleaned router REST API user for mysqlrouter exporter")
 
     def _disable_exporter(self) -> None:
