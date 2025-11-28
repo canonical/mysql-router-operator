@@ -29,12 +29,14 @@ TEST_TABLE = "testtable"
 
 if juju_.is_3_or_higher:
     tls_app_name = "self-signed-certificates"
-    tls_channel = "latest/edge" if architecture.architecture == "arm64" else "latest/stable"
+    tls_channel = "1/stable"
     tls_config = {"ca-common-name": "Test CA"}
+    tls_series = "noble"
 else:
     tls_app_name = "tls-certificates-operator"
     tls_channel = "legacy/edge" if architecture.architecture == "arm64" else "legacy/stable"
     tls_config = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
+    tls_series = "jammy"
 
 
 @pytest.mark.abort_on_fail
@@ -59,7 +61,11 @@ async def test_external_connectivity_with_data_integrator(
                 series=series,
             ),
             ops_test.model.deploy(
-                tls_app_name, application_name=tls_app_name, channel=tls_channel, config=tls_config
+                tls_app_name,
+                application_name=tls_app_name,
+                channel=tls_channel,
+                config=tls_config,
+                series=tls_series,
             ),
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,
