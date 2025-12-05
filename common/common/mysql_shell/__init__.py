@@ -179,8 +179,8 @@ class Shell:
         statements = [
             f"CREATE ROLE `{role_name}`",
             f"CREATE DATABASE `{database}`",
-            f"GRANT SELECT, INSERT, DELETE, UPDATE, EXECUTE ON `{database}`.* TO {role_name}",
-            f"GRANT ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE VIEW, DROP, INDEX, LOCK TABLES, REFERENCES, TRIGGER ON `{database}`.* TO {role_name}",
+            f"GRANT SELECT, INSERT, DELETE, UPDATE, EXECUTE ON `{database}`.* TO `{role_name}`",
+            f"GRANT ALTER, ALTER ROUTINE, CREATE, CREATE ROUTINE, CREATE VIEW, DROP, INDEX, LOCK TABLES, REFERENCES, TRIGGER ON `{database}`.* TO `{role_name}`",
         ]
 
         mysql_roles = self._get_mysql_roles("charmed_%")
