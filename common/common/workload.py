@@ -404,6 +404,11 @@ class RunningWorkload(Workload):
         is_charm_exposed = self._charm.is_externally_accessible(event=event)
         socket_file_exists = self._container.path("/run/mysqlrouter/mysql.sock").exists()
         require_rebootstrap = is_charm_exposed == socket_file_exists
+        # If the router is not in the cluster set, disable to restart it
+        # This can happen when the server is scaled to zero and back
+        require_rebootstrap = require_rebootstrap or not self.shell.is_router_in_cluster_set(
+            self._router_id
+        )
         if require_rebootstrap:
             self._disable_router()
 
@@ -436,14 +441,6 @@ class RunningWorkload(Workload):
         """Report non-active status."""
         if status := super().status:
             return status
-        if not self.shell.is_router_in_cluster_set(self._router_id):
-            # Router should not be removed from ClusterSet after bootstrap (except by MySQL charm
-            # when MySQL Router unit departs relation).
-            # If Router is not part of ClusterSet after bootstrap, it most likely was manually
-            # removed.
-            return ops.BlockedStatus(
-                "Router was manually removed from MySQL ClusterSet. Remove & re-deploy unit"
-            )
 
     def refresh(
         self,
