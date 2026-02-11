@@ -21,6 +21,7 @@ import charm_refresh
 import common.abstract_charm
 import common.logrotate
 import common.relations.cos
+import common.relations.database_provides
 import common.relations.database_requires
 import common.relations.tls
 import common.workload
@@ -30,7 +31,6 @@ from charms.tempo_coordinator_k8s.v0.charm_tracing import trace_charm
 
 import machine_logrotate
 import machine_workload
-import relations.database_providers_wrapper
 import relations.hacluster
 import relations.machines_cos
 import snap
@@ -69,11 +69,11 @@ class _MachinesRouterRefresh(
     extra_types=(
         common.logrotate.LogRotate,
         common.workload.Workload,
+        common.relations.database_provides.RelationEndpoint,
         common.relations.database_requires.RelationEndpoint,
         common.relations.tls.RelationEndpoint,
         machine_workload.RunningMachineWorkload,
         relations.machines_cos.COSRelation,
-        relations.database_providers_wrapper.RelationEndpoint,
         snap.Snap,
     ),
 )
@@ -88,10 +88,6 @@ class MachineSubordinateRouterCharm(common.abstract_charm.MySQLRouterCharm):
             if isinstance(handler, ops.log.JujuLogHandler):
                 handler.setFormatter(logging.Formatter("{name}:{message}", style="{"))
 
-        # DEPRECATED shared-db: Enable legacy "mysql-shared" interface
-        self._database_provides = relations.database_providers_wrapper.RelationEndpoint(
-            self, self._database_provides
-        )
         self._running_workload_type = machine_workload.RunningMachineWorkload
         self._ha_cluster = relations.hacluster.HACluster(self)
         try:
@@ -116,10 +112,7 @@ class MachineSubordinateRouterCharm(common.abstract_charm.MySQLRouterCharm):
 
     @property
     def _subordinate_relation_endpoint_names(self) -> collections.abc.Collection[str] | None:
-        return (
-            "database",
-            "shared-db",  # DEPRECATED shared-db
-        )
+        return ["database"]
 
     @property
     def _container(self) -> snap.Snap:

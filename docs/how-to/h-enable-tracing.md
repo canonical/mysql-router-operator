@@ -128,7 +128,6 @@ Machine  State    Address        Inst id        Base          AZ  Message
 Integration provider                           Requirer                                       Interface                    Type         Message
 mysql-router:cos                               mysql-router:cos                               cos                          peer         
 mysql-router:database                          mysql-test-app:database                        mysql_client                 subordinate  
-mysql-router:deprecated-shared-db-credentials  mysql-router:deprecated-shared-db-credentials  _deprecated_shared_db_peers  peer         
 mysql-router:tls                               mysql-router:tls                               tls                          peer         
 mysql-router:upgrade-version-a                 mysql-router:upgrade-version-a                 upgrade                      peer         
 mysql-test-app:application-peers               mysql-test-app:application-peers               application-peers            peer         
