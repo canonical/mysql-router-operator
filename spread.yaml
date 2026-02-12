@@ -95,8 +95,6 @@ backends:
           username: runner
       - ubuntu-24.04-arm:
           username: runner
-          variants:
-            - -juju29
 
 suites:
   tests/spread/:
@@ -108,8 +106,7 @@ kill-timeout: 3h
 environment:
   PATH: $PATH:$(pipx environment --value PIPX_BIN_DIR)
   CONCIERGE_JUJU_CHANNEL/juju36: 3.6/stable
-  CONCIERGE_JUJU_CHANNEL/juju29: 2.9/stable
-  CHARM_UBUNTU_BASE/juju36,juju29: 22.04
+  CHARM_UBUNTU_BASE/juju36: 22.04
 prepare: |
   snap refresh --hold
   chown -R root:root "$SPREAD_PATH"
@@ -122,16 +119,8 @@ prepare: |
   pipx install tox poetry
 prepare-each: |
   cd "$SPREAD_PATH"
-  if [[ $SPREAD_VARIANT == *"juju29"* ]]
-  then
-    # Each version of python-libjuju is only compatible with one major Juju version
-    # Override python-libjuju version pinned in poetry.lock
-    poetry add --lock --group integration juju@^2
-  fi
-  # `concierge prepare` needs to be run for each spread job in case Juju version changed
   concierge prepare --trace
 
   # Unable to set constraint on all models because of Juju bug:
   # https://bugs.launchpad.net/juju/+bug/2065050
   juju set-model-constraints arch="$(dpkg --print-architecture)"
-# Only restore on lxd backend—no need to restore on CI

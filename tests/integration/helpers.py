@@ -11,7 +11,7 @@ from juju.unit import Unit
 from pytest_operator.plugin import OpsTest
 
 from .connector import MySQLConnector
-from .juju_ import is_3_or_higher, run_action
+from .juju_ import run_action
 
 logger = logging.getLogger(__name__)
 
@@ -432,11 +432,10 @@ async def get_data_integrator_credentials(
 
     action = await data_integrator_unit.run_action(action_name="get-credentials")
     result = await action.wait()
-    if is_3_or_higher:
-        assert result.results["return-code"] == 0
-    else:
-        assert result.results["Code"] == "0"
+
+    assert result.results["return-code"] == 0
     assert result.results["ok"] == "True"
+
     return result.results["mysql"]
 
 

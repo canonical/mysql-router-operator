@@ -10,7 +10,6 @@ import pytest
 import tenacity
 from pytest_operator.plugin import OpsTest
 
-from . import architecture, juju_
 from .helpers import (
     MYSQL_DEFAULT_APP_NAME,
     MYSQL_ROUTER_DEFAULT_APP_NAME,
@@ -23,25 +22,15 @@ from .helpers import (
 
 logger = logging.getLogger(__name__)
 
-
 MYSQL_APP_NAME = MYSQL_DEFAULT_APP_NAME
 MYSQL_ROUTER_APP_NAME = MYSQL_ROUTER_DEFAULT_APP_NAME
 DATA_INTEGRATOR_APP_NAME = "data-integrator"
 HA_CLUSTER_APP_NAME = "hacluster"
+TLS_APP_NAME = "self-signed-certificates"
+
 TIMEOUT = 20 * 60
 SMALL_TIMEOUT = 5 * 60
 TEST_DATABASE = "testdatabase"
-
-if juju_.is_3_or_higher:
-    tls_app_name = "self-signed-certificates"
-    tls_channel = "1/stable"
-    tls_config = {"ca-common-name": "Test CA"}
-    tls_series = "noble"
-else:
-    tls_app_name = "tls-certificates-operator"
-    tls_channel = "legacy/edge" if architecture.architecture == "arm64" else "legacy/stable"
-    tls_config = {"generate-self-signed-certificates": "true", "ca-common-name": "Test CA"}
-    tls_series = "jammy"
 
 vip = None
 
@@ -264,11 +253,11 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, series) -> None:
     logger.info("Deploying TLS")
     async with ops_test.fast_forward("60s"):
         await ops_test.model.deploy(
-            tls_app_name,
-            application_name=tls_app_name,
-            channel=tls_channel,
-            config=tls_config,
-            series=tls_series,
+            TLS_APP_NAME,
+            application_name=TLS_APP_NAME,
+            channel="1/stable",
+            config={"ca-common-name": "Test CA"},
+            series="noble",
         )
 
     logger.info("Ensure auto-generated TLS cert before relation with TLS")
@@ -290,10 +279,10 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, series) -> None:
 
     logger.info("Relate TLS with MySQLRouter")
     await ops_test.model.relate(
-        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{tls_app_name}:certificates"
+        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{TLS_APP_NAME}:certificates"
     )
 
-    await ops_test.model.wait_for_idle([tls_app_name], status="active", timeout=TIMEOUT)
+    await ops_test.model.wait_for_idle([TLS_APP_NAME], status="active", timeout=TIMEOUT)
 
     for attempt in tenacity.Retrying(
         reraise=True,
@@ -308,15 +297,15 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, series) -> None:
                 port=database_port,
             )
             assert "CN = Test CA" in issuer, (
-                f"Expected mysqlrouter certificate from {tls_app_name}"
+                f"Expected mysqlrouter certificate from {TLS_APP_NAME}"
             )
 
     logger.info("Ensure router externally accessible after TLS integration")
     await ensure_database_accessible_from_vip(ops_test)
 
-    logger.info(f"Removing relation between mysqlrouter and {tls_app_name}")
+    logger.info(f"Removing relation between mysqlrouter and {TLS_APP_NAME}")
     await ops_test.model.applications[MYSQL_ROUTER_APP_NAME].remove_relation(
-        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{tls_app_name}:certificates"
+        f"{MYSQL_ROUTER_APP_NAME}:certificates", f"{TLS_APP_NAME}:certificates"
     )
 
     for attempt in tenacity.Retrying(

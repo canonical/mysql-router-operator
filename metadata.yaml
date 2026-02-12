@@ -58,3 +58,9 @@ peers:
     interface: cos
   refresh-v-three:
     interface: refresh
+
+assumes:
+  - any-of:
+    - all-of:
+      - juju >= 3.1.7
+      - juju < 4

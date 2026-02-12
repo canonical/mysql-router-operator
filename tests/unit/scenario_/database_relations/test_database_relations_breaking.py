@@ -27,14 +27,12 @@ def output_state(
 
 
 @pytest.mark.parametrize("complete_provides_s", combinations.complete_provides(1, 3))
-def test_breaking_requires_and_complete_provides(
-    complete_requires, complete_provides_s, juju_has_secrets
-):
+def test_breaking_requires_and_complete_provides(complete_requires, complete_provides_s):
     complete_provides_s_ = []
     secrets = []
     for relation in complete_provides_s:
         relation: scenario.Relation
-        if juju_has_secrets and "requested-secrets" in relation.remote_app_data:
+        if "requested-secrets" in relation.remote_app_data:
             secret = scenario.Secret(
                 id="foo",
                 contents={0: {"username": "foouser", "password": "foobar"}},
@@ -78,14 +76,12 @@ def test_breaking_requires_and_complete_provides(
 
 
 @pytest.mark.parametrize("complete_provides_s", combinations.complete_provides(1, 3))
-def test_complete_requires_and_breaking_provides(
-    complete_requires, complete_provides_s, juju_has_secrets
-):
+def test_complete_requires_and_breaking_provides(complete_requires, complete_provides_s):
     complete_provides_s_ = []
     secrets = []
     for relation in complete_provides_s:
         relation: scenario.Relation
-        if juju_has_secrets and "requested-secrets" in relation.remote_app_data:
+        if "requested-secrets" in relation.remote_app_data:
             secret = scenario.Secret(
                 id=f"foo-{relation.relation_id}",
                 contents={0: {"username": "foouser", "password": "foobar"}},
@@ -130,7 +126,7 @@ def test_complete_requires_and_breaking_provides(
     complete_provides_s_.pop()
     for index, provides in enumerate(complete_provides_s_, 1):
         relation = state.relations[index]
-        if juju_has_secrets and "requested-secrets" in relation.remote_app_data:
+        if "requested-secrets" in relation.remote_app_data:
             local_app_data = relation.local_app_data
             secret_id = local_app_data.pop("secret-user")
             secrets = [secret for secret in state.secrets if secret.id == secret_id]

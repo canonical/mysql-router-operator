@@ -8,8 +8,6 @@ There are [a lot of test types](https://en.wikipedia.org/wiki/Software_testing) 
 * System test
 * Performance test
 
-**:information_source: Note:** below examples are written for Juju 3.x, but Juju 2.9 is [supported](/t/12179) as well.<br/>Please adopt the `juju run ...` commands as `juju run-action ... --wait` for Juju 2.9.
-
 ## Smoke test
 
 [u]Complexity[/u]: trivial<br/>
