@@ -43,7 +43,7 @@ async def test_deploy_edge(ops_test: OpsTest, series) -> None:
             num_units=1,
             channel="8.0/edge",
             config={"profile": "testing"},
-            series="jammy",
+            series=series,
         ),
         ops_test.model.deploy(
             MYSQL_ROUTER_APP_NAME,
