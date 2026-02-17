@@ -1,6 +1,6 @@
 # Optimal MySQL Router Setup
 
-For optimal performance, it is recommended that [MySQL Router](https://dev.mysql.com/doc/mysql-router/8.0/en/) is run alongside your application and that your application uses a Unix domain socket to connect to and execute queries against MySQL Router. The usage of a Unix domain socket here results in increased network performance due to the reduced network hops and in increased security due to the lack of exposed ports.
+For optimal performance, it is recommended that [MySQL Router](https://dev.mysql.com/doc/mysql-router/8.4/en/) is run alongside your application and that your application uses a Unix domain socket to connect to and execute queries against MySQL Router. The usage of a Unix domain socket here results in increased network performance due to the reduced network hops and in increased security due to the lack of exposed ports.
 
 When your application implements the modern (preferred) interface in  [MySQL Router's supported interfaces](https://discourse.charmhub.io/t/mysql-router-how-to-manage-app/12339) , the MySQL Router charm is deployed as a subordinate of your application charm and your application will be presented with a Unix domain socket, over the interface, to connect to MySQL Router.
 
@@ -13,7 +13,7 @@ The steps below show you how to deploy and set up MySQL, MySQL Router, and Data 
 
 First, deploy all the charms:
 ```shell
-juju deploy mysql --channel 8.0/edge --trust
+juju deploy mysql --channel 8.4/edge --trust
 juju deploy data-integrator --config database-name=test_database
 juju deploy mysql-router --channel dpe/edge
 ```
@@ -77,7 +77,7 @@ The steps below show you how to deploy and set up MySQL, MySQL Router, Data Inte
 
 First, deploy all the charms
 ```shell
-juju deploy mysql --channel 8.0/edge --trust
+juju deploy mysql --channel 8.4/edge --trust
 juju deploy -n 3 data-integrator --config database-name=test_database
 juju deploy mysql-router --channel dpe/edge
 juju deploy hacluster

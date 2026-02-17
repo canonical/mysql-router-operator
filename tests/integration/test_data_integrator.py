@@ -31,14 +31,17 @@ TEST_TABLE = "testtable"
 
 @pytest.mark.abort_on_fail
 async def test_external_connectivity_with_data_integrator(
-    ops_test: OpsTest, charm, series
+    ops_test: OpsTest, charm, ubuntu_base
 ) -> None:
     """Test encryption when backend database is using TLS."""
     logger.info("Deploy and relate all applications")
     async with ops_test.fast_forward():
         # deploy mysql first
         await ops_test.model.deploy(
-            MYSQL_APP_NAME, channel="8.0/edge", config={"profile": "testing"}, num_units=1
+            MYSQL_APP_NAME,
+            channel="8.0/edge",
+            config={"profile": "testing"},
+            num_units=1,
         )
         data_integrator_config = {"database-name": TEST_DATABASE}
 
@@ -48,20 +51,20 @@ async def test_external_connectivity_with_data_integrator(
                 charm,
                 application_name=MYSQL_ROUTER_APP_NAME,
                 num_units=None,
-                series=series,
+                base=ubuntu_base,
             ),
             ops_test.model.deploy(
                 TLS_APP_NAME,
                 application_name=TLS_APP_NAME,
                 channel="1/stable",
                 config={"ca-common-name": "Test CA"},
-                series="noble",
+                base="ubuntu@24.04",
             ),
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,
                 application_name=DATA_INTEGRATOR_APP_NAME,
                 channel="latest/stable",
-                series=series,
+                base=ubuntu_base,
                 config=data_integrator_config,
             ),
         )

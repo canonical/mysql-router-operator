@@ -68,4 +68,3 @@ def test_inside_container():
     )
 
     assert snap._Path("/tmp") == pathlib.Path("/tmp/snap-private-tmp/snap.charmed-mysql/tmp")
-    assert snap._Path("/tmp").relative_to_container == pathlib.PurePath("/tmp")

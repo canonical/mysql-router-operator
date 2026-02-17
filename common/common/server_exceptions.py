@@ -16,7 +16,7 @@ class ConnectionError_(Error):  # noqa: N801 for underscore in name
     """MySQL Server unreachable
 
     MySQL client error 2003
-    https://dev.mysql.com/doc/mysql-errors/8.0/en/client-error-reference.html#error_cr_conn_host_error
+    https://dev.mysql.com/doc/mysql-errors/8.4/en/client-error-reference.html#error_cr_conn_host_error
     """
 
     MESSAGE = "Failed to connect to MySQL Server. Will retry next Juju event"

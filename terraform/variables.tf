@@ -12,7 +12,7 @@ variable "app_name" {
 variable "base" {
   description = "Application base"
   type        = string
-  default     = "ubuntu@22.04"
+  default     = "ubuntu@24.04"
 }
 
 variable "config" {
@@ -30,7 +30,7 @@ variable "constraints" {
 variable "channel" {
   description = "Charm channel to deploy from"
   type        = string
-  default     = "dpe/candidate"
+  default     = "8.4/edge"
 }
 
 variable "revision" {

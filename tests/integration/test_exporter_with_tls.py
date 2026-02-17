@@ -30,7 +30,7 @@ RETRY_TIMEOUT = 3 * 60
 
 
 @pytest.mark.abort_on_fail
-async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
+async def test_exporter_endpoint(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Test that the exporter endpoint works when related with TLS"""
     logger.info("Deploying all the applications")
 
@@ -42,13 +42,17 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
             channel="8.0/edge",
             application_name=MYSQL_APP_NAME,
             config={"profile": "testing"},
-            num_units=1,
+            # TODO: Check again when switching to 8.4/edge channel
+            # MySQL Router 8.4 requires cluster quorum for R/W traffic,
+            # because of the unreachable_quorum_allowed_traffic config option
+            # (only observable upon process restart)
+            num_units=3,
         ),
         ops_test.model.deploy(
             charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=0,
-            series=series,
+            base=ubuntu_base,
         ),
         ops_test.model.deploy(
             APPLICATION_APP_NAME,
@@ -56,7 +60,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
             num_units=1,
             # MySQL Router and Grafana agent are subordinate -
             # they will use the series of the principal charm
-            series=series,
+            base=ubuntu_base,
             channel="latest/edge",
         ),
         ops_test.model.deploy(
@@ -64,7 +68,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
             application_name=GRAFANA_AGENT_APP_NAME,
             num_units=0,
             channel="1/stable",
-            series=series,
+            base=ubuntu_base,
         ),
     )
 
@@ -130,7 +134,7 @@ async def test_exporter_endpoint(ops_test: OpsTest, charm, series) -> None:
         application_name=TLS_APP_NAME,
         channel="1/stable",
         config={"ca-common-name": "Test CA"},
-        series="noble",
+        base="ubuntu@24.04",
     )
     await ops_test.model.wait_for_idle([TLS_APP_NAME], status="active", timeout=SLOW_TIMEOUT)
 

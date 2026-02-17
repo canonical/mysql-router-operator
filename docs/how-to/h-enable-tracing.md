@@ -105,10 +105,10 @@ database  lxd         localhost/localhost  3.4.3    unsupported  12:48:46Z
 SAAS       Status  Store  URL
 tempo-k8s  active  uk8s   admin/cos.tempo-k8s
 
-App             Version          Status  Scale  Charm           Channel      Rev  Exposed  Message
-mysql           8.0.37-0ubun...  active      1  mysql           8.0/edge     253  no       
-mysql-router    8.0.37-0ubun...  active      1  mysql-router    dpe/edge     216  no       
-mysql-test-app  0.0.2            active      1  mysql-test-app  latest/edge   46  no       Last written value=54713
+App             Version  Status  Scale  Charm           Channel      Rev  Exposed  Message
+mysql           8.4.7    active      1  mysql           8.4/edge     253  no       
+mysql-router    8.4.7    active      1  mysql-router    8.4/edge     216  no       
+mysql-test-app  0.0.2    active      1  mysql-test-app  latest/edge   46  no       Last written value=54713
 
 Unit               Workload  Agent  Machine  Public address  Ports           Message
 mysql-test-app/0*  active    idle   1        10.205.193.43                   Last written value=54713
@@ -116,8 +116,8 @@ mysql-test-app/0*  active    idle   1        10.205.193.43                   Las
 mysql/0*           active    idle   0        10.205.193.72   3306,33060/tcp  Primary
 
 Machine  State    Address        Inst id        Base          AZ  Message
-0        started  10.205.193.72  juju-7f1fdf-0  ubuntu@22.04      Running
-1        started  10.205.193.43  juju-7f1fdf-1  ubuntu@22.04      Running
+0        started  10.205.193.72  juju-7f1fdf-0  ubuntu@24.04      Running
+1        started  10.205.193.43  juju-7f1fdf-1  ubuntu@24.04      Running
 
 Integration provider                           Requirer                                       Interface                    Type         Message
 mysql-router:cos                               mysql-router:cos                               cos                          peer         

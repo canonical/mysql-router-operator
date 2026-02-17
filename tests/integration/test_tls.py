@@ -27,7 +27,7 @@ RETRY_TIMEOUT = 60
 
 
 @pytest.mark.abort_on_fail
-async def test_build_deploy_and_relate(ops_test: OpsTest, charm, series) -> None:
+async def test_build_deploy_and_relate(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Test encryption when backend database is using TLS."""
     logger.info("Deploy and relate all applications")
     async with ops_test.fast_forward():
@@ -37,7 +37,11 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, charm, series) -> None
             channel="8.0/edge",
             application_name=MYSQL_APP_NAME,
             config={"profile": "testing"},
-            num_units=1,
+            # TODO: Check again when switching to 8.4/edge channel
+            # MySQL Router 8.4 requires cluster quorum for R/W traffic,
+            # because of the unreachable_quorum_allowed_traffic config option
+            # (only observable upon process restart)
+            num_units=3,
         )
 
         # tls, test app and router
@@ -46,20 +50,20 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, charm, series) -> None
                 charm,
                 application_name=MYSQL_ROUTER_APP_NAME,
                 num_units=None,
-                series=series,
+                base=ubuntu_base,
             ),
             ops_test.model.deploy(
                 TLS_APP_NAME,
                 application_name=TLS_APP_NAME,
                 channel="1/stable",
                 config={"ca-common-name": "Test CA"},
-                series="noble",
+                base="ubuntu@24.04",
             ),
             ops_test.model.deploy(
                 TEST_APP_NAME,
                 application_name=TEST_APP_NAME,
                 channel="latest/edge",
-                series=series,
+                base=ubuntu_base,
             ),
         )
 

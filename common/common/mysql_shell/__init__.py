@@ -3,7 +3,7 @@
 
 """MySQL Shell in Python execution mode
 
-https://dev.mysql.com/doc/mysql-shell/8.0/en/
+https://dev.mysql.com/doc/mysql-shell/8.4/en/
 """
 
 import dataclasses

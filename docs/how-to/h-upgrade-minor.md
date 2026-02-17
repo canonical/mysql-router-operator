@@ -1,7 +1,7 @@
 # Minor Upgrade
 
-> :information_source: **Example**: MySQL Router 8.0.33 -> MySQL Router 8.0.34<br/>
-(including simple charm revision bump: from revision 99 to revision 102)
+> :information_source: **Example**: MySQL Router 8.4.7 -> MySQL Router 8.4.8<br/>
+(including simple charm revision bump: from revision XX to revision YY)
 
 We strongly recommend to **NOT** perform any other extraordinary operations on Charmed MySQL cluster and/or MySQL Router, while upgrading. As an examples, these may be (but not limited to) the following:
 

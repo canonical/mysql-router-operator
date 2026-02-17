@@ -28,6 +28,6 @@ juju status --relations
 # > ...
 ```
 
-**Note:** In order to relate with Charmed MySQL, every table created by the client application must have a primary key. This is required by the [group replication plugin](https://dev.mysql.com/doc/refman/8.0/en/group-replication-requirements.html) enabled in this charm.
+**Note:** In order to relate with Charmed MySQL, every table created by the client application must have a primary key. This is required by the [group replication plugin](https://dev.mysql.com/doc/refman/8.4/en/group-replication-requirements.html) enabled in this charm.
 
 See all the charm interfaces [here](https://charmhub.io/mysql-router/integrations).

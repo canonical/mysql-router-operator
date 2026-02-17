@@ -62,31 +62,37 @@ def uninstall():
 
 
 class _Path(pathlib.PosixPath, common.container.Path):
-    def __new__(cls, *args, **kwargs):
-        path = super().__new__(cls, *args, **kwargs)
+    """Snap filesystem path"""
+
+    def __init__(self, *args):
+        if args and isinstance(args[0], _Path) and (parent := args[0]._container_parent):
+            super().__init__(*args)
+            self._container_parent = parent
+            return
+
         snap_name = charm_refresh.snap_name()
+        snap_current = f"/var/snap/{snap_name}/current"
+        snap_common = f"/var/snap/{snap_name}/common"
+        snap_tmp = f"/tmp/snap-private-tmp/snap.{snap_name}"
 
-        if args and isinstance(args[0], cls) and (parent_ := args[0]._container_parent):
-            path._container_parent = parent_
+        path_obj = pathlib.PosixPath(*args)
+        path_str = str(path_obj)
+        parent = None
+
+        if path_str.startswith("/etc/mysqlrouter") or path_str.startswith("/var/lib/mysqlrouter"):
+            parent = snap_current
+        if path_str.startswith("/run/mysqlrouter") or path_str.startswith("/var/log/mysqlrouter"):
+            parent = snap_common
+        if path_str.startswith("/tmp") and not path_str.startswith(snap_tmp):
+            parent = snap_tmp
+
+        if parent:
+            assert path_obj.is_absolute()
+            super().__init__(parent, path_obj.relative_to("/"))
         else:
-            if str(path).startswith("/etc/mysqlrouter") or str(path).startswith(
-                "/var/lib/mysqlrouter"
-            ):
-                parent = f"/var/snap/{snap_name}/current"
-            elif str(path).startswith("/run/mysqlrouter") or str(path).startswith(
-                "/var/log/mysqlrouter"
-            ):
-                parent = f"/var/snap/{snap_name}/common"
-            elif str(path).startswith("/tmp"):
-                parent = f"/tmp/snap-private-tmp/snap.{snap_name}"
-            else:
-                parent = None
-            if parent:
-                assert str(path).startswith("/")
-                path = super().__new__(cls, parent, path.relative_to("/"), **kwargs)
-            path._container_parent = parent
+            super().__init__(*args)
 
-        return path
+        self._container_parent = parent
 
     def __truediv__(self, other):
         return type(self)(self, other)

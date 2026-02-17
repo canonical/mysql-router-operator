@@ -28,7 +28,7 @@ SLOW_TIMEOUT = 15 * 60
 
 
 @pytest.mark.abort_on_fail
-async def test_database_relation(ops_test: OpsTest, charm, series) -> None:
+async def test_database_relation(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Test the database relation."""
     # deploy mysqlrouter with num_units=None since it's a subordinate charm
     # and will be installed with the related consumer application
@@ -49,9 +49,8 @@ async def test_database_relation(ops_test: OpsTest, charm, series) -> None:
             APPLICATION_APP_NAME,
             application_name=APPLICATION_APP_NAME,
             num_units=1,
-            # MySQL Router is subordinate—it will use the series of the principal charm
-            series=series,
             channel="latest/edge",
+            base=ubuntu_base,
         ),
     )
 

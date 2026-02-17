@@ -7,8 +7,8 @@ This is part of the [MySQL Router Tutorial](/t/12332). Please refer to this page
 To deploy Charmed MySQL + MySQL Router, all you need to do is run the following commands:
 
 ```shell
-juju deploy mysql --channel 8.0
-juju deploy mysql-router --channel dpe/edge
+juju deploy mysql --channel 8.4
+juju deploy mysql-router --channel 8.4/edge
 ```
 Juju will now fetch charms from [Charmhub](https://charmhub.io/) and begin deploying it to the LXD VMs. This process can take several minutes depending on how provisioned (RAM, CPU, etc) your machine is. You can track the progress by running:
 ```shell
@@ -39,7 +39,7 @@ TODO
 
 ## Access database
 
-The first action most users take after installing MySQL is accessing MySQL. The easiest way to do this is via the [MySQL Command-Line Client](https://dev.mysql.com/doc/refman/8.0/en/mysql.html) `mysql`. Connecting to the database requires that you know the values for `host`, `username` and `password`. To retrieve the necessary fields please run data-integrator action `get-credentials`:
+The first action most users take after installing MySQL is accessing MySQL. The easiest way to do this is via the [MySQL Command-Line Client](https://dev.mysql.com/doc/refman/8.4/en/mysql.html) `mysql`. Connecting to the database requires that you know the values for `host`, `username` and `password`. To retrieve the necessary fields please run data-integrator action `get-credentials`:
 ```shell
 juju run data-integrator/leader get-credentials
 ```
@@ -75,14 +75,14 @@ mysql> show databases;
 ```
 > :tipping_hand_man: **Tip**: if at any point you'd like to leave the MySQL client, enter `Ctrl+d` or type `exit`.
 
-You can now interact with MySQL directly using any [MySQL Queries](https://dev.mysql.com/doc/refman/8.0/en/entering-queries.html). For example entering `SELECT VERSION(), CURRENT_DATE;` should output something like:
+You can now interact with MySQL directly using any [MySQL Queries](https://dev.mysql.com/doc/refman/8.4/en/entering-queries.html). For example entering `SELECT VERSION(), CURRENT_DATE;` should output something like:
 ```shell
 mysql> SELECT VERSION(), CURRENT_DATE;
-+-------------------------+--------------+
-| VERSION()               | CURRENT_DATE |
-+-------------------------+--------------+
-| 8.0.34-0ubuntu0.22.04.1 | 2023-10-17    |
-+-------------------------+--------------+
++------------------------+--------------+
+| VERSION()              | CURRENT_DATE |
++------------------------+--------------+
+| 8.4.7-0ubuntu0.24.04.1 | 2026-01-22   |
++------------------------+--------------+
 1 row in set (0.00 sec)
 ```
 

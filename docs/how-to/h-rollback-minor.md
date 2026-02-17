@@ -1,7 +1,7 @@
 # Minor Rollback
 
-> :information_source: **Example**: MySQL Router 8.0.34 -> MySQL Router 8.0.33<br/>
-(including simple charm revision bump: from revision 43 to revision 42)
+> :information_source: **Example**: MySQL Router 8.4.8 -> MySQL Router 8.4.7<br/>
+(including simple charm revision bump: from revision YY to revision XX)
 
 > **:warning: WARNING**: do NOT trigger `rollback` during the **running** `upgrade` action! It may cause unpredictable MySQL Cluster and/or MySQL Router state!
 
@@ -31,10 +31,10 @@ juju refresh mysql-router --revision=88
 Case deploying from local charm file, one need to have the previous revision charm file and the `mysql-image` resource, then run:
 
 ```
-juju refresh mysql-router --path=./mysql-router_ubuntu-22.04-amd64.charm
+juju refresh mysql-router --path=./mysql-router_ubuntu-24.04-amd64.charm
 ```
 
-Where `mysql-router_ubuntu-22.04-amd64.charm` is the previous revision charm file.
+Where `mysql-router_ubuntu-24.04-amd64.charm` is the previous revision charm file.
 
 The biggest ordinal unit will be rolled out and should rejoin the cluster after settling down. After the refresh command, the juju controller revision for the application will be back in sync with the running MySQL Router revision.
 

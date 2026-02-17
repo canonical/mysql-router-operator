@@ -6,10 +6,8 @@
 
 For instructions on carrying out **minor version upgrades**, see the following guides:
 
-In-place minor upgrade:
+* [Minor upgrade](/t/12345?channel=8.4/edge), e.g. MySQL Router 8.4.7 -> MySQL Router 8.4.8<br/>
+(including charm revision bump XX -> YY).
 
-* [Minor upgrade](/t/12345?channel=dpe/candidate), e.g. MySQL Router 8.0.33 -> MySQL Router 8.0.34<br/>
-(including charm revision bump 99 -> 102).
-
-* [Minor rollback](/t/12346?channel=dpe/candidate), e.g. MySQL Router 8.0.34 -> MySQL Router 8.0.33<br/>
-(including charm revision return 102 -> 99).
+* [Minor rollback](/t/12346?channel=8.4/edge), e.g. MySQL Router 8.4.8 -> MySQL Router 8.4.7<br/>
+(including charm revision return YY -> XX).

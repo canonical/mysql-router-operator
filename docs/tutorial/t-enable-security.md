@@ -32,22 +32,22 @@ Wait until the `self-signed-certificates` is up and active, then use `juju statu
 Model 	Controller  Cloud/Region     	Version  SLA      	Timestamp
 database  lxd     	localhost/localhost  3.1.8	unsupported  18:47:51Z
 
-App                   	Version      	Status  Scale  Charm                 	Channel 	Rev  Exposed  Message
-mysql                 	8.0.34-0ubun...  active  	1  mysql                 	8.0/stable  196  no  	 
-mysql-router          	8.0.36-0ubun...  active  	1  mysql-router                        	103  no  	 
-mysql-test-app        	0.0.2        	active  	1  mysql-test-app        	stable   	36  no  	 
-self-signed-certificates               	active  	1  self-signed-certificates  stable   	72  no  	 
+App                   	Version  Status  Scale  Charm                 	  Channel 	  Rev  Exposed  Message
+mysql                 	8.4.7    active  	1   mysql                 	  8.4/stable  196  no  	 
+mysql-router          	8.4.7    active  	1   mysql-router                          103  no  	 
+mysql-test-app        	0.0.2    active  	1   mysql-test-app        	  stable   	  36   no  	 
+self-signed-certificates         active  	1   self-signed-certificates  stable   	  72   no  	 
 
-Unit                     	Workload  Agent  Machine  Public address  Ports       	Message
-mysql-test-app/0*        	active	idle   1    	10.205.193.227             	 
-  mysql-router/0*        	active	idle        	10.205.193.227             	 
-mysql/0*                 	active	idle   0    	10.205.193.171  3306,33060/tcp  Primary
-self-signed-certificates/0*  active	idle   2    	10.205.193.175             	 
+Unit                     	 Workload  Agent  Machine  Public address  Ports       	   Message
+mysql-test-app/0*        	 active	   idle         1  10.205.193.227             	 
+  mysql-router/0*        	 active	   idle        	   10.205.193.227             	 
+mysql/0*                 	 active	   idle         0  10.205.193.171  3306,33060/tcp  Primary
+self-signed-certificates/0*  active	   idle         2  10.205.193.175             	 
 
-Machine  State	Address     	Inst id    	Base      	AZ  Message
-0    	started  10.205.193.171  juju-3c2f36-0  ubuntu@22.04  	Running
-1    	started  10.205.193.227  juju-3c2f36-1  ubuntu@22.04  	Running
-2    	started  10.205.193.175  juju-3c2f36-2  ubuntu@22.04  	Running
+Machine  State	  Address         Inst id        Base          AZ  Message
+0    	 started  10.205.193.171  juju-3c2f36-0  ubuntu@24.04  	   Running
+1    	 started  10.205.193.227  juju-3c2f36-1  ubuntu@24.04  	   Running
+2    	 started  10.205.193.175  juju-3c2f36-2  ubuntu@24.04  	   Running
 ```
 
 To enable TLS on Charmed MySQLRouter, integrate the two applications:

@@ -307,7 +307,7 @@ class RunningWorkload(Workload):
             # - "Error: Unable to connect to the metadata server: Error connecting to MySQL server at mysql-k8s-primary.foo1.svc.cluster.local:3306: Can't connect to MySQL server on 'mysql-k8s-primary.foo1.svc.cluster.local:3306' (111) (2003)"
             # - "Error: Unable to connect to the metadata server: Error connecting to MySQL server at mysql-k8s-primary.foo3.svc.cluster.local:3306: Unknown MySQL server host 'mysql-k8s-primary.foo3.svc.cluster.local' (-2) (2005)"
             # Codes 2000-2999 are client errors
-            # (https://dev.mysql.com/doc/refman/8.0/en/error-message-elements.html#error-code-ranges)
+            # (https://dev.mysql.com/doc/refman/8.4/en/error-message-elements.html#error-code-ranges)
             elif match := re.fullmatch(r"Error:.*\((?P<code>2[0-9]{3})\)", stderr):
                 code = int(match.group("code"))
                 if code == 2003:

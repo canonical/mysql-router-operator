@@ -4,7 +4,6 @@
 
 import asyncio
 
-import pytest
 from pytest_operator.plugin import OpsTest
 
 from . import markers
@@ -14,10 +13,8 @@ MYSQL_TEST_APP_NAME = "mysql-test-app"
 
 
 @markers.amd64_only
-async def test_arm_charm_on_amd_host(ops_test: OpsTest, charm, ubuntu_base, series) -> None:
+async def test_arm_charm_on_amd_host(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Tries deploying an arm64 charm on amd64 host."""
-    if ubuntu_base == "20.04":
-        pytest.skip("arm64 charm not built for 20.04")
     charm = charm.replace("amd64", "arm64")
 
     await asyncio.gather(
@@ -25,14 +22,14 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest, charm, ubuntu_base, seri
             charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=0,
-            series=series,
+            base=ubuntu_base,
         ),
         ops_test.model.deploy(
             MYSQL_TEST_APP_NAME,
             application_name=MYSQL_TEST_APP_NAME,
             num_units=1,
             channel="latest/edge",
-            series=series,
+            base=ubuntu_base,
         ),
     )
 
@@ -49,7 +46,7 @@ async def test_arm_charm_on_amd_host(ops_test: OpsTest, charm, ubuntu_base, seri
 
 
 @markers.arm64_only
-async def test_amd_charm_on_arm_host(ops_test: OpsTest, charm, series) -> None:
+async def test_amd_charm_on_arm_host(ops_test: OpsTest, charm, ubuntu_base) -> None:
     """Tries deploying an amd64 charm on arm64 host."""
     charm = charm.replace("arm64", "amd64")
 
@@ -58,14 +55,14 @@ async def test_amd_charm_on_arm_host(ops_test: OpsTest, charm, series) -> None:
             charm,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=0,
-            series=series,
+            base=ubuntu_base,
         ),
         ops_test.model.deploy(
             MYSQL_TEST_APP_NAME,
             application_name=MYSQL_TEST_APP_NAME,
             num_units=1,
             channel="latest/edge",
-            series=series,
+            base=ubuntu_base,
         ),
     )
 

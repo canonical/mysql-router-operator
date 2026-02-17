@@ -106,9 +106,9 @@ class RelationEndpoint:
         self._interface = data_interfaces.DatabaseRequires(
             charm_,
             relation_name=self._NAME,
-            # Database name disregarded by MySQL charm if "mysqlrouter" extra user role requested
+            # Database name disregarded by MySQL charm if "charmed_router" extra user role requested
             database_name="mysql_innodb_cluster_metadata",
-            extra_user_roles="mysqlrouter",
+            extra_user_roles="charmed_router",
         )
         charm_.framework.observe(self._interface.on.database_created, charm_.reconcile)
         charm_.framework.observe(self._interface.on.endpoints_changed, charm_.reconcile)

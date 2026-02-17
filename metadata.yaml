@@ -7,7 +7,7 @@ summary: Charmed MySQL Router VM operator
 description: |
   Enables effective access to a MySQL cluster with Group Replication.
 
-  This charm supports MySQL Router 8.0 in in bare-metal/virtual-machines.
+  This charm supports MySQL Router 8.4 in in bare-metal/virtual-machines.
 docs: https://discourse.charmhub.io/t/charmed-mysql-router-documentation/12131
 source: https://github.com/canonical/mysql-router-operators
 issues: https://github.com/canonical/mysql-router-operators/issues

@@ -86,7 +86,6 @@ backends:
     # Manually pass specific environment variables
     environment:
       CI: '$(HOST: echo $CI)'
-      CHARM_UBUNTU_BASE: '$(HOST: echo $CHARM_UBUNTU_BASE)'
       UBUNTU_PRO_TOKEN: '$(HOST: echo $UBUNTU_PRO_TOKEN)'
       LANDSCAPE_ACCOUNT_NAME: '$(HOST: echo $LANDSCAPE_ACCOUNT_NAME)'
       LANDSCAPE_REGISTRATION_KEY: '$(HOST: echo $LANDSCAPE_REGISTRATION_KEY)'
@@ -106,7 +105,6 @@ kill-timeout: 3h
 environment:
   PATH: $PATH:$(pipx environment --value PIPX_BIN_DIR)
   CONCIERGE_JUJU_CHANNEL/juju36: 3.6/stable
-  CHARM_UBUNTU_BASE/juju36: 22.04
 prepare: |
   snap refresh --hold
   chown -R root:root "$SPREAD_PATH"

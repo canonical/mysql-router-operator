@@ -79,7 +79,9 @@ async def generate_next_available_ip(
 
 
 @pytest.mark.abort_on_fail
-async def test_external_connectivity_vip_with_hacluster(ops_test: OpsTest, charm, series) -> None:
+async def test_external_connectivity_vip_with_hacluster(
+    ops_test: OpsTest, charm, ubuntu_base
+) -> None:
     """Test external connectivity and VIP with data-integrator hacluster."""
     logger.info("Deploy and relate all applications without hacluster")
     # speed up test by firing update-status more frequently (for hacluster)
@@ -96,13 +98,13 @@ async def test_external_connectivity_vip_with_hacluster(ops_test: OpsTest, charm
                 charm,
                 application_name=MYSQL_ROUTER_APP_NAME,
                 num_units=None,
-                series=series,
+                base=ubuntu_base,
             ),
             ops_test.model.deploy(
                 DATA_INTEGRATOR_APP_NAME,
                 application_name=DATA_INTEGRATOR_APP_NAME,
                 channel="latest/stable",
-                series=series,
+                base=ubuntu_base,
                 config={"database-name": TEST_DATABASE},
                 num_units=4,
             ),
@@ -144,7 +146,7 @@ async def test_external_connectivity_vip_with_hacluster(ops_test: OpsTest, charm
         logger.info("Deploy and relate hacluster")
         await ops_test.model.deploy(
             HA_CLUSTER_APP_NAME,
-            channel="2.4/stable",
+            channel="2.4/edge",
         )
 
         await ops_test.model.relate(
@@ -248,7 +250,7 @@ async def test_hacluster_failover(ops_test: OpsTest) -> None:
 
 
 @pytest.mark.abort_on_fail
-async def test_tls_along_with_ha_cluster(ops_test: OpsTest, series) -> None:
+async def test_tls_along_with_ha_cluster(ops_test: OpsTest, ubuntu_base) -> None:
     """Ensure that mysqlrouter is externally accessible with TLS integration."""
     logger.info("Deploying TLS")
     async with ops_test.fast_forward("60s"):
@@ -257,7 +259,7 @@ async def test_tls_along_with_ha_cluster(ops_test: OpsTest, series) -> None:
             application_name=TLS_APP_NAME,
             channel="1/stable",
             config={"ca-common-name": "Test CA"},
-            series="noble",
+            base="ubuntu@24.04",
         )
 
     logger.info("Ensure auto-generated TLS cert before relation with TLS")

@@ -25,7 +25,7 @@ There are [two types of charms](https://juju.is/docs/sdk/charm-taxonomy#heading-
 
 Both legacy and modern charms are [**subordinated**](https://juju.is/docs/sdk/charm-taxonomy#heading--subordinate-charms).
 
-The legacy charm provided SQL endpoints `shared-db` (for the interface `mysql-shared`). The modern charm provides those old endpoint and a new endpoint `database` (for the interface `mysql_client`). Read more details about the available endpoints and interfaces [here](https://charmhub.io/mysql-router/docs/e-interfaces?channel=dpe/candidate).
+The legacy charm provided SQL endpoints `shared-db` (for the interface `mysql-shared`). The modern charm provides those old endpoint and a new endpoint `database` (for the interface `mysql_client`). Read more details about the available endpoints and interfaces [here](https://charmhub.io/mysql-router/docs/e-interfaces?channel=8.4/edge).
 
 **Note**: Please choose one endpoint to use. No need to relate all of them simultaneously!
 
@@ -50,7 +50,7 @@ This section goes over the key differences in feature support and functionality 
 
 ### Config options
 
-The legacy charm config options were not moved to the modern charm, since the modern charm applies the best possible configuration automatically. Feel free to [contact us](/t/12323?channel=dpe/candidate) about the MySQL Router config options.
+The legacy charm config options were not moved to the modern charm, since the modern charm applies the best possible configuration automatically. Feel free to [contact us](/t/12323?channel=8.4/edge) about the MySQL Router config options.
 
 ### Extensions
 
@@ -58,8 +58,8 @@ Both legacy and modern charms provide no plugins/extensions support.
 
 ### MySQL versions
 
-At the moment, the modern MySQL Router charm supports relation to the modern Charmed MySQL 8.0 (based on Jammy/22.04 series) only.
-Please [contact us](/t/12323?channel=dpe/candidate) if you need different versions/series.
+At the moment, the modern MySQL Router charm supports relation to the modern Charmed MySQL 8.4 (based on Noble/24.04 series) only.
+Please [contact us](/t/12323?channel=8.4/edge) if you need different versions/series.
 
 ### Architectures
 
@@ -69,6 +69,6 @@ Currently, the modern charm supports architecture `amd64` and `arm64` only.
 
 The "legacy charm" (from `latest/stable`) is stored on [Launchpad](TODO). Report legacy charm issues [here](TODO).
 
-The "modern charm" (from `dpe/candidate`) is stored on [GitHub](https://github.com/canonical/mysql-router-operators). Report modern charm issues [here](https://github.com/canonical/mysql-router-operators/issues/new/choose).
+The "modern charm" (from `8.4/edge`) is stored on [GitHub](https://github.com/canonical/mysql-router-operators). Report modern charm issues [here](https://github.com/canonical/mysql-router-operators/issues/new/choose).
 
-Do you have questions? [Reach out](/t/12323?channel=dpe/candidate) to us!
+Do you have questions? [Reach out](/t/12323?channel=8.4/edge) to us!
