@@ -43,13 +43,13 @@ async def test_deploy_edge(ops_test: OpsTest, ubuntu_base) -> None:
             num_units=1,
             channel="8.0/edge",
             config={"profile": "testing"},
-            series="jammy",
+            base="ubuntu@22.04",
         ),
         ops_test.model.deploy(
             MYSQL_ROUTER_APP_NAME,
             application_name=MYSQL_ROUTER_APP_NAME,
             num_units=1,
-            channel="dpe/edge",
+            channel="8.4/edge",
             base=ubuntu_base,
         ),
         ops_test.model.deploy(

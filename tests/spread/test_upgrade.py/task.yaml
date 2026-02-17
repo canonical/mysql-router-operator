@@ -2,8 +2,6 @@ summary: test_upgrade.py
 environment:
   TEST_MODULE: test_upgrade.py
 execute: |
-  # TODO: Un-comment when we release a 8.4/edge charm
-  # tox run -e integration -- "tests/integration/$TEST_MODULE" --model testing --alluredir="$SPREAD_TASK/allure-results"
-  exit 0
+  tox run -e integration -- "tests/integration/$TEST_MODULE" --model testing --alluredir="$SPREAD_TASK/allure-results"
 artifacts:
   - allure-results
