@@ -39,7 +39,7 @@ async def test_external_connectivity_with_data_integrator(
         # deploy mysql first
         await ops_test.model.deploy(
             MYSQL_APP_NAME,
-            channel="8.0/edge",
+            channel="8.4/edge",
             config={"profile": "testing"},
             num_units=1,
         )

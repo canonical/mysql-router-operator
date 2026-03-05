@@ -6,6 +6,7 @@ import logging
 import os
 import pathlib
 import shutil
+import time
 import zipfile
 
 import pytest
@@ -41,9 +42,8 @@ async def test_deploy_edge(ops_test: OpsTest, ubuntu_base) -> None:
             MYSQL_APP_NAME,
             application_name=MYSQL_APP_NAME,
             num_units=1,
-            channel="8.0/edge",
+            channel="8.4/edge",
             config={"profile": "testing"},
-            base="ubuntu@22.04",
         ),
         ops_test.model.deploy(
             MYSQL_ROUTER_APP_NAME,
@@ -91,6 +91,9 @@ async def test_upgrade_from_edge(ops_test: OpsTest, charm, continuous_writes) ->
 
     logger.info("Refresh the charm")
     await mysql_router_application.refresh(path=temporary_charm)
+
+    # sleep to ensure that active status from before re-refresh does not affect below check
+    time.sleep(15)
 
     # Refresh will always be incompatible since we are downgrading the workload
     # Refresh will additionally be incompatible on PR CI (not edge CI) since unrelease charm
@@ -213,9 +216,9 @@ def create_valid_upgrade_charm(charm_file: str | pathlib.Path) -> None:
 
     # charm needs to refresh snap to be able to avoid no-op when upgrading.
     # set an old revision of the snap
-    versions["snap"]["revisions"]["x86_64"] = "121"
-    versions["snap"]["revisions"]["aarch64"] = "122"
-    versions["workload"] = "8.0.39"
+    versions["snap"]["revisions"]["x86_64"] = "171"
+    versions["snap"]["revisions"]["aarch64"] = "170"
+    versions["workload"] = "8.4.7"
 
     with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
         charm_zip.writestr("refresh_versions.toml", tomli_w.dumps(versions))
@@ -227,7 +230,7 @@ def create_invalid_upgrade_charm(charm_file: str | pathlib.Path) -> None:
         with zipfile.Path(charm_zip, "refresh_versions.toml").open("rb") as file:
             versions = tomli.load(file)
 
-    versions["charm"] = "8.0/0.0.0"
+    versions["charm"] = "8.4/0.0.0"
 
     with zipfile.ZipFile(charm_file, mode="a") as charm_zip:
         # an invalid charm version because the major workload_version is one less than the current workload_version

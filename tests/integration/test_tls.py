@@ -34,7 +34,7 @@ async def test_build_deploy_and_relate(ops_test: OpsTest, charm, ubuntu_base) ->
         # deploy mysql first
         await ops_test.model.deploy(
             MYSQL_APP_NAME,
-            channel="8.0/edge",
+            channel="8.4/edge",
             application_name=MYSQL_APP_NAME,
             config={"profile": "testing"},
             # TODO: Check again when switching to 8.4/edge channel

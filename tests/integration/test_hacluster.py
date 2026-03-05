@@ -90,7 +90,7 @@ async def test_external_connectivity_vip_with_hacluster(
         _, _, data_integrator_application = await asyncio.gather(
             ops_test.model.deploy(
                 MYSQL_APP_NAME,
-                channel="8.0/edge",
+                channel="8.4/edge",
                 config={"profile": "testing"},
                 num_units=1,
             ),

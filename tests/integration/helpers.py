@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 import itertools
+import json
 import logging
 import subprocess
 import tempfile
@@ -266,28 +267,25 @@ def get_application_name(ops_test: OpsTest, application_name_substring: str) -> 
 
 
 @tenacity.retry(stop=tenacity.stop_after_attempt(30), wait=tenacity.wait_fixed(5), reraise=True)
-async def get_primary_unit(
-    ops_test: OpsTest,
-    unit: Unit,
-    app_name: str,
-) -> Unit:
+async def get_primary_unit(ops_test: OpsTest, unit: Unit, app_name: str) -> Unit:
     """Helper to retrieve the primary unit.
 
     Args:
         ops_test: The ops test object passed into every test case
         unit: A unit on which to run dba.get_cluster().status() on
         app_name: The name of the test application
-        cluster_name: The name of the test cluster
 
     Returns:
         A juju unit that is a MySQL primary
     """
     units = ops_test.model.applications[app_name].units
-    results = await run_action(unit, "get-cluster-status")
+
+    result = await run_action(unit, "get-cluster-status")
+    status = json.loads(result["status"])
 
     primary_unit = None
-    for k, v in results["status"]["defaultreplicaset"]["topology"].items():
-        if v["memberrole"] == "primary":
+    for k, v in status["defaultReplicaSet"]["topology"].items():
+        if v["memberRole"] == "PRIMARY":
             unit_name = f"{app_name}/{k.split('-')[-1]}"
             primary_unit = [unit for unit in units if unit.name == unit_name][0]
             break
