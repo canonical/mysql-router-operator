@@ -41,7 +41,7 @@ juju add-model tutorial
 You can now view the model you created above by entering the command `juju status` into the command line. You should see the following:
 ```
 Model    Controller  Cloud/Region         Version  SLA          Timestamp
-tutorial overlord    localhost/localhost  3.1.6    unsupported  23:20:53+01:00
+tutorial overlord    localhost/localhost  3.6.19   unsupported  23:20:53+01:00
 
 Model "admin/tutorial" is empty.
 ```

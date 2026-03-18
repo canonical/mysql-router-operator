@@ -30,7 +30,7 @@ Wait until the `self-signed-certificates` is up and active, then use `juju statu
 
 ```
 Model 	Controller  Cloud/Region     	Version  SLA      	Timestamp
-database  lxd     	localhost/localhost  3.1.8	unsupported  18:47:51Z
+database  lxd     	localhost/localhost  3.6.19	 unsupported  18:47:51Z
 
 App                   	Version  Status  Scale  Charm                 	  Channel 	  Rev  Exposed  Message
 mysql                 	8.4.7    active  	1   mysql                 	  8.4/stable  196  no  	 

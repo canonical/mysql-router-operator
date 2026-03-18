@@ -1,8 +1,6 @@
 ## Juju version
 
-The charm supports only [Juju 3.1+](https://github.com/juju/juju/releases).
-
-The minimum supported Juju versions is 3.1.7+ (Juju secrets refactored/stabilized in Juju 3.1.7)
+The charm supports only [Juju 3.6+](https://github.com/juju/juju/releases).
 
 Make sure your machine meets the following requirements:
 - Ubuntu 24.04 (Jammy) or later.

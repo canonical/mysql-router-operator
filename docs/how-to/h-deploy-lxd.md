@@ -21,7 +21,7 @@ juju status --watch 1s
 The expected result:
 ```shell
 Model  Controller  Cloud/Region         Version  SLA          Timestamp
-mysql  lxd         localhost/localhost  3.1.6    unsupported  11:57:33+02:00
+mysql  lxd         localhost/localhost  3.6.19   unsupported  11:57:33+02:00
 
 App             Version  Status  Scale  Charm           Channel     Rev  Exposed  Message
 mysql           8.4.7    active      1  mysql           8.4/edge    196  no       

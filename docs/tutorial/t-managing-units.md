@@ -15,7 +15,7 @@ juju scale-application mysql-router 3
 You can now watch the scaling process in live using: `juju status --watch 1s`. It usually takes several minutes for new cluster members to be added. You’ll know that all three nodes are in sync when `juju status` reports `Workload=active` and `Agent=idle`:
 ```shell
 Model     Controller  Cloud/Region        Version  SLA          Timestamp
-tutorial  overlord    microk8s/localhost  3.4.3    unsupported  22:48:57+01:00
+tutorial  overlord    microk8s/localhost  3.6.19   unsupported  22:48:57+01:00
 
 App               Version  Status  Scale  Charm             Channel   Rev  Address         Exposed  Message
 data-integrator            active      1  data-integrator   stable     13  10.152.183.142  no       
@@ -61,7 +61,7 @@ juju scale-application mysql 2
 You’ll know that the replica was successfully removed when `juju status --watch 1s` reports:
 ```shell
 Model     Controller  Cloud/Region        Version  SLA          Timestamp
-tutorial  overlord    microk8s/localhost  3.4.3    unsupported  22:48:57+01:00
+tutorial  overlord    microk8s/localhost  3.6.19   unsupported  22:48:57+01:00
 
 App               Version  Status  Scale  Charm             Channel   Rev  Address         Exposed  Message
 data-integrator            active      1  data-integrator   stable     13  10.152.183.142  no       
